@@ -1,0 +1,77 @@
+diff --git a/src/game/server/client.cpp b/src/game/server/client.cpp
+index 357f0f22..fc871ab2 100644
+--- a/src/game/server/client.cpp
++++ b/src/game/server/client.cpp
+@@ -45,6 +45,8 @@
+ #include "weapon_physcannon.h"
+ #endif
+ 
++#include "ap_main.h"
++
+ // memdbgon must be the last include file in a .cpp file!!!
+ #include "tier0/memdbgon.h"
+ 
+@@ -148,6 +150,9 @@ void Host_Say( edict_t *pEdict, const CCommand &args, bool teamonly )
+ 		p = CheckChatText( pPlayer, p );
+ 	}
+ 
++	if ( pPlayer && ap::HandleChat( pPlayer, p ) )
++		return;
++
+ 	if ( !p )
+ 		return;
+ 
+diff --git a/src/game/client/clientmode_shared.cpp b/src/game/client/clientmode_shared.cpp
+--- a/src/game/client/clientmode_shared.cpp
++++ b/src/game/client/clientmode_shared.cpp
+@@ -788,11 +788,8 @@
+ //-----------------------------------------------------------------------------
+ void ClientModeShared::StartMessageMode( int iMessageModeType )
+ {
+-	// Can only show chat UI in multiplayer!!!
+-	if ( gpGlobals->maxClients == 1 )
+-	{
+-		return;
+-	}
++	// hl2ap: chat is open in single player too; it is where Archipelago
++	// commands are typed (`!status`), and Host_Say hands them to ap::HandleChat.
+ 	if ( m_pChatElement )
+ 	{
+ 		m_pChatElement->StartMessageMode( iMessageModeType );
+diff --git a/src/tier1/KeyValues.cpp b/src/tier1/KeyValues.cpp
+index 19d6d66c..06423fd6 100644
+--- a/src/tier1/KeyValues.cpp
++++ b/src/tier1/KeyValues.cpp
+@@ -2082,6 +2082,10 @@ bool EvaluateConditional( const char *str )
+ 	if ( Q_stristr( str, "$POSIX" ) )
+ 		return IsPosix() ^ bNot;
+ 	
++	// Steam Deck layouts in the 2025 retail scripts; never a Deck here.
++	if ( Q_stristr( str, "$DECK" ) )
++		return false ^ bNot;
++	
+ 	return false;
+ }
+ 
+diff --git a/src/vgui2/vgui_controls/AnimationController.cpp b/src/vgui2/vgui_controls/AnimationController.cpp
+index 6da33a38..76b54dcb 100644
+--- a/src/vgui2/vgui_controls/AnimationController.cpp
++++ b/src/vgui2/vgui_controls/AnimationController.cpp
+@@ -328,7 +328,7 @@ bool AnimationController::ParseScriptFile(char *pMem, int length)
+ 
+ 		// get the open brace or a conditional
+ 		pMem = ParseFile(pMem, token, NULL);
+-		if ( Q_stristr( token, "[$" ) )
++		if ( Q_stristr( token, "[$" ) || Q_stristr( token, "[!$" ) )
+ 		{
+ 			bAccepted = EvaluateConditional( token );
+ 
+@@ -593,7 +593,7 @@ bool AnimationController::ParseScriptFile(char *pMem, int length)
+ 			
+ 			// Look ahead one token for a conditional
+ 			char *peek = ParseFile(pMem, token, NULL);
+-			if ( Q_stristr( token, "[$" ) )
++			if ( Q_stristr( token, "[$" ) || Q_stristr( token, "[!$" ) )
+ 			{
+ 				if ( !EvaluateConditional( token ) )
+ 				{

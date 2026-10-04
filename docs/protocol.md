@@ -141,8 +141,10 @@ bridge. The release dll does not read them.
 
 | File | Writer | Content |
 | --- | --- | --- |
-| `aptest_go.txt` | harness | `seq=`, `map=`, optional `pos=x y z`, optional `setup=<console command>` lines. The game loads the map when `seq` changes (never on first sight), waits until the player has been alive 1 s, teleports to a standing spot near `pos`, then runs each `setup` command |
+| `aptest_go.txt` | harness | `seq=`, `map=`, optional `pos=x y z`, optional `setup=<console command>` lines. The game loads the map when `seq` changes (never on first sight), waits until the player has been alive 1 s, teleports to a standing spot near `pos`, then runs each `setup` command as if the player typed it, one per frame (so `kill` and `ch_createairboat` act on the player) |
 | `aptest_say.txt` | harness, append-only | `hud\|text` shown on screen and in the console, `con\|text` console only. The game starts reading at the end, and holds output while a map loads |
 
 Verbs typed in game as `!x` or `/x` in chat, or `ap_test x` in the console, go
-back as `APTEST|x|arg`; `tp` alone is answered in game.
+back as `APTEST|x|arg`; `tp` alone is answered in game. The `ap_test` command
+exists only in a test build, and its name in the binary is how the harness
+tells a test build from a release one.

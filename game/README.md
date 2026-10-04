@@ -9,6 +9,7 @@ clang-cl + lld-link + xwin from Linux.
 ```sh
 git clone -b singleplayer https://github.com/ValveSoftware/source-sdk-2013.git ../source-sdk-2013
 git -C ../source-sdk-2013 apply ../hl2-ap/game/sdk-compat.patch
+git -C ../source-sdk-2013 apply ../hl2-ap/game/sdk.patch
 cmake -S game -B build/game -G Ninja \
       -DCMAKE_TOOLCHAIN_FILE=$PWD/game/toolchain-clangcl-x86.cmake \
       -DSDK_DIR=../source-sdk-2013
@@ -59,5 +60,51 @@ plus our own per-campaign switching.
   - 3DNow asm (`3dnow.cpp`, never selected on a modern CPU) and the unused
     naked `_SSE_VectorMA` are compiled out under clang.
   - One `COMPILE_TIME_ASSERT` on a pointer cast is skipped under clang.
+  - `clientmode_shared.cpp`: a pointer compared `> 0` becomes `!= NULL`.
+- **`compat/hypot_compat.cpp`** defines `_hypot` for the client: Valve's
+  VS2013 `particles.lib` calls it, and taking it from the static UCRT also
+  brings a second `hypot` that lld-link (unlike MSVC's linker) refuses.
+- **The client links with `/SAFESEH:NO`**, as Valve's release scripts do:
+  `vtf.lib`'s S3TC objects have no SafeSEH tables.
 - **`compat/typeinfo.h`** shims a header the UCRT dropped.
-- Hooks for our features will live in a separate `sdk.patch`, kept small.
+- **`sdk.patch`** holds the hooks, one line each, kept apart from the build
+  fixes. Most of the game side hangs off a `CAutoGameSystemPerFrame` in
+  `src/ap_main.cpp` and needs no hook at all.
+  - `game/server/client.cpp` `Host_Say` -> `ap::HandleChat`: `!x` and `/x` chat
+    commands, and plain chat relayed to the client.
+  - `tier1/KeyValues.cpp` `EvaluateConditional` and
+    `vgui2/vgui_controls/AnimationController.cpp`: understand the 2025 retail
+    scripts' `[$DECK]`/`[!$DECK]` conditionals (Steam Deck layouts; always
+    false here). Without this every HUD element in `scripts/hudlayout.res`
+    is dropped and the client crashes. `vgui_controls` is therefore built from
+    source, not Valve's prebuilt lib.
+  - `game/client/clientmode_shared.cpp` `StartMessageMode`: the "multiplayer
+    only" early return removed, so chat opens in single player.
+
+## The client
+
+`client.dll` is built too, from `client_hl2.vpc`, and installed with the
+server. The retail client refuses to open chat when `maxClients` is 1, and
+chat is where `!` commands are typed; our own HUD elements will live here as
+well. The two dlls come from the same SDK tree, so they always match. Its
+exports and interface versions match retail `hl2/bin/client.dll`, apart from
+Steam API interface versions (our SDK's headers are older; requested through
+`VERSION_SAFE_STEAM_API_INTERFACES`) and retail's Workshop interface.
+
+Apply it after `sdk-compat.patch`:
+`git -C ../source-sdk-2013 apply ../hl2-ap/game/sdk.patch`.
+
+## Test build
+
+`-DHL2AP_TEST_BUILD=ON` compiles the scenario harness's game half
+(`src/ap_aptest.cpp`, the `ap_test` command) in. Build it beside the release:
+
+```sh
+cmake -S game -B build/game-test -G Ninja \
+      -DCMAKE_TOOLCHAIN_FILE=$PWD/game/toolchain-clangcl-x86.cmake \
+      -DSDK_DIR=../source-sdk-2013 -DHL2AP_TEST_BUILD=ON
+cmake --build build/game-test
+```
+
+`tests/aptest/aptest.py` swaps it into the installed mod while it runs and puts
+the release dll back on exit. A release dll never contains the string `ap_test`.

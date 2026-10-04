@@ -11,6 +11,7 @@ import pytest
 
 SUBSETS = {
     "test_bridge.py": "bridge",
+    "test_bridge_cpp.py": "bridge",
     "test_mod_install.py": "install",
     "test_aptest.py": "harness",
     "test_no_unreachable_code.py": "lint",

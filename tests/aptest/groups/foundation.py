@@ -13,16 +13,18 @@ def build(ctx) -> list[Scenario]:
     return [
         Scenario(
             title="Harness: placed, steps shown",
-            map="d1_trainstation_01",
+            map="d1_canals_01",
             steps="""
                 The map loaded and these steps appeared once you were placed.
+                Verbs go in chat (bind a key with: bind y messagemode) or in the
+                console as ap_test <verb>, e.g. ap_test info.
                 Type !info to show them again and !status for the counts.
                 !pass if both work, else !fail <what happened>.
             """,
         ),
         Scenario(
             title="Harness: every verb answers",
-            map="d1_trainstation_01",
+            map="d1_canals_01",
             steps="""
                 Try each of: !note test, !list, !groups, !give Medkit, !take Medkit,
                 !connect, !disconnect, !item Medkit, !trap Headcrab, !deathlink.
@@ -44,7 +46,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="New game from the menu",
-            map="d1_trainstation_01",
+            map="d1_canals_01",
             steps="""
                 Open the menu (Esc), pick New Game.
                 The chapter list should show Half-Life 2's chapters with real titles,

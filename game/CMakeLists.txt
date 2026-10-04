@@ -49,7 +49,11 @@ set(VALVE_COMPILE_OPTIONS
     # Valve's code under a 2026 front end: keep the build log readable.
     /W0 -Wno-everything
     # VS2013-era code relies on MSVC's permissive template lookup.
-    -fms-compatibility -fdelayed-template-parsing)
+    -fms-compatibility -fdelayed-template-parsing
+    # Valve's code calls methods on null pointers and expects MSVC's codegen
+    # (e.g. KeyValues::deleteThis on NULL is a no-op). clang would otherwise
+    # treat `this` as non-null and drop the check, crashing at HUD setup.
+    /clang:-fno-delete-null-pointer-checks)
 set(VALVE_DEFINES
     VPC RAD_TELEMETRY_DISABLED
     COMPILER_MSVC COMPILER_MSVC32 _DLL_EXT=.dll FRAME_POINTER_OMISSION_DISABLED
@@ -77,6 +81,18 @@ add_library(mathlib OBJECT ${MATHLIB_SOURCES})
 target_compile_options(mathlib PRIVATE ${VALVE_COMPILE_OPTIONS})
 target_compile_definitions(mathlib PRIVATE ${VALVE_DEFINES} _LIB MATHLIB_LIB LIBNAME=mathlib)
 target_include_directories(mathlib PRIVATE ${VALVE_INCLUDES} "${SRC}/public/mathlib")
+
+# vgui_controls from source for the client: the retail HUD scripts use
+# `[!$DECK]` conditionals that Valve's prebuilt AnimationController rejects
+# (it only looks for "[$"), and sdk.patch fixes that.
+vpc_sources(VGUI_CONTROLS_SOURCES vgui2/vgui_controls/vgui_controls.vpc)
+# The client compiles this one too; as a static lib the duplicate never mattered.
+list(FILTER VGUI_CONTROLS_SOURCES EXCLUDE REGEX "/public/filesystem_helpers\\.cpp$")
+add_library(vgui_controls OBJECT ${VGUI_CONTROLS_SOURCES})
+target_compile_options(vgui_controls PRIVATE ${VALVE_COMPILE_OPTIONS})
+target_compile_definitions(vgui_controls PRIVATE ${VALVE_DEFINES} _LIB LIBNAME=vgui_controls)
+target_include_directories(vgui_controls PRIVATE ${VALVE_INCLUDES}
+    "${SRC}/vgui2/include" "${SRC}/vgui2/controls" "${SRC}/thirdparty" "${SRC}/thirdparty/cef")
 
 # The server.
 vpc_sources(SERVER_SOURCES game/server/server_hl2.vpc)
@@ -115,4 +131,46 @@ target_link_libraries(server PRIVATE
     legacy_stdio_definitions
     winmm shell32 user32 advapi32 gdi32 comdlg32 ole32 ws2_32 rpcrt4)
 target_link_options(server PRIVATE
-    /DEBUG /OPT:REF /OPT:ICF /NODEFAULTLIB:libc /NODEFAULTLIB:libcd /NODEFAULTLIB:libcmtd)
+    /DEBUG /MAP /OPT:REF /OPT:ICF /NODEFAULTLIB:libc /NODEFAULTLIB:libcd /NODEFAULTLIB:libcmtd)
+
+# The client. Ours rather than retail's so single-player chat can be opened
+# (Valve's ClientModeShared::StartMessageMode refuses when maxClients is 1) and
+# so our own HUD can follow. Built from the same SDK as the server, so the two
+# always match.
+vpc_sources(CLIENT_SOURCES game/client/client_hl2.vpc)
+file(GLOB AP_CLIENT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/client/*.cpp")
+
+add_library(client SHARED ${CLIENT_SOURCES} ${AP_CLIENT_SOURCES}
+    "${CMAKE_CURRENT_SOURCE_DIR}/compat/hypot_compat.cpp"
+    $<TARGET_OBJECTS:tier1> $<TARGET_OBJECTS:mathlib> $<TARGET_OBJECTS:vgui_controls>)
+set_target_properties(client PROPERTIES OUTPUT_NAME "client" PREFIX "")
+target_compile_options(client PRIVATE ${VALVE_COMPILE_OPTIONS})
+target_compile_definitions(client PRIVATE ${VALVE_DEFINES}
+    _USRDLL DLLNAME=client
+    NO_STRING_T CLIENT_DLL VECTOR VERSION_SAFE_STEAM_API_INTERFACES PROTECTED_THINGS_ENABLE
+    strncpy=use_Q_strncpy_instead _snprintf=use_Q_snprintf_instead
+    ENABLE_CHROMEHTMLWINDOW fopen=dont_use_fopen
+    HL2_CLIENT_DLL)
+target_include_directories(client PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/client"
+    ${VALVE_INCLUDES}
+    "${SRC}/game/client" "${SRC}/vgui2/include" "${SRC}/vgui2/controls"
+    "${SRC}/game/shared" "${SRC}/game/client/game_controls"
+    "${SRC}/thirdparty/sixensesdk/include"
+    "${SRC}/game/client/hl2" "${SRC}/game/client/hl2/elements" "${SRC}/game/shared/hl2")
+if(HL2AP_TEST_BUILD)
+    target_compile_definitions(client PRIVATE HL2AP_TEST_BUILD)
+endif()
+target_link_libraries(client PRIVATE
+    "${VALVE_LIBS}/tier0.lib" "${VALVE_LIBS}/vstdlib.lib" "${VALVE_LIBS}/steam_api.lib"
+    "${VALVE_LIBS}/bitmap.lib" "${VALVE_LIBS}/choreoobjects.lib" "${VALVE_LIBS}/dmxloader.lib"
+    "${VALVE_LIBS}/matsys_controls.lib" "${VALVE_LIBS}/particles.lib"
+    "${VALVE_LIBS}/tier2.lib" "${VALVE_LIBS}/tier3.lib"
+    "${VALVE_LIBS}/vtf.lib" "${VALVE_LIBS}/libz.lib" "${VALVE_LIBS}/libprotobuf.lib"
+    "${SRC}/lib/common/libcurl.lib"
+    legacy_stdio_definitions
+    winmm shell32 user32 advapi32 gdi32 comdlg32 ole32 ws2_32 rpcrt4 wldap32 crypt32)
+target_link_options(client PRIVATE
+    /DEBUG /MAP /OPT:REF /OPT:ICF /NODEFAULTLIB:libc /NODEFAULTLIB:libcd /NODEFAULTLIB:libcmtd
+    # vtf.lib's S3TC objects predate SafeSEH tables.
+    /SAFESEH:NO)

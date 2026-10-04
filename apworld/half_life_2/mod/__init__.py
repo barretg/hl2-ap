@@ -45,8 +45,8 @@ STORE_SUBDIR = "archipelago"
 # development checkout installs everything but the dll and says so.
 DLL_NAME = "bin/server.dll"
 
-# Our client dll, if we ever ship one (plan: client option B). Without it the
-# engine falls through to hl2/bin/client.dll.
+# Our client dll, built from the same SDK as the server (single-player chat;
+# our HUD later). Without it the engine falls through to hl2/bin/client.dll.
 CLIENT_DLL_NAME = "bin/client.dll"
 
 # Files bundled in this package, as (path inside the package, path inside the
@@ -138,6 +138,42 @@ def localization_files(hl2_dir: Path) -> list[tuple[Path, str]]:
 # Half-Life 2's Steam app id: the library that holds it is the drive Proton
 # starts hl2.exe on.
 HL2_APP_ID = "220"
+
+
+# Retail HL2's HUD layout, copied in as `scripts/hudlayout.res` with one change:
+# HL2 ships the chat panel (`HudChat`) 4x4 pixels in the corner, so chat and
+# `messagemode` work but cannot be seen, and chat is where the game side talks
+# to the player and where `!` commands are typed. The block is replaced with
+# HL2DM's geometry; every other element stays as the player's install has it.
+HUDLAYOUT_SOURCE = "hl2/scripts/hudlayout.res"
+HUDLAYOUT_TARGET = "scripts/hudlayout.res"
+HUDCHAT_BLOCK = re.compile(r'(?ms)^([ \t]*)HudChat\s*\{.*?^[ \t]*\}')
+HUDCHAT_LAYOUT = (
+    '{i}HudChat\r\n{i}{{\r\n'
+    '{i}\t"ControlName"\t"EditablePanel"\r\n'
+    '{i}\t"fieldName"\t"HudChat"\r\n'
+    '{i}\t"visible"\t"0"\r\n'
+    '{i}\t"enabled"\t"1"\r\n'
+    '{i}\t"xpos"\t"10"\r\n'
+    '{i}\t"ypos"\t"275"\r\n'
+    '{i}\t"wide"\t"320"\r\n'
+    '{i}\t"tall"\t"120"\r\n'
+    '{i}\t"PaintBackgroundType"\t"2"\r\n'
+    '{i}}}'
+)
+
+
+def hudlayout_text(hl2_dir: Path) -> bytes | None:
+    """The player's HL2 HUD layout with a visible chat panel, or None when the
+    install has no layout file or no `HudChat` block to replace."""
+    source = Path(hl2_dir) / HUDLAYOUT_SOURCE
+    if not source.is_file():
+        return None
+    text = source.read_bytes().decode("utf-8", errors="surrogateescape")
+    patched, count = HUDCHAT_BLOCK.subn(lambda m: HUDCHAT_LAYOUT.format(i=m.group(1)), text, count=1)
+    if count == 0:
+        return None
+    return patched.encode("utf-8", errors="surrogateescape")
 
 
 def steam_library_of(app_id: str = HL2_APP_ID) -> Path | None:
@@ -283,6 +319,10 @@ def install(target_root: Path, dll: bytes | None = None,
         for source_path, relative in localization_files(hl2_dir):
             _write(target_root / relative, source_path.read_bytes())
             written += 1
+        hudlayout = hudlayout_text(hl2_dir)
+        if hudlayout is not None:
+            _write(target_root / HUDLAYOUT_TARGET, hudlayout)
+            written += 1
 
     if dll is None:
         dll = read_mod_file(f"files/{DLL_NAME}")
@@ -319,7 +359,7 @@ def sweep(directory: Path) -> int:
     if not directory.is_dir():
         return 0
 
-    owned = {relative for _, relative in MOD_FILES} | {DLL_NAME, CLIENT_DLL_NAME}
+    owned = {relative for _, relative in MOD_FILES} | {DLL_NAME, CLIENT_DLL_NAME, HUDLAYOUT_TARGET}
     removed = 0
     for relative in sorted(owned):
         path = directory / relative

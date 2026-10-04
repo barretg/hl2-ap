@@ -168,6 +168,37 @@ def test_install_copies_hl2_localization_under_the_mod_name(tmp_path: Path) -> N
     assert not (target / "resource").exists()
 
 
+def test_install_makes_the_chat_panel_visible(tmp_path: Path) -> None:
+    """HL2 ships HudChat 4x4 in the corner; see HUDLAYOUT_SOURCE."""
+    hl2 = _fake_hl2(tmp_path / "Half-Life 2")
+    layout = hl2 / "hl2" / "scripts" / "hudlayout.res"
+    layout.parent.mkdir(parents=True, exist_ok=True)
+    layout.write_bytes(
+        b'"Resource/HudLayout.res"\r\n{\r\n\r\n\tHudChat\r\n\r\n\t{\r\n\r\n'
+        b'\t\t"fieldName" "HudChat"\r\n\t\t"wide"\t "4"\r\n\r\n\t}\r\n'
+        b'\tHudHistoryResource\r\n\t{\r\n\t\t"wide"\t "248"\r\n\t}\r\n}\r\n')
+    target = tmp_path / "hl2ap"
+    mod.install(target, hl2_dir=hl2)
+
+    text = (target / "scripts" / "hudlayout.res").read_text(encoding="utf-8")
+    chat = text[text.index("HudChat"):text.index("HudHistoryResource")]
+    assert '"wide"\t"320"' in chat and '"wide"\t "4"' not in chat
+    assert '"wide"\t "248"' in text  # the rest is the player's own
+    assert text.count("{") == text.count("}")
+
+    mod.uninstall(target)
+    assert not (target / "scripts").exists()
+
+
+def test_no_hudlayout_without_a_chat_block(tmp_path: Path) -> None:
+    hl2 = _fake_hl2(tmp_path / "Half-Life 2")
+    layout = hl2 / "hl2" / "scripts" / "hudlayout.res"
+    layout.parent.mkdir(parents=True, exist_ok=True)
+    layout.write_text("{ HudHealth { } }")
+    assert mod.hudlayout_text(hl2) is None
+    assert mod.hudlayout_text(tmp_path / "nowhere") is None
+
+
 def test_hl2_install_dir(tmp_path: Path) -> None:
     _fake_hl2(tmp_path / "steamapps" / "common" / "Half-Life 2")
     assert mod.hl2_install_dir(tmp_path) == tmp_path / "steamapps" / "common" / "Half-Life 2"

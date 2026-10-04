@@ -26,6 +26,20 @@ SOURCE_EXTS = (".cpp", ".c", ".cc", ".cxx")
 TOKEN = re.compile(r'"(?:[^"\\]|\\.)*"|\[[^\]]*\]|[{}]|[^\s{}"\[]+')
 
 
+def fix_case(path):
+    """VPC paths are written for Windows, so their case need not match the
+    disk. Return the on-disk spelling where one file matches ignoring case."""
+    if os.path.exists(path):
+        return path
+    d, name = os.path.split(path)
+    d = fix_case(d) if d and d != path else d
+    try:
+        hits = [e for e in os.listdir(d or ".") if e.lower() == name.lower()]
+    except OSError:
+        return os.path.join(d, name)
+    return os.path.join(d, hits[0] if len(hits) == 1 else name)
+
+
 def eval_condition(cond, defines):
     """Evaluate a VPC condition such as `$WIN32 && !$X360`."""
     expr = cond.strip()[1:-1]
@@ -53,7 +67,7 @@ class Resolver:
 
     def path(self, raw, base_dir):
         p = self.expand(raw.strip('"')).replace("\\", "/")
-        return os.path.normpath(os.path.join(base_dir, p))
+        return fix_case(os.path.normpath(os.path.join(base_dir, p)))
 
     def load(self, vpc, project_dir=None):
         vpc = os.path.normpath(vpc)

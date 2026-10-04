@@ -30,6 +30,7 @@ sys.path.insert(0, str(REPO_ROOT / "apworld" / "half_life_2"))
 import mod  # noqa: E402
 
 DEFAULT_DLL = REPO_ROOT / "build" / "game" / "server.dll"
+DEFAULT_CLIENT_DLL = REPO_ROOT / "build" / "game" / "client.dll"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -39,7 +40,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dll", type=Path, default=None,
                         help=f"server dll to install (default: bundled, else {DEFAULT_DLL})")
     parser.add_argument("--client-dll", type=Path, default=None,
-                        help="client dll to install (default: none; retail client is used)")
+                        help=f"client dll to install (default: bundled, else {DEFAULT_CLIENT_DLL})")
     parser.add_argument("--hl2", type=Path, default=None,
                         help="retail Half-Life 2 folder, read for its localization "
                              "(default: from Steam's library records)")
@@ -59,7 +60,10 @@ def main(argv: list[str] | None = None) -> int:
         if dll_path is None and mod.read_mod_file(f"files/{mod.DLL_NAME}") is None:
             dll_path = DEFAULT_DLL if DEFAULT_DLL.is_file() else None
         dll = dll_path.read_bytes() if dll_path else None
-        client = args.client_dll.read_bytes() if args.client_dll else None
+        client_path = args.client_dll
+        if client_path is None and mod.read_mod_file(f"files/{mod.CLIENT_DLL_NAME}") is None:
+            client_path = DEFAULT_CLIENT_DLL if DEFAULT_CLIENT_DLL.is_file() else None
+        client = client_path.read_bytes() if client_path else None
         hl2_dir = args.hl2 or mod.hl2_install_dir()
         game_dir, written, has_dll = mod.install_sourcemod(target, dll=dll, client_dll=client,
                                                            hl2_dir=hl2_dir)
@@ -72,6 +76,8 @@ def main(argv: list[str] | None = None) -> int:
         print("  where Proton resolves Steam's path; see mod.proton_game_dir)")
     if dll_path:
         print(f"server dll: {dll_path}")
+    if client_path:
+        print(f"client dll: {client_path}")
     if hl2_dir is None or not mod.localization_files(hl2_dir):
         print("warning: Half-Life 2's localization was not found, so menus will show\n"
               "  #HL2_* tokens; pass --hl2 <Half-Life 2 folder>")
