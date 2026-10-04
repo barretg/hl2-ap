@@ -1,0 +1,58 @@
+// Half-Life 2 Archipelago. Installed as a Steam sourcemod; `game` is the name
+// Steam's library shows. Derived from hl2_complete/gameinfo.txt: the same
+// content mounts (plain paths resolve against hl2.exe's folder, the HL2
+// install), with this folder as the mod and its bin/ searched first, so our
+// server.dll loads and everything else comes from the retail game.
+"GameInfo"
+{
+	game 		"Half-Life 2 Archipelago"
+	title 		"HALF-LIFE'"
+
+	type		singleplayer_only
+
+	gamelogo 0
+
+	FileSystem
+	{
+		SteamAppId				220
+
+		SearchPaths
+		{
+			game+mod			ep2/custom/*
+			game+mod			episodic/custom/*
+			game+mod			hl2/custom/*
+
+			game_lv				hl2/hl2_lv.vpk
+			game+mod			ep2/ep2_sound_vo_english.vpk
+			game+mod			ep2/ep2_pak.vpk
+			game				|all_source_engine_paths|episodic/ep1_sound_vo_english.vpk
+			game				|all_source_engine_paths|episodic/ep1_pak.vpk
+			game				|all_source_engine_paths|hl2/hl2_sound_vo_english.vpk
+			game				|all_source_engine_paths|hl2/hl2_pak.vpk
+			game				|all_source_engine_paths|hl2/hl2_textures.vpk
+			game				|all_source_engine_paths|hl2/hl2_sound_misc.vpk
+			game				|all_source_engine_paths|hl2/hl2_misc.vpk
+			platform			|all_source_engine_paths|platform/platform_misc.vpk
+
+			// This folder: the mod path, and where saves and config are written.
+			mod+mod_write+default_write_path		|gameinfo_path|.
+			game				|gameinfo_path|.
+
+			// Our server.dll first; client.dll and gamepadui.dll fall through
+			// to the retail ones.
+			gamebin				|gameinfo_path|bin
+			gamebin				hl2_complete/bin
+
+			game				hl2_complete
+			// Loose ep2 files (its maps among them) are not mounted by the retail
+			// hl2_complete gameinfo text; the retail engine finds them some other
+			// way that a mod folder does not inherit.
+			game				|all_source_engine_paths|ep2
+			game				|all_source_engine_paths|episodic
+			game				|all_source_engine_paths|hl2
+			platform			|all_source_engine_paths|platform
+
+			root_mod			hl2_complete/hl2_complete_misc.vpk
+		}
+	}
+}
