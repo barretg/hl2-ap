@@ -1,4 +1,4 @@
-# hl2ap server.dll
+# hl2ap server.dll (installed as the `hl2_complete` sourcemod)
 
 The Source SDK 2013 `singleplayer` branch's `server_episodic` project (HL2, EP1
 and EP2 in one dll, as `hl2_complete` ships), plus our sources in `src/`, built
@@ -13,7 +13,7 @@ cmake -S game -B build/game -G Ninja \
       -DCMAKE_TOOLCHAIN_FILE=$PWD/game/toolchain-clangcl-x86.cmake \
       -DSDK_DIR=../source-sdk-2013
 cmake --build build/game
-python tools/install_mod.py     # Steam sourcemods/hl2ap; restart Steam once
+python tools/install_mod.py     # Steam sourcemods/hl2_complete; restart Steam once
 ```
 
 The toolchain path must be absolute (CMake resolves it against the build dir).

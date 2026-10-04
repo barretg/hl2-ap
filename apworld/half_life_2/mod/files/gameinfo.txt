@@ -43,7 +43,11 @@
 			gamebin				|gameinfo_path|bin
 			gamebin				hl2_complete/bin
 
-			game				hl2_complete
+			// Retail hl2_complete is a mod path too, after ours: GameUI reads
+			// resource/gamemenu.res (whose New Game names the campaign) and other
+			// menu files from MOD first. As game only, EP1's menu from ep1_pak.vpk
+			// won, and New Game listed no chapters.
+			game+mod			hl2_complete
 			// Loose ep2 files (its maps among them) are not mounted by the retail
 			// hl2_complete gameinfo text; the retail engine finds them some other
 			// way that a mod folder does not inherit.

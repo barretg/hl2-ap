@@ -1,0 +1,147 @@
+"""Mod install tests: the sourcemod layout, the Proton workaround, gameinfo."""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "apworld" / "half_life_2"))
+
+import mod  # noqa: E402
+from client import bridge  # noqa: E402
+
+linux_only = pytest.mark.skipif(sys.platform == "win32", reason="Proton layout is Linux only")
+
+
+def test_bridge_and_mod_agree_on_the_store_folder() -> None:
+    assert bridge.STORE_SUBDIR == mod.STORE_SUBDIR
+
+
+def test_mod_folder_is_named_for_the_retail_special_cases() -> None:
+    """The anniversary binaries key localization and chapters on this name."""
+    assert mod.MOD_DIR == "hl2_complete"
+
+
+def test_gameinfo_mounts_retail_hl2_complete_as_a_mod_path() -> None:
+    """GameUI reads gamemenu.res from MOD; without this New Game lists nothing."""
+    lines = [l.split() for l in mod.gameinfo_text().decode().splitlines()]
+    assert ["game+mod", "hl2_complete"] in lines
+
+
+def test_gameinfo_mounts_loose_ep2() -> None:
+    """EP2's maps are loose files in ep2/maps, in no VPK."""
+    text = mod.gameinfo_text().decode()
+    assert "|all_source_engine_paths|ep2\n" in text
+
+
+def test_gameinfo_paths_made_absolute() -> None:
+    text = mod.gameinfo_text("Z:/x/hl2_complete/").decode()
+    assert "|gameinfo_path|" not in text
+    assert "gamebin\t\t\t\tZ:/x/hl2_complete/bin" in text
+
+
+def test_wine_path() -> None:
+    assert mod.wine_path(Path("/mnt/lib/sm/hl2_complete")) == "Z:/mnt/lib/sm/hl2_complete/"
+
+
+def test_plain_install_and_sweep(tmp_path: Path) -> None:
+    target = tmp_path / "hl2_complete"
+    written, has_dll = mod.install(target, dll=b"dll")
+    assert has_dll and written == 2
+    assert (target / "bin" / "server.dll").read_bytes() == b"dll"
+    assert (target / "archipelago").is_dir()
+    assert mod.is_installed(target)
+
+    (target / "save").mkdir()
+    (target / "save" / "quick.sav").write_bytes(b"mine")
+    (target / "archipelago" / "ap_out.txt").write_text("CHECK|1\n")
+    removed = mod.uninstall(target)
+    assert removed == 3
+    # The player's save survives, and so does the folder holding it.
+    assert (target / "save" / "quick.sav").exists()
+    assert not (target / "gameinfo.txt").exists()
+
+
+def test_install_without_a_dll_says_so(tmp_path: Path) -> None:
+    written, has_dll = mod.install(tmp_path / "hl2_complete")
+    assert not has_dll
+
+
+def test_install_drops_a_stale_client_dll(tmp_path: Path) -> None:
+    target = tmp_path / "hl2_complete"
+    mod.install(target, dll=b"s", client_dll=b"c")
+    assert (target / "bin" / "client.dll").exists()
+    mod.install(target, dll=b"s")
+    assert not (target / "bin" / "client.dll").exists()
+
+
+def write_libraryfolders(home: Path, libraries: dict[str, list[str]]) -> None:
+    vdf = home / ".local" / "share" / "Steam" / "steamapps" / "libraryfolders.vdf"
+    vdf.parent.mkdir(parents=True)
+    blocks = []
+    for i, (path, apps) in enumerate(libraries.items()):
+        app_lines = "".join(f'\t\t\t"{a}"\t\t"1"\n' for a in apps)
+        blocks.append(f'\t"{i}"\n\t{{\n\t\t"path"\t\t"{path}"\n\t\t"label"\t\t""\n'
+                      f'\t\t"apps"\n\t\t{{\n{app_lines}\t\t}}\n\t}}\n')
+    vdf.write_text('"libraryfolders"\n{\n' + "".join(blocks) + "}\n")
+
+
+@linux_only
+def test_steam_library_of_finds_hl2(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    write_libraryfolders(tmp_path, {"/home/u/.steam": ["228980"], "/mnt/lib": ["10", "220"]})
+    assert mod.steam_library_of() == Path("/mnt/lib")
+
+
+@linux_only
+def test_steam_library_of_missing_app(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    write_libraryfolders(tmp_path, {"/mnt/lib": ["10"]})
+    assert mod.steam_library_of() is None
+
+
+@linux_only
+def test_sourcemod_install_under_proton(tmp_path: Path) -> None:
+    """Real files where Proton resolves Steam's path, a stub where Steam lists it."""
+    library = tmp_path / "lib"
+    library.mkdir()
+    steam_dir = tmp_path / "sm" / "hl2_complete"
+    game_dir, written, has_dll = mod.install_sourcemod(steam_dir, dll=b"dll", library=library)
+
+    assert game_dir == library / steam_dir.relative_to("/")
+    assert not game_dir.is_symlink()
+    assert (game_dir / "bin" / "server.dll").read_bytes() == b"dll"
+    assert sorted(p.name for p in steam_dir.iterdir()) == ["gameinfo.txt"]
+    # Absolute search paths: drive-relative ones make Wine abort.
+    text = (game_dir / "gameinfo.txt").read_text()
+    assert "|gameinfo_path|" not in text
+    assert mod.wine_path(game_dir) + "bin" in text
+
+    mod.uninstall_sourcemod(steam_dir, library=library)
+    assert list(library.iterdir()) == []
+    assert not steam_dir.exists()
+
+
+@linux_only
+def test_sourcemod_install_replaces_an_old_symlink(tmp_path: Path) -> None:
+    library = tmp_path / "lib"
+    library.mkdir()
+    steam_dir = tmp_path / "sm" / "hl2_complete"
+    steam_dir.mkdir(parents=True)
+    link = mod.proton_link_path(steam_dir, library)
+    link.parent.mkdir(parents=True)
+    link.symlink_to(steam_dir)
+
+    game_dir, _, _ = mod.install_sourcemod(steam_dir, dll=b"dll", library=library)
+    assert game_dir == link and not game_dir.is_symlink()
+
+
+def test_sourcemod_install_without_proton(tmp_path: Path, monkeypatch) -> None:
+    """Windows (or no HL2 library found): everything in the sourcemod folder."""
+    monkeypatch.setattr(mod, "proton_link_path", lambda *a, **k: None)
+    steam_dir = tmp_path / "sm" / "hl2_complete"
+    game_dir, _, has_dll = mod.install_sourcemod(steam_dir, dll=b"dll")
+    assert game_dir == steam_dir and has_dll
+    assert "|gameinfo_path|" in (steam_dir / "gameinfo.txt").read_text()
