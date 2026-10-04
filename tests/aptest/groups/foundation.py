@@ -111,22 +111,6 @@ def build(ctx) -> list[Scenario]:
                 !pass or !fail <what happened>.
             """,
         ),
-        Scenario(
-            title="Episode One map loads",
-            map="ep1_citadel_00",
-            steps="""
-                This is Episode One's first map. It should load and play normally.
-                !pass or !fail <what happened>.
-            """,
-        ),
-        Scenario(
-            title="Episode Two map loads",
-            map="ep2_outland_01",
-            steps="""
-                This is Episode Two's first map. It should load and play normally.
-                !pass or !fail <what happened>.
-            """,
-        ),
     ]
 
 

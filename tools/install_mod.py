@@ -1,4 +1,4 @@
-"""Install the `hl2_complete` mod folder as a Steam sourcemod.
+"""Install the `hl2ap` mod folder as a Steam sourcemod.
 
 A thin CLI over the world's `mod` package, which is the same code the client's
 `/install` command will run. Useful when working on the game side without going
@@ -40,6 +40,9 @@ def main(argv: list[str] | None = None) -> int:
                         help=f"server dll to install (default: bundled, else {DEFAULT_DLL})")
     parser.add_argument("--client-dll", type=Path, default=None,
                         help="client dll to install (default: none; retail client is used)")
+    parser.add_argument("--hl2", type=Path, default=None,
+                        help="retail Half-Life 2 folder, read for its localization "
+                             "(default: from Steam's library records)")
     parser.add_argument("--uninstall", action="store_true")
     args = parser.parse_args(argv)
 
@@ -57,7 +60,9 @@ def main(argv: list[str] | None = None) -> int:
             dll_path = DEFAULT_DLL if DEFAULT_DLL.is_file() else None
         dll = dll_path.read_bytes() if dll_path else None
         client = args.client_dll.read_bytes() if args.client_dll else None
-        game_dir, written, has_dll = mod.install_sourcemod(target, dll=dll, client_dll=client)
+        hl2_dir = args.hl2 or mod.hl2_install_dir()
+        game_dir, written, has_dll = mod.install_sourcemod(target, dll=dll, client_dll=client,
+                                                           hl2_dir=hl2_dir)
     except (OSError, ValueError) as exc:
         raise SystemExit(str(exc))
 
@@ -67,6 +72,9 @@ def main(argv: list[str] | None = None) -> int:
         print("  where Proton resolves Steam's path; see mod.proton_game_dir)")
     if dll_path:
         print(f"server dll: {dll_path}")
+    if hl2_dir is None or not mod.localization_files(hl2_dir):
+        print("warning: Half-Life 2's localization was not found, so menus will show\n"
+              "  #HL2_* tokens; pass --hl2 <Half-Life 2 folder>")
     if not has_dll:
         print(
             f"\nNo server dll was available, so the mod cannot run.\n"
@@ -74,6 +82,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     print("\nRestart Steam once; \"Half-Life 2 Archipelago\" then appears in the library.")
+    if sys.platform != "win32":
+        print("On Linux, set that entry's Properties > Compatibility to a Proton version\n"
+              "(Steam does not inherit Half-Life 2's setting; see game/README.md).")
     return 0
 
 

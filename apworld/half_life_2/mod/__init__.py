@@ -1,4 +1,4 @@
-"""The `hl2_complete` sourcemod folder, and installing it.
+"""The `hl2ap` sourcemod folder, and installing it.
 
 The game side of this project is a server dll built from Valve's Source SDK 2013
 (singleplayer), shipped as a Steam sourcemod so the player's Half-Life 2 install
@@ -6,16 +6,14 @@ is never written to. Steam lists every folder in `steamapps/sourcemods` that has
 a `gameinfo.txt` as its own library entry ("Half-Life 2 Archipelago", from
 gameinfo's `game` key), and launches it with the retail `hl2.exe`.
 
-The folder is named `hl2_complete` on purpose. The anniversary engine, GameUI,
-gamepadui and client dlls special-case that exact mod name: localization from
-`merged_loc_all.txt`, the combined HL2/EP1/EP2 chapter list, and per-campaign
-content switching. Any other name loses all three. It does not collide with the
-retail folder, which lives in the HL2 install, not in sourcemods. Plain
-gameinfo paths resolve against `hl2.exe`'s folder, so `hl2_complete` there
-still means the retail one.
+The mod is a plain HL2 mod named `hl2ap`. The anniversary binaries special-case
+the `hl2_complete` game, but they test the literal `-game` command-line value,
+which for a sourcemod is always a full path, so no mod folder can get that
+behaviour; and its per-campaign content switching lives in Valve's private
+hl2_complete server code. So we mount only HL2's content, as retail `hl2` does.
 
     <Steam>/steamapps/sourcemods/
-      hl2_complete/
+      hl2ap/
         gameinfo.txt    the mod manifest and search paths
         bin/server.dll  the server dll built from game/
         archipelago/    the file bridge
@@ -36,8 +34,8 @@ import re
 import sys
 from pathlib import Path
 
-# The mod folder's name. Must stay `hl2_complete`; see the module docstring.
-MOD_DIR = "hl2_complete"
+# The mod folder's name.
+MOD_DIR = "hl2ap"
 
 # Where the bridge and the generated data live, under the mod folder.
 STORE_SUBDIR = "archipelago"
@@ -48,7 +46,7 @@ STORE_SUBDIR = "archipelago"
 DLL_NAME = "bin/server.dll"
 
 # Our client dll, if we ever ship one (plan: client option B). Without it the
-# engine falls through to hl2_complete/bin/client.dll.
+# engine falls through to hl2/bin/client.dll.
 CLIENT_DLL_NAME = "bin/client.dll"
 
 # Files bundled in this package, as (path inside the package, path inside the
@@ -106,6 +104,37 @@ def sourcemod_dir(sourcemods: str | os.PathLike[str] | None = None) -> Path:
     return root / MOD_DIR
 
 
+# Retail HL2's localization (`hl2/resource/hl2_<language>.txt`, UTF-16), copied
+# in as `resource/hl2ap_<language>.txt`: the engine loads only
+# `resource/<mod folder>_<language>.txt` for a mod, so without these every
+# `#HL2_*` token (chapter titles, weapon names) shows raw. Copied from the
+# player's own install at install time, never shipped.
+LOCALIZATION_SOURCE = re.compile(r"hl2_([a-z]+)\.txt")
+LOCALIZATION_TARGET = "resource/" + MOD_DIR + "_{}.txt"
+
+
+def hl2_install_dir(library: Path | None = None) -> Path | None:
+    """The retail Half-Life 2 folder, or None if Steam's records do not say."""
+    library = library or steam_library_of()
+    if library is None:
+        return None
+    path = library / "steamapps" / "common" / "Half-Life 2"
+    return path if (path / "hl2").is_dir() else None
+
+
+def localization_files(hl2_dir: Path) -> list[tuple[Path, str]]:
+    """(retail file, path inside the mod folder) for each HL2 language."""
+    resource = Path(hl2_dir) / "hl2" / "resource"
+    if not resource.is_dir():
+        return []
+    found = []
+    for path in sorted(resource.iterdir()):
+        match = LOCALIZATION_SOURCE.fullmatch(path.name.lower())
+        if match and path.is_file():
+            found.append((path, LOCALIZATION_TARGET.format(match.group(1))))
+    return found
+
+
 # Half-Life 2's Steam app id: the library that holds it is the drive Proton
 # starts hl2.exe on.
 HL2_APP_ID = "220"
@@ -161,14 +190,16 @@ def proton_game_dir(steam_dir: Path, library: Path | None = None) -> Path:
 
 def install_sourcemod(steam_dir: Path, dll: bytes | None = None,
                       client_dll: bytes | None = None,
-                      library: Path | None = None) -> tuple[Path, int, bool]:
+                      library: Path | None = None,
+                      hl2_dir: Path | None = None) -> tuple[Path, int, bool]:
     """Install as a Steam sourcemod. Returns (game folder, files written, has dll)."""
     steam_dir = Path(steam_dir)
     game_dir = proton_game_dir(steam_dir, library)
     if game_dir.is_symlink():
         game_dir.unlink()  # left by an earlier install that used a link
     proton = game_dir != steam_dir
-    written, has_dll = install(game_dir, dll=dll, client_dll=client_dll, absolute_paths=proton)
+    written, has_dll = install(game_dir, dll=dll, client_dll=client_dll, absolute_paths=proton,
+                               hl2_dir=hl2_dir or hl2_install_dir(library))
     if proton:
         # The stub Steam lists. Only gameinfo.txt: anything else here would be
         # a second copy the engine never reads.
@@ -224,7 +255,8 @@ def gameinfo_text(absolute_root: str | None = None) -> bytes:
 
 def install(target_root: Path, dll: bytes | None = None,
             client_dll: bytes | None = None,
-            absolute_paths: bool = False) -> tuple[int, bool]:
+            absolute_paths: bool = False,
+            hl2_dir: Path | None = None) -> tuple[int, bool]:
     """Create the mod folder `target_root` and fill it in.
 
     `dll`/`client_dll` override what the package bundles (a development build).
@@ -246,6 +278,11 @@ def install(target_root: Path, dll: bytes | None = None,
         _write(target, data)
         written += 1
     (target_root / STORE_SUBDIR).mkdir(exist_ok=True)
+
+    if hl2_dir is not None:
+        for source_path, relative in localization_files(hl2_dir):
+            _write(target_root / relative, source_path.read_bytes())
+            written += 1
 
     if dll is None:
         dll = read_mod_file(f"files/{DLL_NAME}")
@@ -289,6 +326,10 @@ def sweep(directory: Path) -> int:
         if path.is_file():
             path.unlink()
             removed += 1
+
+    for path in sorted(directory.glob(LOCALIZATION_TARGET.format("*"))):
+        path.unlink()
+        removed += 1
 
     # The bridge directory, live session files and all.
     store = directory / STORE_SUBDIR

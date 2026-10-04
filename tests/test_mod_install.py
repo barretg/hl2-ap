@@ -19,35 +19,34 @@ def test_bridge_and_mod_agree_on_the_store_folder() -> None:
     assert bridge.STORE_SUBDIR == mod.STORE_SUBDIR
 
 
-def test_mod_folder_is_named_for_the_retail_special_cases() -> None:
-    """The anniversary binaries key localization and chapters on this name."""
-    assert mod.MOD_DIR == "hl2_complete"
+def test_mod_folder_name() -> None:
+    assert mod.MOD_DIR == "hl2ap"
 
 
-def test_gameinfo_mounts_retail_hl2_complete_as_a_mod_path() -> None:
-    """GameUI reads gamemenu.res from MOD; without this New Game lists nothing."""
+def test_gameinfo_mounts_retail_hl2_as_a_mod_path() -> None:
+    """GameUI reads its menus and cfg/chapter*.cfg from MOD."""
     lines = [l.split() for l in mod.gameinfo_text().decode().splitlines()]
-    assert ["game+mod", "hl2_complete"] in lines
+    assert ["game+mod", "|all_source_engine_paths|hl2"] in lines
 
 
-def test_gameinfo_mounts_loose_ep2() -> None:
-    """EP2's maps are loose files in ep2/maps, in no VPK."""
+def test_gameinfo_mounts_hl2_content_only() -> None:
+    """Plain HL2: episode content would override HL2's (see game/README.md)."""
     text = mod.gameinfo_text().decode()
-    assert "|all_source_engine_paths|ep2\n" in text
+    assert "ep2" not in text and "episodic" not in text and "hl2_complete" not in text
 
 
 def test_gameinfo_paths_made_absolute() -> None:
-    text = mod.gameinfo_text("Z:/x/hl2_complete/").decode()
+    text = mod.gameinfo_text("Z:/x/hl2ap/").decode()
     assert "|gameinfo_path|" not in text
-    assert "gamebin\t\t\t\tZ:/x/hl2_complete/bin" in text
+    assert "gamebin\t\t\t\tZ:/x/hl2ap/bin" in text
 
 
 def test_wine_path() -> None:
-    assert mod.wine_path(Path("/mnt/lib/sm/hl2_complete")) == "Z:/mnt/lib/sm/hl2_complete/"
+    assert mod.wine_path(Path("/mnt/lib/sm/hl2ap")) == "Z:/mnt/lib/sm/hl2ap/"
 
 
 def test_plain_install_and_sweep(tmp_path: Path) -> None:
-    target = tmp_path / "hl2_complete"
+    target = tmp_path / "hl2ap"
     written, has_dll = mod.install(target, dll=b"dll")
     assert has_dll and written == 2
     assert (target / "bin" / "server.dll").read_bytes() == b"dll"
@@ -65,12 +64,12 @@ def test_plain_install_and_sweep(tmp_path: Path) -> None:
 
 
 def test_install_without_a_dll_says_so(tmp_path: Path) -> None:
-    written, has_dll = mod.install(tmp_path / "hl2_complete")
+    written, has_dll = mod.install(tmp_path / "hl2ap")
     assert not has_dll
 
 
 def test_install_drops_a_stale_client_dll(tmp_path: Path) -> None:
-    target = tmp_path / "hl2_complete"
+    target = tmp_path / "hl2ap"
     mod.install(target, dll=b"s", client_dll=b"c")
     assert (target / "bin" / "client.dll").exists()
     mod.install(target, dll=b"s")
@@ -107,7 +106,7 @@ def test_sourcemod_install_under_proton(tmp_path: Path) -> None:
     """Real files where Proton resolves Steam's path, a stub where Steam lists it."""
     library = tmp_path / "lib"
     library.mkdir()
-    steam_dir = tmp_path / "sm" / "hl2_complete"
+    steam_dir = tmp_path / "sm" / "hl2ap"
     game_dir, written, has_dll = mod.install_sourcemod(steam_dir, dll=b"dll", library=library)
 
     assert game_dir == library / steam_dir.relative_to("/")
@@ -128,7 +127,7 @@ def test_sourcemod_install_under_proton(tmp_path: Path) -> None:
 def test_sourcemod_install_replaces_an_old_symlink(tmp_path: Path) -> None:
     library = tmp_path / "lib"
     library.mkdir()
-    steam_dir = tmp_path / "sm" / "hl2_complete"
+    steam_dir = tmp_path / "sm" / "hl2ap"
     steam_dir.mkdir(parents=True)
     link = mod.proton_link_path(steam_dir, library)
     link.parent.mkdir(parents=True)
@@ -141,7 +140,35 @@ def test_sourcemod_install_replaces_an_old_symlink(tmp_path: Path) -> None:
 def test_sourcemod_install_without_proton(tmp_path: Path, monkeypatch) -> None:
     """Windows (or no HL2 library found): everything in the sourcemod folder."""
     monkeypatch.setattr(mod, "proton_link_path", lambda *a, **k: None)
-    steam_dir = tmp_path / "sm" / "hl2_complete"
+    steam_dir = tmp_path / "sm" / "hl2ap"
     game_dir, _, has_dll = mod.install_sourcemod(steam_dir, dll=b"dll")
     assert game_dir == steam_dir and has_dll
     assert "|gameinfo_path|" in (steam_dir / "gameinfo.txt").read_text()
+
+
+def _fake_hl2(root: Path) -> Path:
+    resource = root / "hl2" / "resource"
+    resource.mkdir(parents=True)
+    (resource / "hl2_english.txt").write_bytes("lang".encode("utf-16"))
+    (resource / "hl2_french.txt").write_bytes(b"fr")
+    (resource / "gameui_english.txt").write_bytes(b"not ours")
+    return root
+
+
+def test_install_copies_hl2_localization_under_the_mod_name(tmp_path: Path) -> None:
+    """The engine loads resource/<mod>_<language>.txt only; see LOCALIZATION_SOURCE."""
+    hl2 = _fake_hl2(tmp_path / "Half-Life 2")
+    target = tmp_path / "hl2ap"
+    mod.install(target, hl2_dir=hl2)
+    assert (target / "resource" / "hl2ap_english.txt").read_bytes() == "lang".encode("utf-16")
+    assert (target / "resource" / "hl2ap_french.txt").read_bytes() == b"fr"
+    assert not (target / "resource" / "hl2ap_gameui.txt").exists()
+
+    mod.uninstall(target)
+    assert not (target / "resource").exists()
+
+
+def test_hl2_install_dir(tmp_path: Path) -> None:
+    _fake_hl2(tmp_path / "steamapps" / "common" / "Half-Life 2")
+    assert mod.hl2_install_dir(tmp_path) == tmp_path / "steamapps" / "common" / "Half-Life 2"
+    assert mod.hl2_install_dir(tmp_path / "nowhere") is None

@@ -1,8 +1,8 @@
-# hl2ap server.dll (installed as the `hl2_complete` sourcemod)
+# hl2ap server.dll (installed as the `hl2ap` sourcemod)
 
-The Source SDK 2013 `singleplayer` branch's `server_episodic` project (HL2, EP1
-and EP2 in one dll, as `hl2_complete` ships), plus our sources in `src/`, built
-32-bit with clang-cl + lld-link + xwin from Linux.
+The Source SDK 2013 `singleplayer` branch's `server_hl2` project (plain HL2, as
+retail `hl2/bin/server.dll` ships), plus our sources in `src/`, built 32-bit with
+clang-cl + lld-link + xwin from Linux.
 
 ## Build
 
@@ -13,10 +13,30 @@ cmake -S game -B build/game -G Ninja \
       -DCMAKE_TOOLCHAIN_FILE=$PWD/game/toolchain-clangcl-x86.cmake \
       -DSDK_DIR=../source-sdk-2013
 cmake --build build/game
-python tools/install_mod.py     # Steam sourcemods/hl2_complete; restart Steam once
+python tools/install_mod.py     # Steam sourcemods/hl2ap; restart Steam once
 ```
 
 The toolchain path must be absolute (CMake resolves it against the build dir).
+
+## Launching on Linux
+
+Steam lists the mod as "Half-Life 2 Archipelago". Steam does not carry
+Half-Life 2's compatibility setting over to a sourcemod entry, so the player
+must set it once: Properties > Compatibility > force a Steam Play tool, and
+pick Proton (Hotfix is what this project is tested with). Without it, launching
+fails in Steam's UI with `Cannot read properties of null (reading
+'display_name')`. Steam drops the setting whenever the entry is recreated (the
+folder renamed or removed and reinstalled), so it has to be set again then.
+
+## Not `hl2_complete`
+
+The anniversary binaries special-case the `hl2_complete` game (merged
+localization, the HL2/EP1/EP2 chapter list, per-campaign content switching),
+but every one of them tests the literal `-game` command-line value, which for a
+sourcemod is always a full path; and the content switching lives in Valve's
+private `Release_hl2_complete` server code, absent from both public SDK
+branches. So the mod is plain HL2. The episodes (Phase 9) need `server_episodic`
+plus our own per-campaign switching.
 
 ## Why each piece
 

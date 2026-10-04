@@ -1,6 +1,7 @@
 # Builds the hl2ap server dll: the Source SDK 2013 singleplayer branch's
-# server_episodic project (HL2 + EP1 + EP2 in one dll, as hl2_complete ships)
-# plus the sources in src/.
+# server_hl2 project (plain HL2, as retail hl2/bin/server.dll) plus the
+# sources in src/. The episodes (Phase 9) will need server_episodic and our own
+# per-campaign content switching; Valve's hl2_complete code is not public.
 #
 # The SDK is not vendored. Check out ValveSoftware/source-sdk-2013 branch
 # `singleplayer` beside this repository and point SDK_DIR at it. The `master`
@@ -17,7 +18,7 @@ project(hl2ap CXX C)
 set(SDK_DIR "" CACHE PATH "Path to a checkout of ValveSoftware/source-sdk-2013 (singleplayer)")
 get_filename_component(SDK_DIR "${SDK_DIR}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
 set(SRC "${SDK_DIR}/src")
-if(NOT EXISTS "${SRC}/game/server/server_episodic.vpc")
+if(NOT EXISTS "${SRC}/game/server/server_hl2.vpc")
     message(FATAL_ERROR "Set SDK_DIR to a source-sdk-2013 checkout on branch singleplayer")
 endif()
 if(NOT MSVC)
@@ -78,7 +79,7 @@ target_compile_definitions(mathlib PRIVATE ${VALVE_DEFINES} _LIB MATHLIB_LIB LIB
 target_include_directories(mathlib PRIVATE ${VALVE_INCLUDES} "${SRC}/public/mathlib")
 
 # The server.
-vpc_sources(SERVER_SOURCES game/server/server_episodic.vpc)
+vpc_sources(SERVER_SOURCES game/server/server_hl2.vpc)
 file(GLOB AP_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 add_library(server SHARED ${SERVER_SOURCES} ${AP_SOURCES}
@@ -90,14 +91,13 @@ target_compile_definitions(server PRIVATE ${VALVE_DEFINES}
     GAME_DLL VECTOR VERSION_SAFE_STEAM_API_INTERFACES PROTECTED_THINGS_ENABLE
     sprintf=use_Q_snprintf_instead_of_sprintf strncpy=use_Q_strncpy_instead
     _snprintf=use_Q_snprintf_instead fopen=dont_use_fopen
-    HL2_DLL HL2_EPISODIC USES_SAVERESTORE)
+    HL2_DLL USES_SAVERESTORE)
 target_include_directories(server PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
     ${VALVE_INCLUDES}
     "${SRC}/game/server" "${SRC}/game/shared" "${SRC}/utils/common"
     "${SRC}/game/shared/econ" "${SRC}/game/server/NextBot"
-    "${SRC}/game/shared/hl2" "${SRC}/game/shared/episodic"
-    "${SRC}/game/server/hl2" "${SRC}/game/server/episodic")
+    "${SRC}/game/shared/hl2" "${SRC}/game/server/hl2")
 
 option(HL2AP_TEST_BUILD "Build the scenario harness in. Never for release." OFF)
 if(HL2AP_TEST_BUILD)

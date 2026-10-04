@@ -9,7 +9,7 @@ Only what the SDK's server, client, tier1 and mathlib scripts use is supported:
 $Macro, $Include, $Folder, $File, -$File and [conditions]. Per-file
 $Configuration blocks are skipped (they only set precompiled-header options).
 
-    python tools/vpc_sources.py <sdk>/src/game/server/server_episodic.vpc
+    python tools/vpc_sources.py <sdk>/src/game/server/server_hl2.vpc
 """
 
 import argparse
