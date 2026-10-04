@@ -17,6 +17,9 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+// triggers.cpp; it has no header.
+bool IsTriggerClass(CBaseEntity* pEntity);
+
 namespace ap {
 
 #ifdef HL2AP_TEST_BUILD
@@ -132,7 +135,11 @@ void Load() {
 // origins sit in lockers, on shelves and against walls, and dropping a player
 // on the exact spot puts them in the geometry. Rings outward and upward, each
 // spot checked with the player hull, then settled onto the floor.
-bool StandSpot(CBasePlayer* player, const Vector& target, Vector& out) {
+//
+// `strict` also wants the spot in sight of the point and floor beneath it:
+// without that a free spot on the far side of a wall, or over the void outside
+// the level, passes (sources harness, 2026-10-04).
+bool StandSpot(CBasePlayer* player, const Vector& target, bool strict, Vector& out) {
     static const float kRadii[] = {0.0f, 24.0f, 48.0f, 80.0f, 128.0f};
     static const float kHeights[] = {36.0f, 72.0f, 0.0f, 128.0f};
     const Vector mins = player->GetPlayerMins();
@@ -150,9 +157,20 @@ bool StandSpot(CBasePlayer* player, const Vector& target, Vector& out) {
                 if (tr.startsolid || tr.allsolid) {
                     continue;
                 }
+                if (strict) {
+                    trace_t sight;
+                    UTIL_TraceLine(target + Vector(0, 0, 8), spot, MASK_PLAYERSOLID_BRUSHONLY,
+                                   player, COLLISION_GROUP_NONE, &sight);
+                    if (sight.fraction < 1.0f && !sight.startsolid) {
+                        continue;
+                    }
+                }
                 UTIL_TraceHull(spot, spot - Vector(0, 0, 256), mins, maxs,
                                MASK_PLAYERSOLID, player,
                                COLLISION_GROUP_PLAYER_MOVEMENT, &tr);
+                if (strict && tr.fraction >= 1.0f) {
+                    continue;  // nothing to stand on
+                }
                 out = tr.endpos;
                 return true;
             }
@@ -175,7 +193,7 @@ void Teleport() {
     const Vector target(g_destination.position[0], g_destination.position[1],
                         g_destination.position[2]);
     Vector spot;
-    if (!StandSpot(player, target, spot)) {
+    if (!StandSpot(player, target, true, spot) && !StandSpot(player, target, false, spot)) {
         spot = target;
         Notify("[aptest] No room to stand near the spot; placed on it anyway.");
     }
@@ -193,10 +211,11 @@ const char* const kHarnessVerbs[] = {
 
 bool TestBuild() { return true; }
 
-// Trigger brushes drawn while the harness runs, so a scenario's transition or
-// trigger can be seen. `showtriggers` is read as each trigger spawns, so it is
-// set before every map's entities are created; set directly, it needs no
-// sv_cheats.
+// Trigger brushes ready to draw while the harness runs, hidden until the tester
+// asks. `showtriggers` is read as each trigger spawns, so it is set before every
+// map's entities are created (set directly, it needs no sv_cheats); then every
+// trigger is hidden once the map is up. `showtriggers_toggle` (a cheat command,
+// so `sv_cheats 1` first) flips them on and off from there.
 class CShowTriggersSystem : public CAutoGameSystem {
 public:
     CShowTriggersSystem() : CAutoGameSystem("CShowTriggersSystem") {}
@@ -204,6 +223,14 @@ public:
         static ConVarRef showtriggers("showtriggers");
         if (showtriggers.IsValid()) {
             showtriggers.SetValue(1);
+        }
+    }
+    void LevelInitPostEntity() override {
+        for (CBaseEntity* entity = gEntList.FirstEnt(); entity;
+             entity = gEntList.NextEnt(entity)) {
+            if (IsTriggerClass(entity)) {
+                entity->AddEffects(EF_NODRAW);
+            }
         }
     }
 };

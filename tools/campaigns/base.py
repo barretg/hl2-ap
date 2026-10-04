@@ -41,6 +41,16 @@ class Campaign:
     excluded_maps: frozenset[str]
     # Weapon items, `{item: [classname, ...]}`.
     weapons: dict[str, list[str]]
+    # Upgraded forms of a weapon that are their own check, `{name: (weapon
+    # item, trigger classname, output)}`: the first map where that trigger
+    # fires that output upgrades a held weapon, and every later map's copies
+    # are the upgraded form (Half-Life 2's Citadel supercharges the gravity
+    # gun). The weapon's own check then counts only copies before it.
+    upgrades: dict[str, tuple[str, str, str]] = field(default_factory=dict)
+    # An upgrade (by name) whose trigger also confiscates every other weapon:
+    # from its map on, no other weapon has a source (Half-Life 2's Citadel
+    # dissolves dropped weapons too).
+    confiscating_upgrade: str = ""
     # Equipment items, `{item: [classname, ...]}`.
     equipment: dict[str, list[str]] = field(default_factory=dict)
     # NPC classes whose `additionalequipment` the player can take off their
@@ -62,6 +72,10 @@ class Campaign:
     # `{item: [map or map@x y z]}` copies of a weapon that do not count as a
     # source (out of reach, scripted). Same form as HL1's.
     unreachable_copies: dict[str, list[str]] = field(default_factory=dict)
+    # `{item: [map or map@x y z]}` copies confirmed reachable in play that the
+    # harness could not stage (a scripted sequence it skips). Logic is
+    # unchanged; the `unproven` group stops asking about them.
+    confirmed_copies: dict[str, list[str]] = field(default_factory=dict)
     # `{map: {(classname, (x, y, z))}}` chargers no player can reach that the
     # automatic seam-twin pass does not catch.
     unreachable_chargers: dict[str, set[tuple[str, tuple[int, int, int]]]] = field(

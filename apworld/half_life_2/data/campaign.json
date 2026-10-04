@@ -1,6 +1,6 @@
 {
  "format": 1,
- "data_version": "7d14472f533d",
+ "data_version": "4b690ef8d989",
  "campaigns": [
   {
    "key": "hl2",
@@ -3031,14 +3031,15 @@
      "how": "placed",
      "position": [
       -9616,
-      -3498,
+      -3546,
       600
-     ]
+     ],
+     "spawner": "spawner_crowbar,ForceSpawn"
     }
    ],
    "position": [
     -9616,
-    -3498,
+    -3546,
     600
    ]
   },
@@ -3061,16 +3062,6 @@
      "chapter": "d1_eli_01",
      "map": "d1_eli_02",
      "how": "give"
-    },
-    {
-     "chapter": "d3_breen_01",
-     "map": "d3_breen_01",
-     "how": "placed",
-     "position": [
-      -1000,
-      88,
-      1452
-     ]
     }
    ]
   },
@@ -3097,7 +3088,8 @@
       -7784,
       -2666,
       327
-     ]
+     ],
+     "spawner": "rappeller_cop_1_maker,Spawn"
     },
     {
      "chapter": "d1_canals_01",
@@ -3107,7 +3099,8 @@
       704,
       -3456,
       384
-     ]
+     ],
+     "spawner": "barrelpush_cop2_maker,Spawn"
     },
     {
      "chapter": "d1_canals_06",
@@ -3117,7 +3110,8 @@
       -6004,
       -638,
       -100
-     ]
+     ],
+     "spawner": "template_tower_cops,ForceSpawn"
     },
     {
      "chapter": "d1_town_01",
@@ -3137,7 +3131,8 @@
       -1568,
       -3296,
       9
-     ]
+     ],
+     "spawner": "gate_cop_makers,Spawn"
     }
    ],
    "position": [
@@ -3246,31 +3241,21 @@
     {
      "chapter": "d1_canals_01",
      "map": "d1_canals_03",
-     "how": "drop",
+     "how": "placed",
      "position": [
-      -1581,
-      -800,
-      -699
+      -818,
+      -327,
+      -919
      ]
     },
     {
      "chapter": "d1_canals_06",
      "map": "d1_canals_06",
-     "how": "drop",
+     "how": "placed",
      "position": [
-      -5812,
-      -1019,
-      -3
-     ]
-    },
-    {
-     "chapter": "d1_eli_01",
-     "map": "d1_eli_02",
-     "how": "drop",
-     "position": [
-      528,
-      2400,
-      -2735
+      -5530,
+      -3524,
+      -295
      ]
     },
     {
@@ -3291,7 +3276,8 @@
       -3712,
       3734,
       485
-     ]
+     ],
+     "spawner": "spypost_template,ForceSpawn"
     },
     {
      "chapter": "d2_coast_09",
@@ -3311,26 +3297,27 @@
       -2990,
       4174,
       1
-     ]
+     ],
+     "spawner": "soldier_group_1_spawner,ForceSpawn"
     },
     {
      "chapter": "d2_prison_06",
      "map": "d2_prison_06",
-     "how": "drop",
+     "how": "placed",
      "position": [
-      1104,
-      -2840,
-      -236
+      1340,
+      -2016,
+      -232
      ]
     },
     {
      "chapter": "d3_c17_02",
      "map": "d3_c17_04",
-     "how": "drop",
+     "how": "placed",
      "position": [
-      -620,
-      -5174,
-      205
+      -2615,
+      -3455,
+      259
      ]
     },
     {
@@ -3342,22 +3329,12 @@
       6288,
       98
      ]
-    },
-    {
-     "chapter": "d3_citadel_01",
-     "map": "d3_citadel_02",
-     "how": "drop",
-     "position": [
-      653,
-      5517,
-      2552
-     ]
     }
    ],
    "position": [
-    -1581,
-    -800,
-    -699
+    -818,
+    -327,
+    -919
    ]
   },
   {
@@ -3378,11 +3355,11 @@
     {
      "chapter": "d1_town_01",
      "map": "d1_town_05",
-     "how": "drop",
+     "how": "placed",
      "position": [
-      -3820,
-      7721,
-      906
+      -3616,
+      7688,
+      960
      ]
     },
     {
@@ -3393,7 +3370,8 @@
       -3656,
       3584,
       464
-     ]
+     ],
+     "spawner": "spypost_template,ForceSpawn"
     },
     {
      "chapter": "d2_coast_09",
@@ -3403,7 +3381,8 @@
       288,
       6297,
       -760
-     ]
+     ],
+     "spawner": "roadblock_1_spawner,ForceSpawn"
     },
     {
      "chapter": "d2_prison_02",
@@ -3423,53 +3402,35 @@
       1070,
       -2773,
       -236
-     ]
+     ],
+     "spawner": "template_combine_room2_ambush2,ForceSpawn"
     },
     {
      "chapter": "d3_c17_02",
      "map": "d3_c17_02",
-     "how": "drop",
+     "how": "placed",
      "position": [
-      -5737,
-      -6615,
-      0
-     ]
+      -5707,
+      -5669,
+      92
+     ],
+     "spawner": "spawner_ragdollstuff,ForceSpawn"
     },
     {
      "chapter": "d3_c17_09",
      "map": "d3_c17_10a",
-     "how": "drop",
+     "how": "placed",
      "position": [
-      96,
-      6208,
-      289
-     ]
-    },
-    {
-     "chapter": "d3_citadel_01",
-     "map": "d3_citadel_03",
-     "how": "drop",
-     "position": [
-      5968,
-      32,
-      2112
-     ]
-    },
-    {
-     "chapter": "d3_breen_01",
-     "map": "d3_breen_01",
-     "how": "drop",
-     "position": [
-      1100,
-      352,
-      0
+      -1185,
+      8424,
+      180
      ]
     }
    ],
    "position": [
-    -3820,
-    7721,
-    906
+    -3616,
+    7688,
+    960
    ]
   },
   {
@@ -3505,7 +3466,8 @@
       -4264,
       3792,
       469
-     ]
+     ],
+     "spawner": "spypost_template,ForceSpawn"
     },
     {
      "chapter": "d2_coast_09",
@@ -3515,7 +3477,8 @@
       -728,
       6112,
       -757
-     ]
+     ],
+     "spawner": "roadblock_1_spawner,ForceSpawn"
     },
     {
      "chapter": "d2_prison_02",
@@ -3525,7 +3488,8 @@
       -8535,
       -2641,
       0
-     ]
+     ],
+     "spawner": "shower_soldier_spawner,ForceSpawn"
     },
     {
      "chapter": "d2_prison_06",
@@ -3535,16 +3499,17 @@
       981,
       -2827,
       -235
-     ]
+     ],
+     "spawner": "template_combine_room2_ambush,ForceSpawn"
     },
     {
      "chapter": "d3_c17_02",
      "map": "d3_c17_06b",
-     "how": "drop",
+     "how": "placed",
      "position": [
-      3619,
+      3153,
       901,
-      364
+      111
      ]
     },
     {
@@ -3555,7 +3520,8 @@
       2376,
       824,
       289
-     ]
+     ],
+     "spawner": "soldiersquad_soldier_makers,Spawn"
     }
    ],
    "position": [
@@ -3597,7 +3563,8 @@
       562,
       -7042,
       -432
-     ]
+     ],
+     "spawner": "house_innards_spawner2,ForceSpawn"
     },
     {
      "chapter": "d2_prison_02",
@@ -3759,9 +3726,10 @@
      "how": "placed",
      "position": [
       8516,
-      4303,
+      4263,
       285
-     ]
+     ],
+     "spawner": "spawner_rpg,ForceSpawn"
     },
     {
      "chapter": "d3_c17_09",
@@ -3776,7 +3744,7 @@
    ],
    "position": [
     8516,
-    4303,
+    4263,
     285
    ]
   },
@@ -3802,14 +3770,16 @@
      "position": [
       5153,
       9921,
-      168
-     ]
+      200
+     ],
+     "spawner": "citizen_ambush_vortspawner,ForceSpawn",
+     "confirmed": true
     }
    ],
    "position": [
     5153,
     9921,
-    168
+    200
    ]
   },
   {
@@ -3836,22 +3806,56 @@
       -1625,
       9
      ]
-    },
-    {
-     "chapter": "d3_breen_01",
-     "map": "d3_breen_01",
-     "how": "placed",
-     "position": [
-      -2434,
-      -1407,
-      -1463
-     ]
     }
    ],
    "position": [
     -6484,
     -1625,
     9
+   ]
+  },
+  {
+   "id": 8830168,
+   "key": "hl2|*|weapon_upgrade|weapon_physcannon",
+   "name": "First Super Gravity Gun",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_03",
+   "trigger": {
+    "type": "weapon_upgrade",
+    "map": "d3_citadel_03",
+    "classnames": [
+     "weapon_physcannon"
+    ]
+   },
+   "sources": [
+    {
+     "chapter": "d3_citadel_01",
+     "map": "d3_citadel_03",
+     "how": "upgrade",
+     "position": [
+      7725,
+      -1321,
+      2209
+     ]
+    },
+    {
+     "chapter": "d3_breen_01",
+     "map": "d3_breen_01",
+     "how": "placed",
+     "position": [
+      -968,
+      -36,
+      1350
+     ],
+     "spawner": "spawner_physgun,ForceSpawn",
+     "confirmed": true
+    }
+   ],
+   "position": [
+    7725,
+    -1321,
+    2209
    ]
   }
  ]

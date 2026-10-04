@@ -32,7 +32,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "tools"))
 sys.path.insert(0, str(REPO_ROOT / "apworld" / "half_life_2"))
 
-from bsp_entities import BspError, Entity, brush_model_bounds, load_map  # noqa: E402
+from bsp_entities import (  # noqa: E402
+    BspError, Entity, brush_model_bounds, load_map, world_position)
 from campaigns import CAMPAIGNS, Campaign  # noqa: E402
 from map_logic import MapLogic  # noqa: E402
 
@@ -45,6 +46,9 @@ FORMAT_VERSION = 1
 
 ITEM_ID_BASE = 8_820_000
 LOCATION_ID_BASE = 8_830_000
+
+# Preference among one map's copies, most provable first.
+HOW_RANK = {"placed": 0, "crate": 1, "give": 2, "drop": 3}
 
 # NPC spawnflag: never drop the weapon it carries.
 SF_NPC_NO_WEAPON_DROP = 8192
@@ -310,8 +314,10 @@ def copy_excluded(spec: list[str], map_name: str, position: Vec3 | None) -> bool
 
 
 def item_sources(campaign: Campaign, chapters: list[Chapter], maps: dict[str, MapData],
-                 classnames: list[str], item: str) -> list[dict]:
-    """Every chapter's first way to a copy of this item, in campaign order.
+                 classnames: list[str], item: str,
+                 allowed: set[str] | None = None) -> list[dict]:
+    """Every chapter's first way to a copy of this item, in campaign order,
+    looking only at `allowed` maps when given.
 
     A copy is a placed or play-spawned entity, a supply crate holding it, an
     enemy that drops it (an ally only with `"drop": "ally"`), or a scripted
@@ -319,11 +325,14 @@ def item_sources(campaign: Campaign, chapters: list[Chapter], maps: dict[str, Ma
     """
     wanted = set(classnames)
     unreachable = campaign.unreachable_copies.get(item, [])
+    confirmed = campaign.confirmed_copies.get(item, [])
     sources: list[dict] = []
     for chapter in chapters:
         best: dict | None = None
         ally: dict | None = None
         for map_name in chapter.maps:
+            if allowed is not None and map_name not in allowed:
+                continue
             data = maps[map_name]
             for index, entity in enumerate(data.entities):
                 if not data.logic.exists_in_play(index):
@@ -352,13 +361,24 @@ def item_sources(campaign: Campaign, chapters: list[Chapter], maps: dict[str, Ma
                 if how is None or copy_excluded(unreachable, map_name, position):
                     continue
                 source = {"chapter": chapter.key, "map": map_name, "how": how}
+                # Exclusions above match the map-file origin; the scenario
+                # needs where the copy really appears.
+                position = data.logic.made_at.get(index, position)
                 if position is not None:
                     source["position"] = rounded(position)
+                spawner = data.logic.spawner_of.get(index)
+                if spawner and spawner[0]:
+                    # Exists only once this fires: a scenario placing the
+                    # player here skips whatever would have.
+                    source["spawner"] = f"{spawner[0]},{spawner[1]}"
+                if copy_excluded(confirmed, map_name, entity.origin):
+                    source["confirmed"] = True
                 if how == "ally":
                     ally = ally or source
-                else:
+                elif best is None or HOW_RANK[how] < HOW_RANK[best["how"]]:
+                    # Within one map, the copy the maps prove best: a placed
+                    # one beats a drop from an enemy who may never be met.
                     best = source
-                    break
             if best:
                 break
         if best:
@@ -374,6 +394,22 @@ def scripted_give(data: MapData, index: int, wanted: set[str]) -> str | None:
         words = parameter.split()
         if len(words) == 2 and words[0] == "give" and words[1] in wanted:
             return "give"
+    return None
+
+
+def upgrade_point(order: list[str], maps: dict[str, MapData], classname: str,
+                  output: str) -> tuple[str, Vec3] | None:
+    """The first map (and the trigger's position) where a `classname` trigger
+    in play fires `output`."""
+    for map_name in order:
+        data = maps[map_name]
+        for index, entity in enumerate(data.entities):
+            if entity.classname != classname or not data.logic.exists_in_play(index):
+                continue
+            if any(name.lower() == output.lower() for name, _ in entity.outputs()):
+                position = world_position(entity, data.bounds)
+                if position is not None:
+                    return map_name, position
     return None
 
 
@@ -495,10 +531,31 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
             f"{names[chapter.key]}: Complete", chapter.key, chapter.maps[-1],
             {"type": "chapter_complete", "chapter": chapter.key, "on": complete_on})
 
+    # `{weapon item: maps whose copies are its upgraded form}`, and the
+    # upgrade checks themselves, built after the weapons.
+    upgraded: dict[str, set[str]] = {}
+    confiscated: set[str] = set()
+    upgrade_checks = []
+    for name, (weapon, trigger_class, output) in campaign.upgrades.items():
+        point = upgrade_point(order, maps, trigger_class, output)
+        if point is None:
+            raise ScanError(f"no {trigger_class} firing {output}: nothing gives {name}")
+        later = set(order[order.index(point[0]) + 1:])
+        upgraded[weapon] = later
+        if name == campaign.confiscating_upgrade:
+            confiscated = set(order[order.index(point[0]):])
+        upgrade_checks.append((name, weapon, point, later))
+
     pickups = [(item, classnames, "weapon_pickup") for item, classnames in campaign.weapons.items()]
     pickups += [(item, classnames, "item_pickup") for item, classnames in campaign.equipment.items()]
     for item, classnames, kind in pickups:
-        sources = item_sources(campaign, chapters, maps, classnames, item)
+        if item in upgraded:
+            allowed = set(order) - upgraded[item]
+        elif kind == "weapon_pickup":
+            allowed = set(order) - confiscated
+        else:
+            allowed = None
+        sources = item_sources(campaign, chapters, maps, classnames, item, allowed)
         direct = [s for s in sources if s.get("drop") != "ally"]
         if not direct:
             raise ScanError(f"no reachable copy of {item} anywhere in {campaign.name}")
@@ -507,6 +564,17 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
             anchor["chapter"], anchor["map"],
             {"type": kind, "map": anchor["map"], "classnames": classnames},
             sources=sources, **({"position": anchor["position"]} if "position" in anchor else {}))
+
+    chapter_of = {m: c.key for c in chapters for m in c.maps}
+    for name, weapon, (where, position), later in upgrade_checks:
+        classnames = campaign.weapons[weapon]
+        sources = [{"chapter": chapter_of[where], "map": where, "how": "upgrade",
+                    "position": rounded(position)}]
+        sources += item_sources(campaign, chapters, maps, classnames, name, later)
+        add(f"{campaign.key}|*|weapon_upgrade|{classnames[0]}", campaign.display(f"First {name}"),
+            chapter_of[where], where,
+            {"type": "weapon_upgrade", "map": where, "classnames": classnames},
+            sources=sources, position=rounded(position))
 
     items: list[dict] = []
 

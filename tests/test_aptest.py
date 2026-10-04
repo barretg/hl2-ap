@@ -39,11 +39,11 @@ def test_groups_are_discovered() -> None:
 
 @pytest.mark.parametrize("name", list(group_registry.discover()))
 def test_every_group_builds_unique_titles(name: str, ctx: Context) -> None:
-    group = group_registry.discover()[name]
-    if group.needs_checkdata:
+    found = group_registry.discover()
+    if group_registry.needs_checkdata(name, found):
         ctx.checkdata = checkdata.parse(REPO_CHECKDATA)
-    titles = [s.title for s in group.build(ctx)]
-    assert titles and len(titles) == len(set(titles))
+    keys = [(s.origin, s.title) for s in group_registry.build(name, found, ctx)]
+    assert keys and len(keys) == len(set(keys))
 
 
 REPO_CHECKDATA = (HERE.parent / "apworld" / "half_life_2" / "mod" / "files"
@@ -134,6 +134,28 @@ def test_next_skips_tested_scenarios(harness: aptest.Harness) -> None:
     fresh = aptest.Harness(harness.ctx, harness.groups, "foundation")
     fresh.command("next", "")
     assert fresh.current == 1
+
+
+def test_next_revisits_failed_and_wraps(harness: aptest.Harness) -> None:
+    harness.command("go", "0")
+    harness.command("fail", "broken")
+    harness.command("go", "1")
+    harness.command("pass", "")
+    for i in range(2, len(harness.scenarios)):
+        harness.command("go", str(i))
+        harness.command("note", "seen")
+    harness.command("go", "1")
+    harness.command("next", "")
+    assert harness.current == 1
+    assert "No open scenarios" in said(harness)
+    # A later session comes back for the leftover fail.
+    fresh = aptest.Harness(harness.ctx, harness.groups, "foundation")
+    fresh.command("next", "")
+    assert fresh.current == 0
+    fresh.command("pass", "")
+    fresh.command("next", "")
+    assert fresh.current == 0
+    assert "No open scenarios" in said(fresh)
 
 
 def test_clear_drops_only_the_group(harness: aptest.Harness, tmp_path: Path) -> None:
@@ -252,3 +274,99 @@ def test_stale_lock_is_ignored(tmp_path: Path) -> None:
     lock = tmp_path / "aptest.lock"
     lock.write_text("999999999")
     assert aptest.running_harness(lock) is None
+
+
+def composite_groups() -> dict[str, Group]:
+    def make(*titles: str, origin: str = ""):
+        return lambda ctx: [Scenario(title=t, map="m", origin=origin) for t in titles]
+    return {
+        "base": Group("base", "x", make("b1", "b2")),
+        "view": Group("view", "x", make("b2", origin="base")),
+        "phase": Group("phase", "x", make("p1"), includes=("base", "view")),
+    }
+
+
+def test_included_groups_follow_own_scenarios_once(ctx: Context) -> None:
+    groups = composite_groups()
+    built = group_registry.build("phase", groups, ctx)
+    assert [(s.origin, s.title) for s in built] == [
+        ("phase", "p1"), ("base", "b1"), ("base", "b2")]
+
+
+def test_include_cycles_and_unknowns_are_refused() -> None:
+    groups = {"a": Group("a", "x", lambda c: [], includes=("b",)),
+              "b": Group("b", "x", lambda c: [], includes=("a",))}
+    with pytest.raises(ValueError, match="include each other"):
+        group_registry._members("a", groups, ())
+
+
+def test_needs_checkdata_through_includes() -> None:
+    groups = {"a": Group("a", "x", lambda c: [], includes=("b",)),
+              "b": Group("b", "x", lambda c: [], needs_checkdata=True)}
+    assert group_registry.needs_checkdata("a", groups)
+
+
+def test_verdicts_shared_with_origin_group(ctx: Context) -> None:
+    h = aptest.Harness(ctx, composite_groups(), "phase")
+    h.command("go", "2")  # base's b2, run from the phase group
+    h.command("pass", "")
+    assert h.counts("base")["pass"] == 1
+    assert h.counts("view")["pass"] == 1
+    assert h.results_path.read_text().strip().endswith("|base")
+
+
+def test_clearing_a_phase_clears_its_subgroups_verdicts(ctx: Context) -> None:
+    h = aptest.Harness(ctx, composite_groups(), "phase")
+    h.command("go", "0")
+    h.command("pass", "")
+    h.command("pass", "")  # moved on to base's b1
+    h.command("clear", "yes")
+    assert h.counts("phase") == {"untested": 3}
+
+
+def test_phase2_includes_sources() -> None:
+    found = group_registry.discover()
+    assert found["phase2"].includes == ("sources", "unproven")
+    ctx = Context(store=Path("/nonexistent"), game_root=None,
+                  checkdata=checkdata.parse(REPO_CHECKDATA))
+    built = group_registry.build("phase2", found, ctx)
+    sources = group_registry.build("sources", found, ctx)
+    assert built[0].origin == "phase2"
+    assert [(s.origin, s.title) for s in built[1:]] == [(s.origin, s.title) for s in sources]
+
+
+def test_sources_name_the_pickup_not_the_item() -> None:
+    ctx = Context(store=Path("/nonexistent"), game_root=None,
+                  checkdata=checkdata.parse(REPO_CHECKDATA))
+    built = group_registry.build("sources", group_registry.discover(), ctx)
+    gravity = [s for s in built if s.title.startswith("First Gravity Gun")]
+    assert gravity and all("Progressive" not in s.steps for s in gravity)
+    assert all("Gravity Gun" in s.steps for s in gravity)
+
+
+def test_drop_scenarios_arm_the_tester_without_the_tested_weapon() -> None:
+    ctx = Context(store=Path("/nonexistent"), game_root=None,
+                  checkdata=checkdata.parse(REPO_CHECKDATA))
+    built = group_registry.build("sources", group_registry.discover(), ctx)
+    drops = [s for s in built if s.title.endswith("(drop)")]
+    assert drops
+    for s in drops:
+        assert "give weapon_crowbar" in s.setup
+        tested = s.title.split(":")[0].removeprefix("First ")
+        assert not (tested == "Shotgun" and "give weapon_shotgun" in s.setup)
+    assert all("give weapon_crowbar" not in s.setup
+               for s in built if s.title.endswith("(placed)"))
+
+
+def test_templated_sources_are_spawned_by_setup() -> None:
+    data = checkdata.parse(REPO_CHECKDATA)
+    ctx = Context(store=Path("/nonexistent"), game_root=None, checkdata=data)
+    built = group_registry.build("sources", group_registry.discover(), ctx)
+    by_map_pos = {(s.map, s.pos): s for s in built}
+    templated = [src for src in data.sources if src.spawner]
+    assert templated
+    for src in templated:
+        scenario = by_map_pos[(src.map, src.position)]
+        name, _, input_name = src.spawner.partition(",")
+        assert scenario.setup[0] == "sv_cheats 1"
+        assert scenario.setup[-2:] == ["notarget", f"ent_fire {name} {input_name}"]

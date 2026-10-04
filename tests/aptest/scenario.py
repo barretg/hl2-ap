@@ -1,6 +1,8 @@
 """What a scenario and a scenario group are, and what a group builds from.
 
-A group is a module in `groups/` exporting `GROUP = Group(...)`. Its `build`
+A group is a module in `groups/` exporting `GROUP = Group(...)`. A group may
+include others (`includes`), so a phase group runs its subgroups in turn; see
+`groups.build`. Its `build`
 takes a `Context` and returns the scenarios in a fixed order: append new ones at
 the end, never reorder, so `!go <n>` means the same thing between runs (verdicts
 are keyed by title, so a reorder loses nothing, it only confuses).
@@ -38,6 +40,11 @@ class Scenario:
     connected: bool = True
     # Seed options for the snapshot (client.bridge `options`), over the defaults.
     snapshot: dict[str, object] = field(default_factory=dict)
+    # The group whose verdict this is. Filled in by `groups.build` with the
+    # building group's name unless the group set it: a filtered view of
+    # another group (`unproven` of `sources`) names that group, so the two
+    # share verdicts.
+    origin: str = ""
 
 
 @dataclass
@@ -62,6 +69,11 @@ class Group:
     needs_checkdata: bool = False
     # Former names whose recorded verdicts are this group's.
     aliases: tuple[str, ...] = ()
+    # Other groups run as part of this one, after its own scenarios, in this
+    # order (a phase group runs its subgroups). A scenario already included
+    # once is not repeated, and its verdict is shared with the group it
+    # came from wherever it is run.
+    includes: tuple[str, ...] = ()
 
 
 # A line of chat that fits on screen.

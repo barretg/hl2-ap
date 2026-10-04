@@ -36,11 +36,16 @@ HEADER = """\
 #     <complete on> is forward_exit or finale; <exits> is from>to,... (the
 #     changelevels into the next chapter)
 #   L|<id>|<map>|<type>|<arg>|<name>[|<x y z>]
-#     <arg>: weapon_pickup/item_pickup classnames,...; charger <classname>@<x y z>;
-#     chapter_complete the chapter key; map_reached empty
-#   F|<location id>|<map>|<x y z>|<how>   one way to a pickup check: a chapter's
-#     first copy. <how> is placed, crate, drop, ally or give; <x y z> is empty
-#     for a give with no place
+#     <arg>: weapon_pickup/item_pickup/weapon_upgrade classnames,...; charger
+#     <classname>@<x y z>; chapter_complete the chapter key; map_reached empty.
+#     weapon_upgrade is holding the upgraded form (the super gravity gun)
+#   F|<location id>|<map>|<x y z>|<how>|<spawner>|<confirmed>   one way to a pickup
+#     check: a chapter's
+#     first copy. <how> is placed, crate, drop, ally, give or upgrade (a
+#     trigger that upgrades a held weapon); <x y z> is empty for a give with
+#     no place. <spawner> is `<targetname>,<input>` for a copy that only exists
+#     once that entity gets that input (a template), else empty. <confirmed>
+#     is 1 for a copy confirmed reachable in play that the maps cannot prove
 #   K|<classname>|<item name>        a pickup refused until the item arrives
 #   P|<item name>|<stages>|<classname>   a progressive item and its stage count
 #   H|<chapter key>|<vehiclescript>|<item name>   the key a chapter's vehicle needs
@@ -64,7 +69,7 @@ def render(data: dict) -> str:
     for location in data["locations"]:
         trigger = location["trigger"]
         kind = trigger["type"]
-        if kind in ("weapon_pickup", "item_pickup"):
+        if kind in ("weapon_pickup", "item_pickup", "weapon_upgrade"):
             arg = ",".join(trigger["classnames"])
         elif kind == "charger":
             arg = f"{trigger['classname']}@{trigger['at']}"
@@ -78,9 +83,11 @@ def render(data: dict) -> str:
         lines.append(record)
         for source in location.get("sources", ()):
             how = "ally" if source.get("drop") == "ally" else source["how"]
-            lines.append("F|{id}|{map}|{pos}|{how}".format(
+            lines.append("F|{id}|{map}|{pos}|{how}|{spawner}|{confirmed}".format(
                 id=location["id"], map=source["map"],
-                pos=" ".join(str(v) for v in source.get("position", ())), how=how))
+                pos=" ".join(str(v) for v in source.get("position", ())), how=how,
+                spawner=source.get("spawner", ""),
+                confirmed=1 if source.get("confirmed") else 0))
     for item in data["items"]:
         group = item["group"]
         if group in ("weapon", "equipment"):

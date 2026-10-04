@@ -7,11 +7,16 @@
 #     <complete on> is forward_exit or finale; <exits> is from>to,... (the
 #     changelevels into the next chapter)
 #   L|<id>|<map>|<type>|<arg>|<name>[|<x y z>]
-#     <arg>: weapon_pickup/item_pickup classnames,...; charger <classname>@<x y z>;
-#     chapter_complete the chapter key; map_reached empty
-#   F|<location id>|<map>|<x y z>|<how>   one way to a pickup check: a chapter's
-#     first copy. <how> is placed, crate, drop, ally or give; <x y z> is empty
-#     for a give with no place
+#     <arg>: weapon_pickup/item_pickup/weapon_upgrade classnames,...; charger
+#     <classname>@<x y z>; chapter_complete the chapter key; map_reached empty.
+#     weapon_upgrade is holding the upgraded form (the super gravity gun)
+#   F|<location id>|<map>|<x y z>|<how>|<spawner>|<confirmed>   one way to a pickup
+#     check: a chapter's
+#     first copy. <how> is placed, crate, drop, ally, give or upgrade (a
+#     trigger that upgrades a held weapon); <x y z> is empty for a give with
+#     no place. <spawner> is `<targetname>,<input>` for a copy that only exists
+#     once that entity gets that input (a template), else empty. <confirmed>
+#     is 1 for a copy confirmed reachable in play that the maps cannot prove
 #   K|<classname>|<item name>        a pickup refused until the item arrives
 #   P|<item name>|<stages>|<classname>   a progressive item and its stage count
 #   H|<chapter key>|<vehiclescript>|<item name>   the key a chapter's vehicle needs
@@ -19,7 +24,7 @@
 # A charger's position is its rounded origin. The game matches the unit a
 # player used by nearest same-class entity within a radius, never by rounding.
 V|1
-D|7d14472f533d
+D|4b690ef8d989
 N|hl2|hl2|Half-Life 2|d3_breen_01
 C|0|d1_trainstation_01|1|Point Insertion|d1_trainstation_01,d1_trainstation_02,d1_trainstation_03,d1_trainstation_04|0|hl2|forward_exit|d1_trainstation_04>d1_trainstation_05
 C|1|d1_trainstation_05|2|A Red Letter Day|d1_trainstation_05,d1_trainstation_06|0|hl2|forward_exit|d1_trainstation_06>d1_canals_01
@@ -191,77 +196,74 @@ L|8830152|d3_breen_01|map_reached||Dark Energy: Part 1 Reached
 L|8830153|d3_breen_01|charger|item_suitcharger@33 115 565|Dark Energy: Suit Charger 1 (Part 1)|33 115 565
 L|8830154|d3_breen_01|charger|item_suitcharger@-928 299 1360|Dark Energy: Suit Charger 2 (Part 1)|-928 299 1360
 L|8830155|d3_breen_01|chapter_complete|d3_breen_01|Dark Energy: Complete
-L|8830156|d1_trainstation_06|weapon_pickup|weapon_crowbar|First Crowbar|-9616 -3498 600
-F|8830156|d1_trainstation_06|-9616 -3498 600|placed
+L|8830156|d1_trainstation_06|weapon_pickup|weapon_crowbar|First Crowbar|-9616 -3546 600
+F|8830156|d1_trainstation_06|-9616 -3546 600|placed|spawner_crowbar,ForceSpawn|0
 L|8830157|d1_eli_02|weapon_pickup|weapon_physcannon|First Gravity Gun
-F|8830157|d1_eli_02||give
-F|8830157|d3_breen_01|-1000 88 1452|placed
+F|8830157|d1_eli_02||give||0
 L|8830158|d1_trainstation_06|weapon_pickup|weapon_pistol|First Pistol|-7784 -2666 327
-F|8830158|d1_trainstation_06|-7784 -2666 327|drop
-F|8830158|d1_canals_01|704 -3456 384|drop
-F|8830158|d1_canals_06|-6004 -638 -100|drop
-F|8830158|d1_town_01|327 -667 -3465|placed
-F|8830158|d3_c17_03|-1568 -3296 9|drop
+F|8830158|d1_trainstation_06|-7784 -2666 327|drop|rappeller_cop_1_maker,Spawn|0
+F|8830158|d1_canals_01|704 -3456 384|drop|barrelpush_cop2_maker,Spawn|0
+F|8830158|d1_canals_06|-6004 -638 -100|drop|template_tower_cops,ForceSpawn|0
+F|8830158|d1_town_01|327 -667 -3465|placed||0
+F|8830158|d3_c17_03|-1568 -3296 9|drop|gate_cop_makers,Spawn|0
 L|8830159|d1_canals_08|weapon_pickup|weapon_357|First .357 Magnum|-2316 -1843 -250
-F|8830159|d1_canals_08|-2316 -1843 -250|placed
-F|8830159|d1_town_05|-11407 4272 1044|placed
-F|8830159|d2_coast_03|-3216 -6264 624|crate
-F|8830159|d2_prison_03|-3808 4416 40|placed
-F|8830159|d3_c17_05|76 -6332 514|placed
-F|8830159|d3_c17_10a|-1448 6328 99|placed
-L|8830160|d1_canals_03|weapon_pickup|weapon_smg1|First SMG|-1581 -800 -699
-F|8830160|d1_canals_03|-1581 -800 -699|drop
-F|8830160|d1_canals_06|-5812 -1019 -3|drop
-F|8830160|d1_eli_02|528 2400 -2735|drop
-F|8830160|d1_town_01a|1 -405 -3256|placed
-F|8830160|d2_coast_03|-3712 3734 485|drop
-F|8830160|d2_coast_09|2 5215 -461|drop
-F|8830160|d2_prison_03|-2990 4174 1|drop
-F|8830160|d2_prison_06|1104 -2840 -236|drop
-F|8830160|d3_c17_04|-620 -5174 205|drop
-F|8830160|d3_c17_10a|-1449 6288 98|placed
-F|8830160|d3_citadel_02|653 5517 2552|drop
-L|8830161|d1_town_05|weapon_pickup|weapon_ar2|First Pulse Rifle|-3820 7721 906
-F|8830161|d1_town_05|-3820 7721 906|drop
-F|8830161|d2_coast_03|-3656 3584 464|drop
-F|8830161|d2_coast_09|288 6297 -760|drop
-F|8830161|d2_prison_02|-1862 1821 386|placed
-F|8830161|d2_prison_06|1070 -2773 -236|drop
-F|8830161|d3_c17_02|-5737 -6615 0|drop
-F|8830161|d3_c17_10a|96 6208 289|drop
-F|8830161|d3_citadel_03|5968 32 2112|drop
-F|8830161|d3_breen_01|1100 352 0|drop
+F|8830159|d1_canals_08|-2316 -1843 -250|placed||0
+F|8830159|d1_town_05|-11407 4272 1044|placed||0
+F|8830159|d2_coast_03|-3216 -6264 624|crate||0
+F|8830159|d2_prison_03|-3808 4416 40|placed||0
+F|8830159|d3_c17_05|76 -6332 514|placed||0
+F|8830159|d3_c17_10a|-1448 6328 99|placed||0
+L|8830160|d1_canals_03|weapon_pickup|weapon_smg1|First SMG|-818 -327 -919
+F|8830160|d1_canals_03|-818 -327 -919|placed||0
+F|8830160|d1_canals_06|-5530 -3524 -295|placed||0
+F|8830160|d1_town_01a|1 -405 -3256|placed||0
+F|8830160|d2_coast_03|-3712 3734 485|drop|spypost_template,ForceSpawn|0
+F|8830160|d2_coast_09|2 5215 -461|drop||0
+F|8830160|d2_prison_03|-2990 4174 1|drop|soldier_group_1_spawner,ForceSpawn|0
+F|8830160|d2_prison_06|1340 -2016 -232|placed||0
+F|8830160|d3_c17_04|-2615 -3455 259|placed||0
+F|8830160|d3_c17_10a|-1449 6288 98|placed||0
+L|8830161|d1_town_05|weapon_pickup|weapon_ar2|First Pulse Rifle|-3616 7688 960
+F|8830161|d1_town_05|-3616 7688 960|placed||0
+F|8830161|d2_coast_03|-3656 3584 464|drop|spypost_template,ForceSpawn|0
+F|8830161|d2_coast_09|288 6297 -760|drop|roadblock_1_spawner,ForceSpawn|0
+F|8830161|d2_prison_02|-1862 1821 386|placed||0
+F|8830161|d2_prison_06|1070 -2773 -236|drop|template_combine_room2_ambush2,ForceSpawn|0
+F|8830161|d3_c17_02|-5707 -5669 92|placed|spawner_ragdollstuff,ForceSpawn|0
+F|8830161|d3_c17_10a|-1185 8424 180|placed||0
 L|8830162|d1_town_02|weapon_pickup|weapon_shotgun|First Shotgun|-3856 -272 -3538
-F|8830162|d1_town_02|-3856 -272 -3538|placed
-F|8830162|d2_coast_03|-4264 3792 469|drop
-F|8830162|d2_coast_09|-728 6112 -757|drop
-F|8830162|d2_prison_02|-8535 -2641 0|drop
-F|8830162|d2_prison_06|981 -2827 -235|drop
-F|8830162|d3_c17_06b|3619 901 364|drop
-F|8830162|d3_c17_10b|2376 824 289|drop
+F|8830162|d1_town_02|-3856 -272 -3538|placed||0
+F|8830162|d2_coast_03|-4264 3792 469|drop|spypost_template,ForceSpawn|0
+F|8830162|d2_coast_09|-728 6112 -757|drop|roadblock_1_spawner,ForceSpawn|0
+F|8830162|d2_prison_02|-8535 -2641 0|drop|shower_soldier_spawner,ForceSpawn|0
+F|8830162|d2_prison_06|981 -2827 -235|drop|template_combine_room2_ambush,ForceSpawn|0
+F|8830162|d3_c17_06b|3153 901 111|placed||0
+F|8830162|d3_c17_10b|2376 824 289|drop|soldiersquad_soldier_makers,Spawn|0
 L|8830163|d2_coast_05|weapon_pickup|weapon_crossbow|First Crossbow|-3874 -4104 1328
-F|8830163|d2_coast_05|-3874 -4104 1328|placed
-F|8830163|d2_coast_09|562 -7042 -432|placed
-F|8830163|d2_prison_03|-3756 4390 170|placed
-F|8830163|d3_c17_10a|-2904 6816 133|crate
+F|8830163|d2_coast_05|-3874 -4104 1328|placed||0
+F|8830163|d2_coast_09|562 -7042 -432|placed|house_innards_spawner2,ForceSpawn|0
+F|8830163|d2_prison_03|-3756 4390 170|placed||0
+F|8830163|d3_c17_10a|-2904 6816 133|crate||0
 L|8830164|d1_canals_03|weapon_pickup|weapon_frag|First Grenade|-2312 837 -1033
-F|8830164|d1_canals_03|-2312 837 -1033|placed
-F|8830164|d1_canals_07|7162 1738 -345|placed
-F|8830164|d1_town_01|661 -1619 -3643|placed
-F|8830164|d2_coast_03|-3678 -6078 457|placed
-F|8830164|d2_coast_09|-11628 7131 521|placed
-F|8830164|d2_prison_02|-1855 1811 389|placed
-F|8830164|d2_prison_06|1298 -2034 -234|placed
-F|8830164|d3_c17_04|-1036 -4878 325|placed
-F|8830164|d3_c17_09|5634 6324 1|placed
-L|8830165|d2_coast_03|weapon_pickup|weapon_rpg|First RPG|8516 4303 285
-F|8830165|d2_coast_03|8516 4303 285|placed
-F|8830165|d3_c17_10b|2712 1016 265|placed
-L|8830166|d2_coast_11|weapon_pickup|weapon_bugbait|First Bugbait|5153 9921 168
-F|8830166|d2_coast_11|5153 9921 168|give
+F|8830164|d1_canals_03|-2312 837 -1033|placed||0
+F|8830164|d1_canals_07|7162 1738 -345|placed||0
+F|8830164|d1_town_01|661 -1619 -3643|placed||0
+F|8830164|d2_coast_03|-3678 -6078 457|placed||0
+F|8830164|d2_coast_09|-11628 7131 521|placed||0
+F|8830164|d2_prison_02|-1855 1811 389|placed||0
+F|8830164|d2_prison_06|1298 -2034 -234|placed||0
+F|8830164|d3_c17_04|-1036 -4878 325|placed||0
+F|8830164|d3_c17_09|5634 6324 1|placed||0
+L|8830165|d2_coast_03|weapon_pickup|weapon_rpg|First RPG|8516 4263 285
+F|8830165|d2_coast_03|8516 4263 285|placed|spawner_rpg,ForceSpawn|0
+F|8830165|d3_c17_10b|2712 1016 265|placed||0
+L|8830166|d2_coast_11|weapon_pickup|weapon_bugbait|First Bugbait|5153 9921 200
+F|8830166|d2_coast_11|5153 9921 200|give|citizen_ambush_vortspawner,ForceSpawn|1
 L|8830167|d1_trainstation_05|item_pickup|item_suit|First HEV Suit|-6484 -1625 9
-F|8830167|d1_trainstation_05|-6484 -1625 9|placed
-F|8830167|d3_breen_01|-2434 -1407 -1463|placed
+F|8830167|d1_trainstation_05|-6484 -1625 9|placed||0
+L|8830168|d3_citadel_03|weapon_upgrade|weapon_physcannon|First Super Gravity Gun|7725 -1321 2209
+F|8830168|d3_citadel_03|7725 -1321 2209|upgrade||0
+F|8830168|d3_breen_01|-968 -36 1350|placed|spawner_physgun,ForceSpawn|1
 K|weapon_crowbar|Crowbar
 K|weapon_physcannon|Progressive Gravity Gun
 P|Progressive Gravity Gun|4|weapon_physcannon

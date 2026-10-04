@@ -12,8 +12,9 @@ it into the installed mod on start and puts the original back when it stops, so
 start it before the game. Close the real client first: both write `ap_in.txt`.
 
 In game, in chat (or `ap_test <verb>` in the console):
-    !next              start the first untested scenario, then the one after
-    !pass [note]       record a verdict; the next untested scenario loads
+    !next              start the next open scenario (no verdict yet, or failed
+                       in an earlier session)
+    !pass [note]       record a verdict; the next open scenario loads
     !fail <note>
     !note <text>       a finding that is not pass or fail
     !redo / !prev / !go <n>
@@ -88,24 +89,29 @@ def read_results(path: Path) -> list[list[str]]:
     return [line.split("|") for line in path.read_text(encoding="utf-8").splitlines() if line]
 
 
-def latest_verdicts(path: Path, group: str, groups: dict[str, Group]) -> dict[str, str]:
-    """`{title: verdict}` for one group, the last verdict per title winning."""
-    verdicts: dict[str, str] = {}
+def latest_verdicts(path: Path, groups: dict[str, Group]) -> dict[tuple[str, str], str]:
+    """`{(group, title): verdict}`, the last verdict per scenario winning."""
+    verdicts: dict[tuple[str, str], str] = {}
     for parts in read_results(path):
-        if len(parts) >= 7 and group_registry.canonical(parts[6], groups) == group:
-            verdicts[parts[2]] = parts[3]
+        if len(parts) >= 7:
+            verdicts[(group_registry.canonical(parts[6], groups), parts[2])] = parts[3]
     return verdicts
 
 
-def clear_results(path: Path, group: str, groups: dict[str, Group]) -> int:
-    """Drop one group's verdicts into the cleared file. Returns how many went."""
+def clear_results(path: Path, group: str, groups: dict[str, Group],
+                  scenarios: list[Scenario]) -> int:
+    """Drop one group's verdicts into the cleared file: those recorded under
+    it, and those of every scenario it runs (a phase group's subgroups').
+    Returns how many went."""
     if not path.exists():
         return 0
+    keys = {(s.origin, s.title) for s in scenarios}
     kept: list[str] = []
     dropped: list[str] = []
     for line in path.read_text(encoding="utf-8").splitlines():
         parts = line.split("|")
-        ours = len(parts) >= 7 and group_registry.canonical(parts[6], groups) == group
+        owner = group_registry.canonical(parts[6], groups) if len(parts) >= 7 else None
+        ours = owner == group or (owner, parts[2] if len(parts) > 2 else "") in keys
         (dropped if ours else kept).append(line)
     if dropped:
         with path.with_name(CLEARED_NAME).open("a", encoding="utf-8") as handle:
@@ -188,6 +194,9 @@ class Harness:
         self.group = ""
         self.scenarios: list[Scenario] = []
         self.current = -1
+        # Fails recorded since this harness started: !next leaves them alone,
+        # it only comes back for fails left over from earlier sessions.
+        self.failed_now: set[tuple[str, str]] = set()
         self.select(group)
 
     # Talking to the player, in game and here.
@@ -214,21 +223,15 @@ class Harness:
         if group is None:
             self.tell(f"[aptest] No group '{name}'. !groups lists them.")
             return False
-        if group.needs_checkdata and self.ctx.checkdata is None:
+        if group_registry.needs_checkdata(group.name, self.groups) and self.ctx.checkdata is None:
             self.tell(f"[aptest] '{group.name}' needs checkdata.txt, which is not installed yet.")
             return False
-        scenarios = group.build(self.ctx)
-        titles = [s.title for s in scenarios]
-        if len(set(titles)) != len(titles):
-            raise ValueError(f"group {group.name} has duplicate scenario titles")
+        scenarios = group_registry.build(group.name, self.groups, self.ctx)
         with self.lock:
             self.group = group.name
             self.scenarios = scenarios
             self.current = -1
         return True
-
-    def verdicts(self, group: str | None = None) -> dict[str, str]:
-        return latest_verdicts(self.results_path, group or self.group, self.groups)
 
     # The snapshot.
 
@@ -279,7 +282,8 @@ class Harness:
             temp = self.go_path.with_suffix(".tmp")
             temp.write_text("\n".join(go) + "\n", encoding="utf-8")
             os.replace(temp, self.go_path)
-            self.tell(f"[aptest] {self.group} {index}/{len(self.scenarios) - 1}: {s.title}")
+            part = f" [{s.origin}]" if s.origin and s.origin != self.group else ""
+            self.tell(f"[aptest] {self.group} {index}/{len(self.scenarios) - 1}{part}: {s.title}")
             if s.take:
                 self.tell(f"[aptest] Without: {', '.join(s.take)}")
             if not s.connected:
@@ -289,15 +293,26 @@ class Harness:
     def info(self) -> None:
         s = self.scenario()
         if s is None:
-            self.tell("[aptest] No scenario running. !next starts the first untested.")
+            self.tell("[aptest] No scenario running. !next starts the first open one.")
             return
         for number, line in enumerate(reflow(s.steps), 1):
             self.tell(f"{number}. {line}")
 
-    def first_untested(self, after: int = -1) -> int | None:
-        verdicts = self.verdicts()
-        return next((i for i, s in enumerate(self.scenarios)
-                     if i > after and s.title not in verdicts), None)
+    def next_open(self, after: int = -1) -> int | None:
+        """The first open scenario after `after`, wrapping to the start; never
+        `after` itself. Open: no verdict yet, or a fail from an earlier session."""
+        verdicts = latest_verdicts(self.results_path, self.groups)
+        count = len(self.scenarios)
+        for step in range(1, count + 1):
+            i = (after + step) % count
+            if i == after:
+                break
+            s = self.scenarios[i]
+            key = (s.origin, s.title)
+            verdict = verdicts.get(key)
+            if verdict is None or (verdict == "fail" and key not in self.failed_now):
+                return i
+        return None
 
     def record(self, verdict: str, note: str) -> None:
         s = self.scenario()
@@ -306,44 +321,46 @@ class Harness:
             return
         sent = ",".join(str(i) for i in sorted(self.seen))
         line = "|".join([time.strftime("%Y-%m-%d %H:%M:%S"), str(self.current), s.title,
-                         verdict, note.replace("|", "/"), sent, self.group])
+                         verdict, note.replace("|", "/"), sent, s.origin or self.group])
         with self.results_path.open("a", encoding="utf-8") as handle:
             handle.write(line + "\n")
+        if verdict == "fail":
+            self.failed_now.add((s.origin, s.title))
         self.tell(f"[aptest] Recorded {verdict}.")
-        following = self.first_untested(self.current)
+        following = self.next_open(self.current)
         if following is None:
-            self.tell("[aptest] That was the last untested scenario in this group.")
+            self.tell("[aptest] No open scenarios left in this group.")
             self.status()
         else:
             self.start(following)
 
     def counts(self, group: str) -> Counter[str]:
-        g = self.groups[group]
-        if g.needs_checkdata and self.ctx.checkdata is None:
+        if group_registry.needs_checkdata(group, self.groups) and self.ctx.checkdata is None:
             return Counter()
-        verdicts = self.verdicts(group)
-        return Counter(verdicts.get(s.title, "untested") for s in g.build(self.ctx))
+        verdicts = latest_verdicts(self.results_path, self.groups)
+        return Counter(verdicts.get((s.origin, s.title), "untested")
+                       for s in group_registry.build(group, self.groups, self.ctx))
 
     def status(self) -> None:
         counts = self.counts(self.group)
         self.tell(f"[aptest] {self.group}: " + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
-        first = self.first_untested()
+        first = self.next_open()
         if first is not None:
-            self.tell(f"[aptest] First untested: {first} {self.scenarios[first].title}")
+            self.tell(f"[aptest] First open: {first} {self.scenarios[first].title}")
 
     def list(self, text: str) -> None:
-        verdicts = self.verdicts()
+        verdicts = latest_verdicts(self.results_path, self.groups)
         shown = 0
         for index, s in enumerate(self.scenarios):
             if text.lower() in s.title.lower():
-                mark = verdicts.get(s.title, "")
+                mark = verdicts.get((s.origin, s.title), "")
                 self.tell(f"{index:4} {('[' + mark + '] ') if mark else ''}{s.title}", hud=False)
                 shown += 1
         self.tell(f"[aptest] {shown} listed in the console.")
 
     def list_groups(self) -> None:
         for name, g in self.groups.items():
-            if g.needs_checkdata and self.ctx.checkdata is None:
+            if group_registry.needs_checkdata(name, self.groups) and self.ctx.checkdata is None:
                 summary = "needs checkdata.txt"
             else:
                 summary = ", ".join(f"{k} {v}" for k, v in sorted(self.counts(name).items()))
@@ -355,7 +372,7 @@ class Harness:
             self.tell(f"[aptest] This drops every '{self.group}' result "
                       f"({len(self.scenarios)} scenarios). !clear yes to go ahead.")
             return
-        count = clear_results(self.results_path, self.group, self.groups)
+        count = clear_results(self.results_path, self.group, self.groups, self.scenarios)
         self.tell(f"[aptest] Cleared {count} '{self.group}' result(s); "
                   f"they are kept in {CLEARED_NAME}.")
         self.status()
@@ -372,16 +389,17 @@ class Harness:
                 else:
                     self.tell(f"[aptest] !{verb} needs a note.")
             elif verb == "next":
-                if self.current < 0:
-                    first = self.first_untested()
-                    self.start(0 if first is None else first)
+                following = self.next_open(self.current)
+                if following is None:
+                    self.tell("[aptest] No open scenarios in this group. "
+                              "!go <n> or !list to pick one.")
                 else:
-                    self.start(self.current + 1)
+                    self.start(following)
             elif verb == "prev":
                 self.start(self.current - 1)
             elif verb == "redo":
                 if self.current < 0:
-                    self.tell("[aptest] Nothing to redo. !next starts the first untested.")
+                    self.tell("[aptest] Nothing to redo. !next starts the first open one.")
                 else:
                     self.start(self.current)
             elif verb == "go" and arg.isdigit():
@@ -541,14 +559,18 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.list_groups or not args.group:
         for name, g in groups.items():
-            print(f"{name:16} {g.summary}" + (" (needs checkdata)" if g.needs_checkdata else ""))
+            parts = f" (runs {', '.join(g.includes)} after its own)" if g.includes else ""
+            needs = " (needs checkdata)" if group_registry.needs_checkdata(name, groups) else ""
+            print(f"{name:16} {g.summary}{parts}{needs}")
         return 0
 
     name = group_registry.canonical(args.group, groups)
     if name not in groups:
         parser.error(f"no group {args.group!r}; --list-groups lists them")
     if args.clear:
-        count = clear_results(ctx.store / RESULTS_NAME, name, groups)
+        scenarios = ([] if group_registry.needs_checkdata(name, groups) and ctx.checkdata is None
+                     else group_registry.build(name, groups, ctx))
+        count = clear_results(ctx.store / RESULTS_NAME, name, groups, scenarios)
         print(f"Cleared {count} '{name}' result(s); kept in {CLEARED_NAME}.")
         return 0
 

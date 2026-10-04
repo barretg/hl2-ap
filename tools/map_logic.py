@@ -8,8 +8,8 @@ can become a check:
   `logic_auto`'s `OnNewGame`, which fires only when the map is loaded directly
   (chapter select, `map`), never on a level transition. They are not pickups a
   playthrough meets, and counting them would put "First Crowbar" in every map.
-- **Templates.** An entity named by a `point_template` does not exist when the
-  map loads; it is removed and spawned later (or never) by `ForceSpawn`. One
+- **Templates.** An entity named by a `point_template` (or the NPC named by an
+  `npc_template_maker`) does not exist when the map loads; it is removed and spawned later (or never) by `ForceSpawn`. One
   spawned in play is still a real source, at its template position.
 
 Targetnames are case-insensitive in Source, and an output's target may end in
@@ -18,6 +18,7 @@ Targetnames are case-insensitive in Source, and an output's target may end in
 
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 from fnmatch import fnmatchcase
 
@@ -46,10 +47,37 @@ class MapLogic:
                     members.extend(self.named(value))
             self.template_members[index] = members
         self.templated: set[int] = set()
+        # `{template member: (spawner targetname, input that spawns it)}`.
+        self.spawner_of: dict[int, tuple[str, str]] = {}
+        # An env_entity_maker that spawns a template is the level's own route
+        # (it may also fire follow-ups such as a physexplosion), so it wins
+        # over the point_template behind it.
+        # `{template member: where the maker puts it}`: a point_template
+        # instanced by an env_entity_maker lands at the maker, keeping each
+        # member's offset from the template (turned by the maker's yaw), so
+        # the member's own origin is only a storage spot.
+        self.made_at: dict[int, tuple[float, float, float]] = {}
+        for entity in entities:
+            if entity.classname == "env_entity_maker" and entity.targetname:
+                for template in self.named(entity.get("EntityTemplate")):
+                    for member in self.template_members.get(template, []):
+                        self.spawner_of.setdefault(member, (entity.targetname, "ForceSpawn"))
+                        moved = maker_position(entity, entities[template], entities[member])
+                        if moved is not None:
+                            self.made_at.setdefault(member, moved)
         for index, members in self.template_members.items():
             spawnflags = int(entities[index].get("spawnflags", "0") or 0)
             if not spawnflags & SF_TEMPLATE_KEEP_ORIGINALS:
                 self.templated.update(members)
+            for member in members:
+                self.spawner_of.setdefault(member, (entities[index].targetname, "ForceSpawn"))
+        # An npc_template_maker's template NPC is removed at load and made on
+        # `Spawn` (or by the maker on its own when enabled).
+        for index, entity in enumerate(entities):
+            if entity.classname == "npc_template_maker":
+                for member in self.named(entity.get("TemplateName")):
+                    self.templated.add(member)
+                    self.spawner_of.setdefault(member, (entity.targetname, "Spawn"))
         # Inputs each entity receives, `[(input lowercased, parameter)]`.
         self.received: dict[int, list[tuple[str, str]]] = defaultdict(list)
         for entity in entities:
@@ -107,3 +135,19 @@ class MapLogic:
         """Entities of these classes that some output sends `input_name` to."""
         return [index for index, entity in enumerate(self.entities)
                 if entity.classname in classnames and self.receives(index, input_name)]
+
+
+def maker_position(maker, template, member) -> tuple[float, float, float] | None:
+    """Where `maker` (an env_entity_maker) spawns `member` of `template`."""
+    origins = (maker.origin, template.origin, member.origin)
+    if any(o is None for o in origins):
+        return None
+    yaw = 0.0
+    angles = (maker.get("angles") or "0 0 0").split()
+    if len(angles) == 3:
+        yaw = math.radians(float(angles[1]))
+    dx, dy, dz = (m - t for m, t in zip(member.origin, template.origin))
+    cos, sin = math.cos(yaw), math.sin(yaw)
+    mx, my, mz = maker.origin
+    return (mx + dx * cos - dy * sin, my + dx * sin + dy * cos, mz + dz)
+

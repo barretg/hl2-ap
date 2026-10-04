@@ -37,6 +37,10 @@ class Source:
     map: str
     position: str
     how: str
+    # `targetname,input` that brings the copy into existence, or empty.
+    spawner: str = ""
+    # Confirmed reachable in play though the maps cannot prove it.
+    confirmed: bool = False
 
 
 @dataclass
@@ -78,7 +82,8 @@ def parse(path: Path) -> CheckData:
             data.locations[int(f[1])] = Location(int(f[1]), f[2], f[3], f[4], f[5],
                                                  f[6] if len(f) > 6 else "")
         elif kind == "F":
-            data.sources.append(Source(int(f[1]), f[2], f[3], f[4]))
+            data.sources.append(Source(int(f[1]), f[2], f[3], f[4], f[5] if len(f) > 5 else "",
+                                       len(f) > 6 and f[6] == "1"))
         elif kind == "K":
             data.lockable[f[1]] = f[2]
     return data

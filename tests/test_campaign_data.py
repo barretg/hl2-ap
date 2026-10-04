@@ -58,7 +58,7 @@ def test_names_unique() -> None:
 
 def test_pickup_checks_anchored_at_a_direct_source() -> None:
     for location in LOCATIONS:
-        if location["trigger"]["type"] not in ("weapon_pickup", "item_pickup"):
+        if location["trigger"]["type"] not in ("weapon_pickup", "item_pickup", "weapon_upgrade"):
             continue
         direct = [s for s in location["sources"] if s.get("drop") != "ally"]
         assert direct and direct[0]["map"] == location["map"]
@@ -77,7 +77,7 @@ def test_checkdata_is_current() -> None:
 def test_checkdata_records_parse() -> None:
     lines = [l for l in gen_checkdata.OUT_PATH.read_text(encoding="utf-8").splitlines()
              if l and not l.startswith("#")]
-    widths = {"V": 2, "D": 2, "N": 5, "C": 10, "K": 3, "P": 4, "H": 4, "U": 3, "F": 5}
+    widths = {"V": 2, "D": 2, "N": 5, "C": 10, "K": 3, "P": 4, "H": 4, "U": 3, "F": 7}
     for line in lines:
         fields = line.split("|")
         if fields[0] == "L":
@@ -97,3 +97,14 @@ def test_matches_a_fresh_scan() -> None:
     fresh = build_campaign_data.build(root, registry)
     assert (registry.locations, registry.items) == before, "scan needs new ids; rebuild"
     assert fresh == CAMPAIGN, "campaign.json is stale; run tools/build_campaign_data.py"
+
+
+def test_upgraded_copies_belong_to_the_upgrade_check() -> None:
+    by_name = {l["name"]: l for l in LOCATIONS}
+    super_gun, gun = by_name["First Super Gravity Gun"], by_name["First Gravity Gun"]
+    assert super_gun["sources"][0]["how"] == "upgrade"
+    upgrade_map = super_gun["sources"][0]["map"]
+    order = [m for c in CHAPTERS for m in c["maps"]]
+    after = set(order[order.index(upgrade_map) + 1:])
+    assert all(s["map"] in after for s in super_gun["sources"][1:])
+    assert not any(s["map"] in after for s in gun["sources"])
