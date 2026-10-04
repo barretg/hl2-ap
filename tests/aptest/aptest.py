@@ -52,6 +52,7 @@ REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(REPO / "apworld" / "half_life_2"))
 
+import checkdata as checkdata_module  # noqa: E402
 import groups as group_registry  # noqa: E402
 import mod  # noqa: E402
 from client import bridge as bridge_module  # noqa: E402
@@ -233,7 +234,8 @@ class Harness:
 
     def publish(self, force: bool = False) -> None:
         s = self.scenario()
-        chapters: list[str] = []  # from checkdata once it exists
+        data = self.ctx.checkdata
+        chapters = [c.key for c in data.chapters] if data is not None else []
         options = dict(s.snapshot) if s is not None else {}
         self.bridge.write_snapshot(
             connected=self.connected,
@@ -511,11 +513,8 @@ def make_context(mod_dir: Path, game_root: Path | None) -> Context:
     ctx = Context(store=store, game_root=game_root)
     checkdata = store / bridge_module.CHECKDATA_NAME
     if checkdata.is_file():
-        # Full parsing arrives with the data pipeline (plan Phase 2).
-        ctx.checkdata = checkdata
-        for line in checkdata.read_text(encoding="utf-8").splitlines():
-            if line.startswith("D|"):
-                ctx.data_version = line[2:].strip()
+        ctx.checkdata = checkdata_module.parse(checkdata)
+        ctx.data_version = ctx.checkdata.data_version
     return ctx
 
 

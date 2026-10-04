@@ -11,6 +11,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE / "aptest"))
 
 import aptest  # noqa: E402
+import checkdata  # noqa: E402
 import groups as group_registry  # noqa: E402
 from scenario import Context, Group, Scenario, reflow  # noqa: E402
 
@@ -40,9 +41,32 @@ def test_groups_are_discovered() -> None:
 def test_every_group_builds_unique_titles(name: str, ctx: Context) -> None:
     group = group_registry.discover()[name]
     if group.needs_checkdata:
-        pytest.skip("needs checkdata")
+        ctx.checkdata = checkdata.parse(REPO_CHECKDATA)
     titles = [s.title for s in group.build(ctx)]
     assert titles and len(titles) == len(set(titles))
+
+
+REPO_CHECKDATA = (HERE.parent / "apworld" / "half_life_2" / "mod" / "files"
+                  / "archipelago" / "checkdata.txt")
+
+
+def test_checkdata_parses_the_generated_file() -> None:
+    data = checkdata.parse(REPO_CHECKDATA)
+    assert data.format == 1 and data.data_version
+    assert data.chapters[0].maps[0] == data.chapters[0].key
+    assert data.chapters[-1].is_goal
+    assert all(s.location in data.locations for s in data.sources)
+    assert data.lockable["weapon_physcannon"] == "Progressive Gravity Gun"
+
+
+def test_unproven_is_the_non_placed_subset() -> None:
+    ctx = Context(store=Path("/nonexistent"), game_root=None,
+                  checkdata=checkdata.parse(REPO_CHECKDATA))
+    found = group_registry.discover()
+    every = {s.title for s in found["sources"].build(ctx)}
+    unproven = {s.title for s in found["unproven"].build(ctx)}
+    assert unproven < every
+    assert not any(t.endswith("(placed)") for t in unproven)
 
 
 def test_foundation_needs_no_checkdata() -> None:

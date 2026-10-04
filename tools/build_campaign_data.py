@@ -1,0 +1,625 @@
+"""Build `campaign.json` and the id registry from the retail maps.
+
+Everything the world, the client and the game read about chapters, maps and
+locations comes from here, and everything here comes from the install:
+
+- chapters from `cfg/chapterN.cfg` (each names its first map), titles from the
+  game's localization file;
+- each chapter's maps by walking the `trigger_changelevel` graph from its first
+  map, stopping at the next chapter's;
+- checks from the entity lumps: reaching each map, finishing each chapter,
+  the first copy of each weapon, and every charger.
+
+`ids.json` is append-only: a location or item keeps its id for good, a new one
+gets the next free id, and nothing is ever renumbered.
+
+Usage:
+    python tools/build_campaign_data.py [--game <Half-Life 2 dir>] [--check]
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import math
+import re
+import sys
+from dataclasses import dataclass, field
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT / "tools"))
+sys.path.insert(0, str(REPO_ROOT / "apworld" / "half_life_2"))
+
+from bsp_entities import BspError, Entity, brush_model_bounds, load_map  # noqa: E402
+from campaigns import CAMPAIGNS, Campaign  # noqa: E402
+from map_logic import MapLogic  # noqa: E402
+
+DATA_DIR = REPO_ROOT / "apworld" / "half_life_2" / "data"
+CAMPAIGN_PATH = DATA_DIR / "campaign.json"
+IDS_PATH = DATA_DIR / "ids.json"
+
+# 1: first format.
+FORMAT_VERSION = 1
+
+ITEM_ID_BASE = 8_820_000
+LOCATION_ID_BASE = 8_830_000
+
+# NPC spawnflag: never drop the weapon it carries.
+SF_NPC_NO_WEAPON_DROP = 8192
+# A charger this close to the transformed position of one across a seam is
+# that one, rebuilt in the neighbouring map.
+SEAM_TWIN_RADIUS = 32.0
+
+# Items no map provides: abilities and filler. Traps join in Phase 7.
+WORLD_ITEMS: list[tuple[str, str, str]] = [
+    ("Melee Throw", "useful", "ability"),
+    ("Ammo Cache", "filler", "filler"),
+    ("Medkit", "filler", "filler"),
+    ("Battery", "filler", "filler"),
+]
+
+# A weapon whose single item is several copies, each a stage.
+PROGRESSIVE: dict[str, tuple[str, int]] = {
+    "Gravity Gun": ("Progressive Gravity Gun", 4),
+}
+
+Vec3 = tuple[float, float, float]
+
+
+class ScanError(RuntimeError):
+    """The install and the campaign definition disagree; fix one of them."""
+
+
+@dataclass
+class MapData:
+    name: str
+    entities: list[Entity]
+    logic: MapLogic
+    bounds: dict[str, tuple[Vec3, Vec3]]
+
+    def landmarks(self) -> dict[str, Vec3]:
+        found: dict[str, Vec3] = {}
+        for entity in self.entities:
+            if entity.classname == "info_landmark" and entity.targetname and entity.origin:
+                found[entity.targetname.lower()] = entity.origin
+        return found
+
+
+@dataclass
+class Chapter:
+    key: str
+    number: str
+    name: str
+    maps: list[str] = field(default_factory=list)
+
+
+def natural_key(number: str) -> tuple[int, str]:
+    match = re.match(r"(\d+)(.*)", number)
+    if not match:
+        return (10**6, number)
+    return (int(match.group(1)), match.group(2))
+
+
+def title_case(raw: str) -> str:
+    """`\"WE DON'T GO TO RAVENHOLM...\"` -> `We Don't Go to Ravenholm...`."""
+    small = {"a", "an", "and", "of", "the", "to", "in", "on", "at", "for"}
+    words = raw.replace('\\"', "").replace('"', "").strip().lower().split()
+    out = []
+    for i, word in enumerate(words):
+        out.append(word if i and word in small else word[:1].upper() + word[1:])
+    return " ".join(out)
+
+
+def read_titles(path: Path) -> dict[str, str]:
+    raw = path.read_bytes()
+    text = raw.decode("utf-16") if raw[:2] in (b"\xff\xfe", b"\xfe\xff") else raw.decode("utf-8")
+    titles: dict[str, str] = {}
+    for match in re.finditer(r'^\s*"([^"]+)"\s+"((?:[^"\\]|\\.)*)"', text, re.M):
+        titles[match.group(1).lower()] = match.group(2)
+    return titles
+
+
+def read_chapter_cfgs(cfg_dir: Path) -> list[tuple[str, str]]:
+    """`(number, first map)` per `chapterN.cfg`, in chapter order."""
+    found = []
+    for path in cfg_dir.glob("chapter*.cfg"):
+        number = path.stem[len("chapter"):]
+        match = re.search(r"^\s*map\s+(\S+)", path.read_text(errors="replace"), re.M)
+        if not match:
+            raise ScanError(f"{path.name}: no `map` command")
+        found.append((number, match.group(1)))
+    return sorted(found, key=lambda pair: natural_key(pair[0]))
+
+
+def load_maps(campaign: Campaign, maps_dir: Path) -> dict[str, MapData]:
+    maps: dict[str, MapData] = {}
+    for bsp in sorted(maps_dir.glob("*.bsp")):
+        try:
+            entities = load_map(bsp)
+            bounds = brush_model_bounds(bsp)
+        except BspError as exc:
+            if bsp.stem in campaign.excluded_maps:
+                continue
+            raise ScanError(str(exc)) from exc
+        maps[bsp.stem] = MapData(bsp.stem, entities, MapLogic(entities), bounds)
+    return maps
+
+
+def changelevel_edges(maps: dict[str, MapData]) -> dict[str, list[tuple[str, str, Entity]]]:
+    """`{map: [(destination, landmark, trigger)]}`, in entity order.
+
+    Self-loops are dropped: Valve puts touch-disabled changelevels to the same
+    map at seams to stop the player walking back, and they lead nowhere.
+    """
+    edges: dict[str, list[tuple[str, str, Entity]]] = {}
+    for name, data in maps.items():
+        found = []
+        for entity in data.entities:
+            if entity.classname != "trigger_changelevel":
+                continue
+            destination = entity.get("map")
+            if destination == name or destination not in maps:
+                continue
+            found.append((destination, entity.get("landmark").lower(), entity))
+        edges[name] = found
+    return edges
+
+
+def assign_chapters(campaign: Campaign, cfgs: list[tuple[str, str]], titles: dict[str, str],
+                    maps: dict[str, MapData],
+                    edges: dict[str, list[tuple[str, str, Entity]]]) -> list[Chapter]:
+    chapters: list[Chapter] = []
+    for number, first in cfgs:
+        if number in campaign.non_chapters:
+            continue
+        if first not in maps:
+            raise ScanError(f"chapter{number}.cfg names {first!r}, which is not a map")
+        title = titles.get(campaign.title_key.format(n=number).lower())
+        if title is None:
+            raise ScanError(f"no title {campaign.title_key.format(n=number)!r}")
+        chapters.append(Chapter(first, number, title_case(title)))
+    firsts = {c.key for c in chapters}
+    assigned: dict[str, str] = {}
+    for chapter in chapters:
+        # Depth first, edges in entity order: a hub map revisited mid-chapter
+        # (Ravenholm's d1_town_02) is listed where the player first meets it.
+        stack = [chapter.key]
+        while stack:
+            current = stack.pop()
+            if current in assigned:
+                continue
+            assigned[current] = chapter.key
+            chapter.maps.append(current)
+            for destination, _, _ in reversed(edges[current]):
+                if destination not in assigned and destination not in firsts:
+                    stack.append(destination)
+    for name in maps:
+        if name in assigned and name in campaign.excluded_maps:
+            raise ScanError(f"{name} is excluded but reachable from {assigned[name]}")
+        if name not in assigned and name not in campaign.excluded_maps:
+            raise ScanError(f"{name} is in no chapter; add it to excluded_maps or fix the graph")
+    if campaign.goal_chapter not in firsts or campaign.intro_chapter not in firsts:
+        raise ScanError("goal or intro chapter is not a chapter key")
+    return chapters
+
+
+def chapter_exits(chapters: list[Chapter], edges: dict[str, list[tuple[str, str, Entity]]],
+                  goal: str) -> dict[str, list[tuple[str, str]]]:
+    """`{chapter: [(from map, to map)]}`: the changelevels into the next chapter."""
+    exits: dict[str, list[tuple[str, str]]] = {}
+    for index, chapter in enumerate(chapters):
+        if chapter.key == goal:
+            continue
+        if index + 1 >= len(chapters):
+            raise ScanError(f"{chapter.key} is last but is not the goal")
+        following = chapters[index + 1].key
+        found = sorted({(m, d) for m in chapter.maps for d, _, _ in edges[m] if d == following})
+        if not found:
+            raise ScanError(f"{chapter.key} has no changelevel into {following}")
+        exits[chapter.key] = found
+    return exits
+
+
+def rounded(position: Vec3) -> list[int]:
+    return [int(round(v)) for v in position]
+
+
+def beyond_trigger(at: Vec3, landmark: Vec3, mins: Vec3, maxs: Vec3) -> bool:
+    """Is `at` on the far side of this changelevel slab from `landmark`?
+
+    The slab's thinnest axis is the one crossed; the side is a sign along it.
+    """
+    extents = [maxs[i] - mins[i] for i in range(3)]
+    axis = extents.index(min(extents))
+    centre = (mins[axis] + maxs[axis]) / 2
+    from_landmark = landmark[axis] - centre
+    from_point = at[axis] - centre
+    if from_landmark == 0 or from_point == 0:
+        return False
+    return (from_landmark > 0) != (from_point > 0)
+
+
+def charger_units(campaign: Campaign, data: MapData) -> list[tuple[str, Vec3]]:
+    found = []
+    for index, entity in enumerate(data.entities):
+        if entity.classname in campaign.chargers and data.logic.exists_in_play(index):
+            if entity.origin is not None:
+                found.append((entity.classname, entity.origin))
+    return found
+
+
+def seam_twins(campaign: Campaign, chapters: list[Chapter], maps: dict[str, MapData],
+               edges: dict[str, list[tuple[str, str, Entity]]]) -> set[tuple[str, str, tuple[int, ...]]]:
+    """`(map, classname, rounded position)` for chargers walled off behind a
+    transition that also exist on the other side.
+
+    Valve built each seam room into both maps, so a charger at the end of one
+    is rebuilt at the start of the next, past the trigger that would take the
+    player back. Only a provable duplicate is dropped: the copy on the far side
+    of the trigger from its landmark, with a twin at the same spot relative to
+    the same landmark in the other map. If both copies qualify, the earlier map
+    in campaign order keeps its own.
+    """
+    order = {m: i for i, m in enumerate(m for c in chapters for m in c.maps)}
+    sealed: set[tuple[str, str, tuple[int, ...]]] = set()
+    pairs = []
+    for name in order:
+        data = maps[name]
+        here = data.landmarks()
+        for destination, landmark, trigger in edges[name]:
+            model = trigger.get("model")
+            if landmark not in here or destination not in order or model not in data.bounds:
+                continue
+            there = maps[destination].landmarks().get(landmark)
+            if there is None:
+                continue
+            offset = trigger.origin or (0.0, 0.0, 0.0)
+            mins, maxs = data.bounds[model]
+            mins = tuple(mins[i] + offset[i] for i in range(3))
+            maxs = tuple(maxs[i] + offset[i] for i in range(3))
+            shift = [there[i] - here[landmark][i] for i in range(3)]
+            for classname, at in charger_units(campaign, data):
+                if not beyond_trigger(at, here[landmark], mins, maxs):  # type: ignore[arg-type]
+                    continue
+                twin = tuple(at[i] + shift[i] for i in range(3))
+                for other_class, other_at in charger_units(campaign, maps[destination]):
+                    if other_class == classname and math.dist(twin, other_at) <= SEAM_TWIN_RADIUS:
+                        mine = (name, classname, tuple(rounded(at)))
+                        theirs = (destination, classname, tuple(rounded(other_at)))
+                        sealed.add(mine)
+                        pairs.append((mine, theirs))
+                        break
+    for mine, theirs in pairs:
+        if mine in sealed and theirs in sealed:
+            sealed.discard(min(mine, theirs, key=lambda unit: order[unit[0]]))
+    return sealed
+
+
+def copy_excluded(spec: list[str], map_name: str, position: Vec3 | None) -> bool:
+    for entry in spec:
+        where, _, at = entry.partition("@")
+        if where != map_name:
+            continue
+        if not at:
+            return True
+        if position is not None and math.dist(tuple(float(v) for v in at.split()), position) <= 16:
+            return True
+    return False
+
+
+def item_sources(campaign: Campaign, chapters: list[Chapter], maps: dict[str, MapData],
+                 classnames: list[str], item: str) -> list[dict]:
+    """Every chapter's first way to a copy of this item, in campaign order.
+
+    A copy is a placed or play-spawned entity, a supply crate holding it, an
+    enemy that drops it (an ally only with `"drop": "ally"`), or a scripted
+    `give`. Cold-load kits are never copies.
+    """
+    wanted = set(classnames)
+    unreachable = campaign.unreachable_copies.get(item, [])
+    sources: list[dict] = []
+    for chapter in chapters:
+        best: dict | None = None
+        ally: dict | None = None
+        for map_name in chapter.maps:
+            data = maps[map_name]
+            for index, entity in enumerate(data.entities):
+                if not data.logic.exists_in_play(index):
+                    continue
+                classname = entity.classname
+                position = entity.origin
+                how = None
+                if classname in wanted:
+                    how = "placed"
+                elif classname == "item_item_crate" and entity.get("ItemClass") in wanted:
+                    how = "crate"
+                elif entity.get("additionalequipment") in wanted:
+                    npc = entity.get("NPCType") if classname.startswith("npc_maker") else classname
+                    spawnflags = int(entity.get("spawnflags", "0") or 0)
+                    if spawnflags & SF_NPC_NO_WEAPON_DROP:
+                        continue
+                    if npc in campaign.enemy_npcs:
+                        how = "drop"
+                    elif npc in campaign.ally_npcs:
+                        how = "ally"
+                elif classname == "point_clientcommand":
+                    how = scripted_give(data, index, wanted)
+                    position = None
+                elif input_give(campaign, data, index, wanted):
+                    how = "give"
+                if how is None or copy_excluded(unreachable, map_name, position):
+                    continue
+                source = {"chapter": chapter.key, "map": map_name, "how": how}
+                if position is not None:
+                    source["position"] = rounded(position)
+                if how == "ally":
+                    ally = ally or source
+                else:
+                    best = source
+                    break
+            if best:
+                break
+        if best:
+            sources.append(best)
+        elif ally:
+            sources.append({**ally, "drop": "ally"})
+    return sources
+
+
+def scripted_give(data: MapData, index: int, wanted: set[str]) -> str | None:
+    """`give` if some output tells this point_clientcommand to give a wanted item."""
+    for parameter in data.logic.receives(index, "Command"):
+        words = parameter.split()
+        if len(words) == 2 and words[0] == "give" and words[1] in wanted:
+            return "give"
+    return None
+
+
+def input_give(campaign: Campaign, data: MapData, index: int, wanted: set[str]) -> bool:
+    """Does some output send this entity an input whose code spawns a wanted item?"""
+    return any(classname in wanted and data.logic.receives(index, name)
+               for name, classname in campaign.input_gives.items())
+
+
+def vehicles_by_chapter(campaign: Campaign, chapters: list[Chapter],
+                        maps: dict[str, MapData]) -> dict[str, list[str]]:
+    """`{chapter: [vehicle script]}` for chapters the player drives in.
+
+    A drivable vehicle is known by its script (an APC can be a
+    `prop_vehicle_jeep` with an NPC script). A chapter drives if one is in
+    play on any of its maps, or in a cold-load kit on any map but its first:
+    a kit there means the player is expected to arrive carrying it, while a
+    kit on the first map alone is only how the last chapter's ride arrives
+    (Black Mesa East's parked airboat).
+    """
+    found: dict[str, list[str]] = {}
+    for chapter in chapters:
+        scripts: list[str] = []
+        for position, map_name in enumerate(chapter.maps):
+            data = maps[map_name]
+            for index, entity in enumerate(data.entities):
+                script = entity.get("vehiclescript").lower()
+                if script not in campaign.vehicles or script in scripts:
+                    continue
+                if data.logic.exists_in_play(index) or position > 0:
+                    scripts.append(script)
+        if scripts:
+            found[chapter.key] = scripts
+    return found
+
+
+def airboat_gun_maps(order: list[str], maps: dict[str, MapData]) -> list[str]:
+    """Maps where the level turns on the airboat's mounted gun."""
+    return [m for m in order
+            if maps[m].logic.inputs_to({"prop_vehicle_airboat"}, "EnableGun")]
+
+
+@dataclass
+class Registry:
+    items: dict[str, int]
+    locations: dict[str, int]
+
+    @staticmethod
+    def load(path: Path) -> "Registry":
+        if not path.exists():
+            return Registry({}, {})
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        return Registry(dict(raw["items"]), dict(raw["locations"]))
+
+    def item(self, name: str) -> int:
+        if name not in self.items:
+            self.items[name] = max([ITEM_ID_BASE - 1, *self.items.values()]) + 1
+        return self.items[name]
+
+    def location(self, key: str) -> int:
+        if key not in self.locations:
+            self.locations[key] = max([LOCATION_ID_BASE - 1, *self.locations.values()]) + 1
+        return self.locations[key]
+
+    def dump(self) -> str:
+        return json.dumps({"items": dict(sorted(self.items.items())),
+                           "locations": dict(sorted(self.locations.items()))},
+                          indent=1) + "\n"
+
+
+def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> dict:
+    game_dir = game_root / campaign.game_dir
+    maps = load_maps(campaign, game_dir / "maps")
+    titles = read_titles(game_dir / campaign.resource_file)
+    edges = changelevel_edges(maps)
+    chapters = assign_chapters(campaign, read_chapter_cfgs(game_dir / "cfg"), titles, maps, edges)
+    exits = chapter_exits(chapters, edges, campaign.goal_chapter)
+    order = [m for c in chapters for m in c.maps]
+    names = {c.key: campaign.display(c.name) for c in chapters}
+    vehicles = vehicles_by_chapter(campaign, chapters, maps)
+
+    locations: list[dict] = []
+
+    def add(key: str, name: str, chapter: str, map_name: str, trigger: dict, **extra) -> None:
+        locations.append({"id": registry.location(key), "key": key, "name": name,
+                          "campaign": campaign.key, "chapter": chapter, "map": map_name,
+                          "trigger": trigger, **extra})
+
+    sealed = seam_twins(campaign, chapters, maps, edges)
+    for chapter in chapters:
+        for part, map_name in enumerate(chapter.maps, start=1):
+            add(f"{campaign.key}|{chapter.key}|{map_name}|map_reached",
+                f"{names[chapter.key]}: Part {part} Reached", chapter.key, map_name,
+                {"type": "map_reached", "map": map_name})
+        for part, map_name in enumerate(chapter.maps, start=1):
+            counts: dict[str, int] = {}
+            units = charger_units(campaign, maps[map_name])
+            totals: dict[str, int] = {}
+            kept = []
+            for classname, at in units:
+                unit = (map_name, classname, tuple(rounded(at)))
+                hand = campaign.unreachable_chargers.get(map_name, set())
+                if unit in sealed or (classname, tuple(rounded(at))) in hand:
+                    continue
+                kept.append((classname, at))
+                totals[classname] = totals.get(classname, 0) + 1
+            for classname, at in kept:
+                counts[classname] = counts.get(classname, 0) + 1
+                label = campaign.chargers[classname]
+                if totals[classname] > 1:
+                    label = f"{label} {counts[classname]}"
+                at_key = " ".join(str(v) for v in rounded(at))
+                add(f"{campaign.key}|{chapter.key}|{map_name}|charger|{classname}@{at_key}",
+                    f"{names[chapter.key]}: {label} (Part {part})", chapter.key, map_name,
+                    {"type": "charger", "map": map_name, "classname": classname, "at": at_key},
+                    position=rounded(at))
+        complete_on = "finale" if chapter.key == campaign.goal_chapter else "forward_exit"
+        add(f"{campaign.key}|{chapter.key}||chapter_complete",
+            f"{names[chapter.key]}: Complete", chapter.key, chapter.maps[-1],
+            {"type": "chapter_complete", "chapter": chapter.key, "on": complete_on})
+
+    pickups = [(item, classnames, "weapon_pickup") for item, classnames in campaign.weapons.items()]
+    pickups += [(item, classnames, "item_pickup") for item, classnames in campaign.equipment.items()]
+    for item, classnames, kind in pickups:
+        sources = item_sources(campaign, chapters, maps, classnames, item)
+        direct = [s for s in sources if s.get("drop") != "ally"]
+        if not direct:
+            raise ScanError(f"no reachable copy of {item} anywhere in {campaign.name}")
+        anchor = direct[0]
+        add(f"{campaign.key}|*|{kind}|{classnames[0]}", campaign.display(f"First {item}"),
+            anchor["chapter"], anchor["map"],
+            {"type": kind, "map": anchor["map"], "classnames": classnames},
+            sources=sources, **({"position": anchor["position"]} if "position" in anchor else {}))
+
+    items: list[dict] = []
+
+    def add_item(name: str, classification: str, group: str, **extra) -> None:
+        items.append({"id": registry.item(name), "name": name, "classification": classification,
+                      "group": group, "campaign": campaign.key, **extra})
+
+    for chapter in chapters:
+        if chapter.key != campaign.goal_chapter:
+            add_item(f"{names[chapter.key]} Unlock", "progression", "chapter", chapter=chapter.key)
+    for item, classnames in campaign.weapons.items():
+        if item in PROGRESSIVE:
+            name, count = PROGRESSIVE[item]
+            add_item(campaign.display(name), "progression", "weapon", classnames=classnames,
+                     count=count)
+        else:
+            add_item(campaign.display(item), "progression", "weapon", classnames=classnames)
+    for item, classnames in campaign.equipment.items():
+        add_item(campaign.display(item), "progression", "equipment", classnames=classnames)
+    for chapter in chapters:
+        for script in vehicles.get(chapter.key, []):
+            add_item(campaign.vehicle_key_name.format(chapter=names[chapter.key],
+                                                      vehicle=campaign.vehicles[script]),
+                     "progression", "vehicle_key", chapter=chapter.key, vehiclescript=script)
+    gun_maps = airboat_gun_maps(order, maps)
+    if gun_maps:
+        add_item(campaign.display("Airboat Gun"), "progression", "vehicle_upgrade",
+                 maps=gun_maps)
+
+    return {
+        "campaign": {
+            "key": campaign.key, "name": campaign.name, "short": campaign.short,
+            "goal_chapter": campaign.goal_chapter, "intro_chapter": campaign.intro_chapter,
+        },
+        "chapters": [
+            {"key": c.key, "number": c.number, "name": names[c.key], "maps": c.maps,
+             "campaign": campaign.key, "is_goal": c.key == campaign.goal_chapter,
+             "exits": [list(e) for e in exits.get(c.key, [])],
+             "vehicles": vehicles.get(c.key, [])}
+            for c in chapters
+        ],
+        "items": items,
+        "locations": locations,
+    }
+
+
+def data_version(items: list[dict], locations: list[dict]) -> str:
+    """Changes exactly when an id the world publishes changes."""
+    digest = hashlib.sha256()
+    for entry in sorted([(i["name"], i["id"]) for i in items]
+                        + [(l["key"], l["id"]) for l in locations]):
+        digest.update(f"{entry[0]}={entry[1]}\n".encode())
+    return digest.hexdigest()[:12]
+
+
+def build(game_root: Path, registry: Registry) -> dict:
+    campaigns, chapters, items, locations = [], [], [], []
+    for campaign in CAMPAIGNS:
+        built = build_campaign(campaign, game_root, registry)
+        campaigns.append(built["campaign"])
+        chapters += built["chapters"]
+        items += built["items"]
+        locations += built["locations"]
+    for name, classification, group in WORLD_ITEMS:
+        items.append({"id": registry.item(name), "name": name,
+                      "classification": classification, "group": group})
+    return {"format": FORMAT_VERSION, "data_version": data_version(items, locations),
+            "campaigns": campaigns, "chapters": chapters, "items": items,
+            "locations": locations}
+
+
+def default_game_root() -> Path | None:
+    import mod  # the apworld's mod package: Steam library lookup
+    return mod.hl2_install_dir()
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--game", type=Path, help="the Half-Life 2 install folder")
+    parser.add_argument("--check", action="store_true",
+                        help="fail if the committed data differs from a fresh build")
+    args = parser.parse_args(argv)
+
+    game_root = args.game or default_game_root()
+    if game_root is None or not (game_root / "hl2" / "maps").is_dir():
+        print("Half-Life 2 install not found; pass --game", file=sys.stderr)
+        return 2
+    registry = Registry.load(IDS_PATH)
+    try:
+        data = build(game_root, registry)
+    except ScanError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    campaign_text = json.dumps(data, indent=1) + "\n"
+    ids_text = registry.dump()
+    if args.check:
+        stale = [p.name for p, text in ((CAMPAIGN_PATH, campaign_text), (IDS_PATH, ids_text))
+                 if not p.exists() or p.read_text(encoding="utf-8") != text]
+        if stale:
+            print(f"out of date: {', '.join(stale)}; run tools/build_campaign_data.py",
+                  file=sys.stderr)
+            return 1
+        print("campaign data is current")
+        return 0
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    CAMPAIGN_PATH.write_text(campaign_text, encoding="utf-8")
+    IDS_PATH.write_text(ids_text, encoding="utf-8")
+    print(f"wrote {CAMPAIGN_PATH.relative_to(REPO_ROOT)}: {len(data['chapters'])} chapters, "
+          f"{len(data['items'])} items, {len(data['locations'])} locations "
+          f"(data version {data['data_version']})")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -42,7 +42,8 @@ class Scenario:
 
 @dataclass
 class Context:
-    """What groups build from. `checkdata` is None until Phase 2 data exists."""
+    """What groups build from. `checkdata` (a `checkdata.CheckData`) is None
+    when the installed mod has no checkdata.txt."""
 
     store: Path            # the installed mod's archipelago/ folder
     game_root: Path | None  # the Half-Life 2 install, for groups that read maps

@@ -15,6 +15,9 @@ SUBSETS = {
     "test_mod_install.py": "install",
     "test_aptest.py": "harness",
     "test_no_unreachable_code.py": "lint",
+    "test_map_reader.py": "data",
+    "test_campaign_data.py": "data",
+    "test_ids.py": "ids",
 }
 
 

@@ -1,0 +1,3858 @@
+{
+ "format": 1,
+ "data_version": "7d14472f533d",
+ "campaigns": [
+  {
+   "key": "hl2",
+   "name": "Half-Life 2",
+   "short": "hl2",
+   "goal_chapter": "d3_breen_01",
+   "intro_chapter": "d1_trainstation_01"
+  }
+ ],
+ "chapters": [
+  {
+   "key": "d1_trainstation_01",
+   "number": "1",
+   "name": "Point Insertion",
+   "maps": [
+    "d1_trainstation_01",
+    "d1_trainstation_02",
+    "d1_trainstation_03",
+    "d1_trainstation_04"
+   ],
+   "campaign": "hl2",
+   "is_goal": false,
+   "exits": [
+    [
+     "d1_trainstation_04",
+     "d1_trainstation_05"
+    ]
+   ],
+   "vehicles": []
+  },
+  {
+   "key": "d1_trainstation_05",
+   "number": "2",
+   "name": "A Red Letter Day",
+   "maps": [
+    "d1_trainstation_05",
+    "d1_trainstation_06"
+   ],
+   "campaign": "hl2",
+   "is_goal": false,
+   "exits": [
+    [
+     "d1_trainstation_06",
+     "d1_canals_01"
+    ]
+   ],
+   "vehicles": []
+  },
+  {
+   "key": "d1_canals_01",
+   "number": "3",
+   "name": "Route Kanal",
+   "maps": [
+    "d1_canals_01",
+    "d1_canals_01a",
+    "d1_canals_02",
+    "d1_canals_03",
+    "d1_canals_05"
+   ],
+   "campaign": "hl2",
+   "is_goal": false,
+   "exits": [
+    [
+     "d1_canals_05",
+     "d1_canals_06"
+    ]
+   ],
+   "vehicles": [
+    "scripts/vehicles/airboat.txt"
+   ]
+  },
+  {
+   "key": "d1_canals_06",
+   "number": "4",
+   "name": "Water Hazard",
+   "maps": [
+    "d1_canals_06",
+    "d1_canals_07",
+    "d1_canals_08",
+    "d1_canals_09",
+    "d1_canals_10",
+    "d1_canals_11",
+    "d1_canals_12",
+    "d1_canals_13"
+   ],
+   "campaign": "hl2",
+   "is_goal": false,
+   "exits": [
+    [
+     "d1_canals_13",
+     "d1_eli_01"
+    ]
+   ],
+   "vehicles": [
+    "scripts/vehicles/airboat.txt"
+   ]
+  },
+  {
+   "key": "d1_eli_01",
+   "number": "5",
+   "name": "Black Mesa East",
+   "maps": [
+    "d1_eli_01",
+    "d1_eli_02"
+   ],
+   "campaign": "hl2",
+   "is_goal": false,
+   "exits": [
+    [
+     "d1_eli_02",
+     "d1_town_01"
+    ]
+   ],
+   "vehicles": []
+  },
+  {
+   "key": "d1_town_01",
+   "number": "6",
+   "name": "We Don't Go to Ravenholm...",
+   "maps": [
+    "d1_town_01",
+    "d1_town_01a",
+    "d1_town_02",
+    "d1_town_03",
+    "d1_town_02a",
+    "d1_town_04",
+    "d1_town_05"
+   ],
+   "campaign": "hl2",
+   "is_goal": false,
+   "exits": [
+    [
+     "d1_town_05",
+     "d2_coast_01"
+    ]
+   ],
+   "vehicles": []
+  },
+  {
+   "key": "d2_coast_01",
+   "number": "7",
+   "name": "Highway 17",
+   "maps": [
+    "d2_coast_01",
+    "d2_coast_03",
+    "d2_coast_04",
+    "d2_coast_05",
+    "d2_coast_07",
+    "d2_coast_08"
+   ],
+   "campaign": "hl2",
+   "is_goal": false,
+   "exits": [
+    [
+     "d2_coast_07",
+     "d2_coast_09"
+    ]
+   ],
+   "vehicles": [
+    "scripts/vehicles/jeep_test.txt"
+   ]
+  },
+  {
+   "key": "d2_coast_09",
+   "number": "8",
+   "name": "Sandtraps",
+   "maps": [
+    "d2_coast_09",
+    "d2_coast_10",
+    "d2_coast_11",
+    "d2_coast_12",
+    "d2_prison_01"
+   ],
+   "campaign": "hl2",
+   "is_goal": false,
+   "exits": [
+    [
+     "d2_prison_01",
+     "d2_prison_02"
+    ]
+   ],
+   "vehicles": [
+    "scripts/vehicles/jeep_test.txt"
+   ]
+  },
+  {
+   "key": "d2_prison_02",
+   "number": "9",
+   "name": "Nova Prospekt",
+   "maps": [
+    "d2_prison_02",
+    "d2_prison_03",
+    "d2_prison_04",
+    "d2_prison_05"
+   ],
+   "campaign": "hl2",
+   "is_goal": false,
+   "exits": [
+    [
+     "d2_prison_05",
+     "d2_prison_06"
+    ]
+   ],
+   "vehicles": []
+  },
+  {
+   "key": "d2_prison_06",
+   "number": "9a",
+   "name": "Entanglement",
+   "maps": [
+    "d2_prison_06",
+    "d2_prison_07",
+    "d2_prison_08",
+    "d3_c17_01"
+   ],
+   "campaign": "hl2",
+   "is_goal": false,
+   "exits": [
+    [
+     "d3_c17_01",
+     "d3_c17_02"
+    ]
+   ],
+   "vehicles": []
+  },
+  {
+   "key": "d3_c17_02",
+   "number": "10",
+   "name": "Anticitizen One",
+   "maps": [
+    "d3_c17_02",
+    "d3_c17_03",
+    "d3_c17_04",
+    "d3_c17_05",
+    "d3_c17_06a",
+    "d3_c17_06b",
+    "d3_c17_07",
+    "d3_c17_08"
+   ],
+   "campaign": "hl2",
+   "is_goal": false,
+   "exits": [
+    [
+     "d3_c17_08",
+     "d3_c17_09"
+    ]
+   ],
+   "vehicles": []
+  },
+  {
+   "key": "d3_c17_09",
+   "number": "11",
+   "name": "Follow Freeman!",
+   "maps": [
+    "d3_c17_09",
+    "d3_c17_10a",
+    "d3_c17_10b",
+    "d3_c17_11",
+    "d3_c17_12",
+    "d3_c17_12b",
+    "d3_c17_13"
+   ],
+   "campaign": "hl2",
+   "is_goal": false,
+   "exits": [
+    [
+     "d3_c17_13",
+     "d3_citadel_01"
+    ]
+   ],
+   "vehicles": []
+  },
+  {
+   "key": "d3_citadel_01",
+   "number": "12",
+   "name": "Our Benefactors",
+   "maps": [
+    "d3_citadel_01",
+    "d3_citadel_02",
+    "d3_citadel_03",
+    "d3_citadel_04",
+    "d3_citadel_05"
+   ],
+   "campaign": "hl2",
+   "is_goal": false,
+   "exits": [
+    [
+     "d3_citadel_05",
+     "d3_breen_01"
+    ]
+   ],
+   "vehicles": []
+  },
+  {
+   "key": "d3_breen_01",
+   "number": "13",
+   "name": "Dark Energy",
+   "maps": [
+    "d3_breen_01"
+   ],
+   "campaign": "hl2",
+   "is_goal": true,
+   "exits": [],
+   "vehicles": []
+  }
+ ],
+ "items": [
+  {
+   "id": 8820000,
+   "name": "Point Insertion Unlock",
+   "classification": "progression",
+   "group": "chapter",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01"
+  },
+  {
+   "id": 8820001,
+   "name": "A Red Letter Day Unlock",
+   "classification": "progression",
+   "group": "chapter",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05"
+  },
+  {
+   "id": 8820002,
+   "name": "Route Kanal Unlock",
+   "classification": "progression",
+   "group": "chapter",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01"
+  },
+  {
+   "id": 8820003,
+   "name": "Water Hazard Unlock",
+   "classification": "progression",
+   "group": "chapter",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06"
+  },
+  {
+   "id": 8820004,
+   "name": "Black Mesa East Unlock",
+   "classification": "progression",
+   "group": "chapter",
+   "campaign": "hl2",
+   "chapter": "d1_eli_01"
+  },
+  {
+   "id": 8820005,
+   "name": "We Don't Go to Ravenholm... Unlock",
+   "classification": "progression",
+   "group": "chapter",
+   "campaign": "hl2",
+   "chapter": "d1_town_01"
+  },
+  {
+   "id": 8820006,
+   "name": "Highway 17 Unlock",
+   "classification": "progression",
+   "group": "chapter",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01"
+  },
+  {
+   "id": 8820007,
+   "name": "Sandtraps Unlock",
+   "classification": "progression",
+   "group": "chapter",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09"
+  },
+  {
+   "id": 8820008,
+   "name": "Nova Prospekt Unlock",
+   "classification": "progression",
+   "group": "chapter",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02"
+  },
+  {
+   "id": 8820009,
+   "name": "Entanglement Unlock",
+   "classification": "progression",
+   "group": "chapter",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06"
+  },
+  {
+   "id": 8820010,
+   "name": "Anticitizen One Unlock",
+   "classification": "progression",
+   "group": "chapter",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02"
+  },
+  {
+   "id": 8820011,
+   "name": "Follow Freeman! Unlock",
+   "classification": "progression",
+   "group": "chapter",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09"
+  },
+  {
+   "id": 8820012,
+   "name": "Our Benefactors Unlock",
+   "classification": "progression",
+   "group": "chapter",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01"
+  },
+  {
+   "id": 8820013,
+   "name": "Crowbar",
+   "classification": "progression",
+   "group": "weapon",
+   "campaign": "hl2",
+   "classnames": [
+    "weapon_crowbar"
+   ]
+  },
+  {
+   "id": 8820014,
+   "name": "Progressive Gravity Gun",
+   "classification": "progression",
+   "group": "weapon",
+   "campaign": "hl2",
+   "classnames": [
+    "weapon_physcannon"
+   ],
+   "count": 4
+  },
+  {
+   "id": 8820015,
+   "name": "Pistol",
+   "classification": "progression",
+   "group": "weapon",
+   "campaign": "hl2",
+   "classnames": [
+    "weapon_pistol"
+   ]
+  },
+  {
+   "id": 8820016,
+   "name": ".357 Magnum",
+   "classification": "progression",
+   "group": "weapon",
+   "campaign": "hl2",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
+   "id": 8820017,
+   "name": "SMG",
+   "classification": "progression",
+   "group": "weapon",
+   "campaign": "hl2",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820018,
+   "name": "Pulse Rifle",
+   "classification": "progression",
+   "group": "weapon",
+   "campaign": "hl2",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820019,
+   "name": "Shotgun",
+   "classification": "progression",
+   "group": "weapon",
+   "campaign": "hl2",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820020,
+   "name": "Crossbow",
+   "classification": "progression",
+   "group": "weapon",
+   "campaign": "hl2",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
+   "id": 8820021,
+   "name": "Grenade",
+   "classification": "progression",
+   "group": "weapon",
+   "campaign": "hl2",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820022,
+   "name": "RPG",
+   "classification": "progression",
+   "group": "weapon",
+   "campaign": "hl2",
+   "classnames": [
+    "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820023,
+   "name": "Bugbait",
+   "classification": "progression",
+   "group": "weapon",
+   "campaign": "hl2",
+   "classnames": [
+    "weapon_bugbait"
+   ]
+  },
+  {
+   "id": 8820024,
+   "name": "HEV Suit",
+   "classification": "progression",
+   "group": "equipment",
+   "campaign": "hl2",
+   "classnames": [
+    "item_suit"
+   ]
+  },
+  {
+   "id": 8820025,
+   "name": "Route Kanal Boat Keys",
+   "classification": "progression",
+   "group": "vehicle_key",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "vehiclescript": "scripts/vehicles/airboat.txt"
+  },
+  {
+   "id": 8820026,
+   "name": "Water Hazard Boat Keys",
+   "classification": "progression",
+   "group": "vehicle_key",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "vehiclescript": "scripts/vehicles/airboat.txt"
+  },
+  {
+   "id": 8820027,
+   "name": "Highway 17 Car Keys",
+   "classification": "progression",
+   "group": "vehicle_key",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "vehiclescript": "scripts/vehicles/jeep_test.txt"
+  },
+  {
+   "id": 8820028,
+   "name": "Sandtraps Car Keys",
+   "classification": "progression",
+   "group": "vehicle_key",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "vehiclescript": "scripts/vehicles/jeep_test.txt"
+  },
+  {
+   "id": 8820029,
+   "name": "Airboat Gun",
+   "classification": "progression",
+   "group": "vehicle_upgrade",
+   "campaign": "hl2",
+   "maps": [
+    "d1_canals_11",
+    "d1_canals_13"
+   ]
+  },
+  {
+   "id": 8820030,
+   "name": "Melee Throw",
+   "classification": "useful",
+   "group": "ability"
+  },
+  {
+   "id": 8820031,
+   "name": "Ammo Cache",
+   "classification": "filler",
+   "group": "filler"
+  },
+  {
+   "id": 8820032,
+   "name": "Medkit",
+   "classification": "filler",
+   "group": "filler"
+  },
+  {
+   "id": 8820033,
+   "name": "Battery",
+   "classification": "filler",
+   "group": "filler"
+  }
+ ],
+ "locations": [
+  {
+   "id": 8830000,
+   "key": "hl2|d1_trainstation_01|d1_trainstation_01|map_reached",
+   "name": "Point Insertion: Part 1 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "map": "d1_trainstation_01",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_trainstation_01"
+   }
+  },
+  {
+   "id": 8830001,
+   "key": "hl2|d1_trainstation_01|d1_trainstation_02|map_reached",
+   "name": "Point Insertion: Part 2 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "map": "d1_trainstation_02",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_trainstation_02"
+   }
+  },
+  {
+   "id": 8830002,
+   "key": "hl2|d1_trainstation_01|d1_trainstation_03|map_reached",
+   "name": "Point Insertion: Part 3 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "map": "d1_trainstation_03",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_trainstation_03"
+   }
+  },
+  {
+   "id": 8830003,
+   "key": "hl2|d1_trainstation_01|d1_trainstation_04|map_reached",
+   "name": "Point Insertion: Part 4 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "map": "d1_trainstation_04",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_trainstation_04"
+   }
+  },
+  {
+   "id": 8830004,
+   "key": "hl2|d1_trainstation_01|d1_trainstation_01|charger|item_suitcharger@-3649 -425 24",
+   "name": "Point Insertion: Suit Charger (Part 1)",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "map": "d1_trainstation_01",
+   "trigger": {
+    "type": "charger",
+    "map": "d1_trainstation_01",
+    "classname": "item_suitcharger",
+    "at": "-3649 -425 24"
+   },
+   "position": [
+    -3649,
+    -425,
+    24
+   ]
+  },
+  {
+   "id": 8830005,
+   "key": "hl2|d1_trainstation_01||chapter_complete",
+   "name": "Point Insertion: Complete",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "map": "d1_trainstation_04",
+   "trigger": {
+    "type": "chapter_complete",
+    "chapter": "d1_trainstation_01",
+    "on": "forward_exit"
+   }
+  },
+  {
+   "id": 8830006,
+   "key": "hl2|d1_trainstation_05|d1_trainstation_05|map_reached",
+   "name": "A Red Letter Day: Part 1 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "map": "d1_trainstation_05",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_trainstation_05"
+   }
+  },
+  {
+   "id": 8830007,
+   "key": "hl2|d1_trainstation_05|d1_trainstation_06|map_reached",
+   "name": "A Red Letter Day: Part 2 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "map": "d1_trainstation_06",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_trainstation_06"
+   }
+  },
+  {
+   "id": 8830008,
+   "key": "hl2|d1_trainstation_05|d1_trainstation_05|charger|item_suitcharger@-7056 -1578 48",
+   "name": "A Red Letter Day: Suit Charger (Part 1)",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "map": "d1_trainstation_05",
+   "trigger": {
+    "type": "charger",
+    "map": "d1_trainstation_05",
+    "classname": "item_suitcharger",
+    "at": "-7056 -1578 48"
+   },
+   "position": [
+    -7056,
+    -1578,
+    48
+   ]
+  },
+  {
+   "id": 8830009,
+   "key": "hl2|d1_trainstation_05||chapter_complete",
+   "name": "A Red Letter Day: Complete",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "map": "d1_trainstation_06",
+   "trigger": {
+    "type": "chapter_complete",
+    "chapter": "d1_trainstation_05",
+    "on": "forward_exit"
+   }
+  },
+  {
+   "id": 8830010,
+   "key": "hl2|d1_canals_01|d1_canals_01|map_reached",
+   "name": "Route Kanal: Part 1 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "map": "d1_canals_01",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_canals_01"
+   }
+  },
+  {
+   "id": 8830011,
+   "key": "hl2|d1_canals_01|d1_canals_01a|map_reached",
+   "name": "Route Kanal: Part 2 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "map": "d1_canals_01a",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_canals_01a"
+   }
+  },
+  {
+   "id": 8830012,
+   "key": "hl2|d1_canals_01|d1_canals_02|map_reached",
+   "name": "Route Kanal: Part 3 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "map": "d1_canals_02",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_canals_02"
+   }
+  },
+  {
+   "id": 8830013,
+   "key": "hl2|d1_canals_01|d1_canals_03|map_reached",
+   "name": "Route Kanal: Part 4 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "map": "d1_canals_03",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_canals_03"
+   }
+  },
+  {
+   "id": 8830014,
+   "key": "hl2|d1_canals_01|d1_canals_05|map_reached",
+   "name": "Route Kanal: Part 5 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "map": "d1_canals_05",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_canals_05"
+   }
+  },
+  {
+   "id": 8830015,
+   "key": "hl2|d1_canals_01|d1_canals_01|charger|item_healthcharger@736 -3376 436",
+   "name": "Route Kanal: Health Charger 1 (Part 1)",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "map": "d1_canals_01",
+   "trigger": {
+    "type": "charger",
+    "map": "d1_canals_01",
+    "classname": "item_healthcharger",
+    "at": "736 -3376 436"
+   },
+   "position": [
+    736,
+    -3376,
+    436
+   ]
+  },
+  {
+   "id": 8830016,
+   "key": "hl2|d1_canals_01|d1_canals_01|charger|item_healthcharger@408 -1568 308",
+   "name": "Route Kanal: Health Charger 2 (Part 1)",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "map": "d1_canals_01",
+   "trigger": {
+    "type": "charger",
+    "map": "d1_canals_01",
+    "classname": "item_healthcharger",
+    "at": "408 -1568 308"
+   },
+   "position": [
+    408,
+    -1568,
+    308
+   ]
+  },
+  {
+   "id": 8830017,
+   "key": "hl2|d1_canals_01|d1_canals_01|charger|item_healthcharger@576 -7776 -74",
+   "name": "Route Kanal: Health Charger 3 (Part 1)",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "map": "d1_canals_01",
+   "trigger": {
+    "type": "charger",
+    "map": "d1_canals_01",
+    "classname": "item_healthcharger",
+    "at": "576 -7776 -74"
+   },
+   "position": [
+    576,
+    -7776,
+    -74
+   ]
+  },
+  {
+   "id": 8830018,
+   "key": "hl2|d1_canals_01||chapter_complete",
+   "name": "Route Kanal: Complete",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "map": "d1_canals_05",
+   "trigger": {
+    "type": "chapter_complete",
+    "chapter": "d1_canals_01",
+    "on": "forward_exit"
+   }
+  },
+  {
+   "id": 8830019,
+   "key": "hl2|d1_canals_06|d1_canals_06|map_reached",
+   "name": "Water Hazard: Part 1 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_06",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_canals_06"
+   }
+  },
+  {
+   "id": 8830020,
+   "key": "hl2|d1_canals_06|d1_canals_07|map_reached",
+   "name": "Water Hazard: Part 2 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_07",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_canals_07"
+   }
+  },
+  {
+   "id": 8830021,
+   "key": "hl2|d1_canals_06|d1_canals_08|map_reached",
+   "name": "Water Hazard: Part 3 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_08",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_canals_08"
+   }
+  },
+  {
+   "id": 8830022,
+   "key": "hl2|d1_canals_06|d1_canals_09|map_reached",
+   "name": "Water Hazard: Part 4 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_09",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_canals_09"
+   }
+  },
+  {
+   "id": 8830023,
+   "key": "hl2|d1_canals_06|d1_canals_10|map_reached",
+   "name": "Water Hazard: Part 5 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_10",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_canals_10"
+   }
+  },
+  {
+   "id": 8830024,
+   "key": "hl2|d1_canals_06|d1_canals_11|map_reached",
+   "name": "Water Hazard: Part 6 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_11",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_canals_11"
+   }
+  },
+  {
+   "id": 8830025,
+   "key": "hl2|d1_canals_06|d1_canals_12|map_reached",
+   "name": "Water Hazard: Part 7 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_12",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_canals_12"
+   }
+  },
+  {
+   "id": 8830026,
+   "key": "hl2|d1_canals_06|d1_canals_13|map_reached",
+   "name": "Water Hazard: Part 8 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_13",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_canals_13"
+   }
+  },
+  {
+   "id": 8830027,
+   "key": "hl2|d1_canals_06|d1_canals_07|charger|item_healthcharger@10112 1670 -205",
+   "name": "Water Hazard: Health Charger 1 (Part 2)",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_07",
+   "trigger": {
+    "type": "charger",
+    "map": "d1_canals_07",
+    "classname": "item_healthcharger",
+    "at": "10112 1670 -205"
+   },
+   "position": [
+    10112,
+    1670,
+    -205
+   ]
+  },
+  {
+   "id": 8830028,
+   "key": "hl2|d1_canals_06|d1_canals_07|charger|item_healthcharger@7041 1692 -333",
+   "name": "Water Hazard: Health Charger 2 (Part 2)",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_07",
+   "trigger": {
+    "type": "charger",
+    "map": "d1_canals_07",
+    "classname": "item_healthcharger",
+    "at": "7041 1692 -333"
+   },
+   "position": [
+    7041,
+    1692,
+    -333
+   ]
+  },
+  {
+   "id": 8830029,
+   "key": "hl2|d1_canals_06|d1_canals_08|charger|item_healthcharger@-2248 -2920 -332",
+   "name": "Water Hazard: Health Charger (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_08",
+   "trigger": {
+    "type": "charger",
+    "map": "d1_canals_08",
+    "classname": "item_healthcharger",
+    "at": "-2248 -2920 -332"
+   },
+   "position": [
+    -2248,
+    -2920,
+    -332
+   ]
+  },
+  {
+   "id": 8830030,
+   "key": "hl2|d1_canals_06|d1_canals_08|charger|item_suitcharger@-2280 -2920 -336",
+   "name": "Water Hazard: Suit Charger (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_08",
+   "trigger": {
+    "type": "charger",
+    "map": "d1_canals_08",
+    "classname": "item_suitcharger",
+    "at": "-2280 -2920 -336"
+   },
+   "position": [
+    -2280,
+    -2920,
+    -336
+   ]
+  },
+  {
+   "id": 8830031,
+   "key": "hl2|d1_canals_06|d1_canals_10|charger|item_healthcharger@4848 9422 -63",
+   "name": "Water Hazard: Health Charger (Part 5)",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_10",
+   "trigger": {
+    "type": "charger",
+    "map": "d1_canals_10",
+    "classname": "item_healthcharger",
+    "at": "4848 9422 -63"
+   },
+   "position": [
+    4848,
+    9422,
+    -63
+   ]
+  },
+  {
+   "id": 8830032,
+   "key": "hl2|d1_canals_06|d1_canals_10|charger|item_suitcharger@4848 9389 -65",
+   "name": "Water Hazard: Suit Charger (Part 5)",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_10",
+   "trigger": {
+    "type": "charger",
+    "map": "d1_canals_10",
+    "classname": "item_suitcharger",
+    "at": "4848 9389 -65"
+   },
+   "position": [
+    4848,
+    9389,
+    -65
+   ]
+  },
+  {
+   "id": 8830033,
+   "key": "hl2|d1_canals_06|d1_canals_13|charger|item_healthcharger@2904 -1339 244",
+   "name": "Water Hazard: Health Charger (Part 8)",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_13",
+   "trigger": {
+    "type": "charger",
+    "map": "d1_canals_13",
+    "classname": "item_healthcharger",
+    "at": "2904 -1339 244"
+   },
+   "position": [
+    2904,
+    -1339,
+    244
+   ]
+  },
+  {
+   "id": 8830034,
+   "key": "hl2|d1_canals_06|d1_canals_13|charger|item_suitcharger@2904 -1310 241",
+   "name": "Water Hazard: Suit Charger (Part 8)",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_13",
+   "trigger": {
+    "type": "charger",
+    "map": "d1_canals_13",
+    "classname": "item_suitcharger",
+    "at": "2904 -1310 241"
+   },
+   "position": [
+    2904,
+    -1310,
+    241
+   ]
+  },
+  {
+   "id": 8830035,
+   "key": "hl2|d1_canals_06||chapter_complete",
+   "name": "Water Hazard: Complete",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_13",
+   "trigger": {
+    "type": "chapter_complete",
+    "chapter": "d1_canals_06",
+    "on": "forward_exit"
+   }
+  },
+  {
+   "id": 8830036,
+   "key": "hl2|d1_eli_01|d1_eli_01|map_reached",
+   "name": "Black Mesa East: Part 1 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_eli_01",
+   "map": "d1_eli_01",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_eli_01"
+   }
+  },
+  {
+   "id": 8830037,
+   "key": "hl2|d1_eli_01|d1_eli_02|map_reached",
+   "name": "Black Mesa East: Part 2 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_eli_01",
+   "map": "d1_eli_02",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_eli_02"
+   }
+  },
+  {
+   "id": 8830038,
+   "key": "hl2|d1_eli_01||chapter_complete",
+   "name": "Black Mesa East: Complete",
+   "campaign": "hl2",
+   "chapter": "d1_eli_01",
+   "map": "d1_eli_02",
+   "trigger": {
+    "type": "chapter_complete",
+    "chapter": "d1_eli_01",
+    "on": "forward_exit"
+   }
+  },
+  {
+   "id": 8830039,
+   "key": "hl2|d1_town_01|d1_town_01|map_reached",
+   "name": "We Don't Go to Ravenholm...: Part 1 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "map": "d1_town_01",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_town_01"
+   }
+  },
+  {
+   "id": 8830040,
+   "key": "hl2|d1_town_01|d1_town_01a|map_reached",
+   "name": "We Don't Go to Ravenholm...: Part 2 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "map": "d1_town_01a",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_town_01a"
+   }
+  },
+  {
+   "id": 8830041,
+   "key": "hl2|d1_town_01|d1_town_02|map_reached",
+   "name": "We Don't Go to Ravenholm...: Part 3 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "map": "d1_town_02",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_town_02"
+   }
+  },
+  {
+   "id": 8830042,
+   "key": "hl2|d1_town_01|d1_town_03|map_reached",
+   "name": "We Don't Go to Ravenholm...: Part 4 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "map": "d1_town_03",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_town_03"
+   }
+  },
+  {
+   "id": 8830043,
+   "key": "hl2|d1_town_01|d1_town_02a|map_reached",
+   "name": "We Don't Go to Ravenholm...: Part 5 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "map": "d1_town_02a",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_town_02a"
+   }
+  },
+  {
+   "id": 8830044,
+   "key": "hl2|d1_town_01|d1_town_04|map_reached",
+   "name": "We Don't Go to Ravenholm...: Part 6 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "map": "d1_town_04",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_town_04"
+   }
+  },
+  {
+   "id": 8830045,
+   "key": "hl2|d1_town_01|d1_town_05|map_reached",
+   "name": "We Don't Go to Ravenholm...: Part 7 Reached",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "map": "d1_town_05",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d1_town_05"
+   }
+  },
+  {
+   "id": 8830046,
+   "key": "hl2|d1_town_01||chapter_complete",
+   "name": "We Don't Go to Ravenholm...: Complete",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "map": "d1_town_05",
+   "trigger": {
+    "type": "chapter_complete",
+    "chapter": "d1_town_01",
+    "on": "forward_exit"
+   }
+  },
+  {
+   "id": 8830047,
+   "key": "hl2|d2_coast_01|d2_coast_01|map_reached",
+   "name": "Highway 17: Part 1 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "map": "d2_coast_01",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_coast_01"
+   }
+  },
+  {
+   "id": 8830048,
+   "key": "hl2|d2_coast_01|d2_coast_03|map_reached",
+   "name": "Highway 17: Part 2 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "map": "d2_coast_03",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_coast_03"
+   }
+  },
+  {
+   "id": 8830049,
+   "key": "hl2|d2_coast_01|d2_coast_04|map_reached",
+   "name": "Highway 17: Part 3 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "map": "d2_coast_04",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_coast_04"
+   }
+  },
+  {
+   "id": 8830050,
+   "key": "hl2|d2_coast_01|d2_coast_05|map_reached",
+   "name": "Highway 17: Part 4 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "map": "d2_coast_05",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_coast_05"
+   }
+  },
+  {
+   "id": 8830051,
+   "key": "hl2|d2_coast_01|d2_coast_07|map_reached",
+   "name": "Highway 17: Part 5 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "map": "d2_coast_07",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_coast_07"
+   }
+  },
+  {
+   "id": 8830052,
+   "key": "hl2|d2_coast_01|d2_coast_08|map_reached",
+   "name": "Highway 17: Part 6 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "map": "d2_coast_08",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_coast_08"
+   }
+  },
+  {
+   "id": 8830053,
+   "key": "hl2|d2_coast_01|d2_coast_08|charger|item_healthcharger@3064 -3541 1972",
+   "name": "Highway 17: Health Charger (Part 6)",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "map": "d2_coast_08",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_coast_08",
+    "classname": "item_healthcharger",
+    "at": "3064 -3541 1972"
+   },
+   "position": [
+    3064,
+    -3541,
+    1972
+   ]
+  },
+  {
+   "id": 8830054,
+   "key": "hl2|d2_coast_01|d2_coast_08|charger|item_suitcharger@3064 -3499 1969",
+   "name": "Highway 17: Suit Charger (Part 6)",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "map": "d2_coast_08",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_coast_08",
+    "classname": "item_suitcharger",
+    "at": "3064 -3499 1969"
+   },
+   "position": [
+    3064,
+    -3499,
+    1969
+   ]
+  },
+  {
+   "id": 8830055,
+   "key": "hl2|d2_coast_01||chapter_complete",
+   "name": "Highway 17: Complete",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "map": "d2_coast_08",
+   "trigger": {
+    "type": "chapter_complete",
+    "chapter": "d2_coast_01",
+    "on": "forward_exit"
+   }
+  },
+  {
+   "id": 8830056,
+   "key": "hl2|d2_coast_09|d2_coast_09|map_reached",
+   "name": "Sandtraps: Part 1 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "map": "d2_coast_09",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_coast_09"
+   }
+  },
+  {
+   "id": 8830057,
+   "key": "hl2|d2_coast_09|d2_coast_10|map_reached",
+   "name": "Sandtraps: Part 2 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "map": "d2_coast_10",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_coast_10"
+   }
+  },
+  {
+   "id": 8830058,
+   "key": "hl2|d2_coast_09|d2_coast_11|map_reached",
+   "name": "Sandtraps: Part 3 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "map": "d2_coast_11",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_coast_11"
+   }
+  },
+  {
+   "id": 8830059,
+   "key": "hl2|d2_coast_09|d2_coast_12|map_reached",
+   "name": "Sandtraps: Part 4 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "map": "d2_coast_12",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_coast_12"
+   }
+  },
+  {
+   "id": 8830060,
+   "key": "hl2|d2_coast_09|d2_prison_01|map_reached",
+   "name": "Sandtraps: Part 5 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "map": "d2_prison_01",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_prison_01"
+   }
+  },
+  {
+   "id": 8830061,
+   "key": "hl2|d2_coast_09|d2_coast_09|charger|item_healthcharger@-550 5256 -724",
+   "name": "Sandtraps: Health Charger (Part 1)",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "map": "d2_coast_09",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_coast_09",
+    "classname": "item_healthcharger",
+    "at": "-550 5256 -724"
+   },
+   "position": [
+    -550,
+    5256,
+    -724
+   ]
+  },
+  {
+   "id": 8830062,
+   "key": "hl2|d2_coast_09|d2_prison_01|charger|item_healthcharger@3312 -1944 1460",
+   "name": "Sandtraps: Health Charger (Part 5)",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "map": "d2_prison_01",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_01",
+    "classname": "item_healthcharger",
+    "at": "3312 -1944 1460"
+   },
+   "position": [
+    3312,
+    -1944,
+    1460
+   ]
+  },
+  {
+   "id": 8830063,
+   "key": "hl2|d2_coast_09|d2_prison_01|charger|item_suitcharger@3176 -1880 1456",
+   "name": "Sandtraps: Suit Charger (Part 5)",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "map": "d2_prison_01",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_01",
+    "classname": "item_suitcharger",
+    "at": "3176 -1880 1456"
+   },
+   "position": [
+    3176,
+    -1880,
+    1456
+   ]
+  },
+  {
+   "id": 8830064,
+   "key": "hl2|d2_coast_09||chapter_complete",
+   "name": "Sandtraps: Complete",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "map": "d2_prison_01",
+   "trigger": {
+    "type": "chapter_complete",
+    "chapter": "d2_coast_09",
+    "on": "forward_exit"
+   }
+  },
+  {
+   "id": 8830065,
+   "key": "hl2|d2_prison_02|d2_prison_02|map_reached",
+   "name": "Nova Prospekt: Part 1 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "map": "d2_prison_02",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_prison_02"
+   }
+  },
+  {
+   "id": 8830066,
+   "key": "hl2|d2_prison_02|d2_prison_03|map_reached",
+   "name": "Nova Prospekt: Part 2 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "map": "d2_prison_03",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_prison_03"
+   }
+  },
+  {
+   "id": 8830067,
+   "key": "hl2|d2_prison_02|d2_prison_04|map_reached",
+   "name": "Nova Prospekt: Part 3 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "map": "d2_prison_04",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_prison_04"
+   }
+  },
+  {
+   "id": 8830068,
+   "key": "hl2|d2_prison_02|d2_prison_05|map_reached",
+   "name": "Nova Prospekt: Part 4 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "map": "d2_prison_05",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_prison_05"
+   }
+  },
+  {
+   "id": 8830069,
+   "key": "hl2|d2_prison_02|d2_prison_02|charger|item_healthcharger@-1472 2842 436",
+   "name": "Nova Prospekt: Health Charger (Part 1)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "map": "d2_prison_02",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_02",
+    "classname": "item_healthcharger",
+    "at": "-1472 2842 436"
+   },
+   "position": [
+    -1472,
+    2842,
+    436
+   ]
+  },
+  {
+   "id": 8830070,
+   "key": "hl2|d2_prison_02|d2_prison_02|charger|item_suitcharger@-1472 2882 432",
+   "name": "Nova Prospekt: Suit Charger (Part 1)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "map": "d2_prison_02",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_02",
+    "classname": "item_suitcharger",
+    "at": "-1472 2882 432"
+   },
+   "position": [
+    -1472,
+    2882,
+    432
+   ]
+  },
+  {
+   "id": 8830071,
+   "key": "hl2|d2_prison_02|d2_prison_04|charger|item_healthcharger@-1536 1728 435",
+   "name": "Nova Prospekt: Health Charger (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "map": "d2_prison_04",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_04",
+    "classname": "item_healthcharger",
+    "at": "-1536 1728 435"
+   },
+   "position": [
+    -1536,
+    1728,
+    435
+   ]
+  },
+  {
+   "id": 8830072,
+   "key": "hl2|d2_prison_02|d2_prison_04|charger|item_suitcharger@-1536 1696 435",
+   "name": "Nova Prospekt: Suit Charger (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "map": "d2_prison_04",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_04",
+    "classname": "item_suitcharger",
+    "at": "-1536 1696 435"
+   },
+   "position": [
+    -1536,
+    1696,
+    435
+   ]
+  },
+  {
+   "id": 8830073,
+   "key": "hl2|d2_prison_02|d2_prison_05|charger|item_healthcharger@-2680 416 820",
+   "name": "Nova Prospekt: Health Charger 1 (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "map": "d2_prison_05",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_05",
+    "classname": "item_healthcharger",
+    "at": "-2680 416 820"
+   },
+   "position": [
+    -2680,
+    416,
+    820
+   ]
+  },
+  {
+   "id": 8830074,
+   "key": "hl2|d2_prison_02|d2_prison_05|charger|item_healthcharger@-1473 573 435",
+   "name": "Nova Prospekt: Health Charger 2 (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "map": "d2_prison_05",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_05",
+    "classname": "item_healthcharger",
+    "at": "-1473 573 435"
+   },
+   "position": [
+    -1473,
+    573,
+    435
+   ]
+  },
+  {
+   "id": 8830075,
+   "key": "hl2|d2_prison_02|d2_prison_05|charger|item_suitcharger@-2184 416 819",
+   "name": "Nova Prospekt: Suit Charger (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "map": "d2_prison_05",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_05",
+    "classname": "item_suitcharger",
+    "at": "-2184 416 819"
+   },
+   "position": [
+    -2184,
+    416,
+    819
+   ]
+  },
+  {
+   "id": 8830076,
+   "key": "hl2|d2_prison_02|d2_prison_05|charger|item_healthcharger@1072 1104 436",
+   "name": "Nova Prospekt: Health Charger 3 (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "map": "d2_prison_05",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_05",
+    "classname": "item_healthcharger",
+    "at": "1072 1104 436"
+   },
+   "position": [
+    1072,
+    1104,
+    436
+   ]
+  },
+  {
+   "id": 8830077,
+   "key": "hl2|d2_prison_02||chapter_complete",
+   "name": "Nova Prospekt: Complete",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "map": "d2_prison_05",
+   "trigger": {
+    "type": "chapter_complete",
+    "chapter": "d2_prison_02",
+    "on": "forward_exit"
+   }
+  },
+  {
+   "id": 8830078,
+   "key": "hl2|d2_prison_06|d2_prison_06|map_reached",
+   "name": "Entanglement: Part 1 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d2_prison_06",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_prison_06"
+   }
+  },
+  {
+   "id": 8830079,
+   "key": "hl2|d2_prison_06|d2_prison_07|map_reached",
+   "name": "Entanglement: Part 2 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d2_prison_07",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_prison_07"
+   }
+  },
+  {
+   "id": 8830080,
+   "key": "hl2|d2_prison_06|d2_prison_08|map_reached",
+   "name": "Entanglement: Part 3 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d2_prison_08",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d2_prison_08"
+   }
+  },
+  {
+   "id": 8830081,
+   "key": "hl2|d2_prison_06|d3_c17_01|map_reached",
+   "name": "Entanglement: Part 4 Reached",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d3_c17_01",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_01"
+   }
+  },
+  {
+   "id": 8830082,
+   "key": "hl2|d2_prison_06|d2_prison_07|charger|item_healthcharger@-322 -3088 -117",
+   "name": "Entanglement: Health Charger 1 (Part 2)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d2_prison_07",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_07",
+    "classname": "item_healthcharger",
+    "at": "-322 -3088 -117"
+   },
+   "position": [
+    -322,
+    -3088,
+    -117
+   ]
+  },
+  {
+   "id": 8830083,
+   "key": "hl2|d2_prison_06|d2_prison_07|charger|item_healthcharger@4184 -3904 -494",
+   "name": "Entanglement: Health Charger 2 (Part 2)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d2_prison_07",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_07",
+    "classname": "item_healthcharger",
+    "at": "4184 -3904 -494"
+   },
+   "position": [
+    4184,
+    -3904,
+    -494
+   ]
+  },
+  {
+   "id": 8830084,
+   "key": "hl2|d2_prison_06|d2_prison_07|charger|item_suitcharger@4140 -3904 -494",
+   "name": "Entanglement: Suit Charger 1 (Part 2)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d2_prison_07",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_07",
+    "classname": "item_suitcharger",
+    "at": "4140 -3904 -494"
+   },
+   "position": [
+    4140,
+    -3904,
+    -494
+   ]
+  },
+  {
+   "id": 8830085,
+   "key": "hl2|d2_prison_06|d2_prison_07|charger|item_healthcharger@3144 -3072 -747",
+   "name": "Entanglement: Health Charger 3 (Part 2)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d2_prison_07",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_07",
+    "classname": "item_healthcharger",
+    "at": "3144 -3072 -747"
+   },
+   "position": [
+    3144,
+    -3072,
+    -747
+   ]
+  },
+  {
+   "id": 8830086,
+   "key": "hl2|d2_prison_06|d2_prison_07|charger|item_suitcharger@3544 -4432 -494",
+   "name": "Entanglement: Suit Charger 2 (Part 2)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d2_prison_07",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_07",
+    "classname": "item_suitcharger",
+    "at": "3544 -4432 -494"
+   },
+   "position": [
+    3544,
+    -4432,
+    -494
+   ]
+  },
+  {
+   "id": 8830087,
+   "key": "hl2|d2_prison_06|d2_prison_07|charger|item_healthcharger@3500 -4432 -494",
+   "name": "Entanglement: Health Charger 4 (Part 2)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d2_prison_07",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_07",
+    "classname": "item_healthcharger",
+    "at": "3500 -4432 -494"
+   },
+   "position": [
+    3500,
+    -4432,
+    -494
+   ]
+  },
+  {
+   "id": 8830088,
+   "key": "hl2|d2_prison_06|d2_prison_08|charger|item_healthcharger@-257 756 1013",
+   "name": "Entanglement: Health Charger 1 (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d2_prison_08",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_08",
+    "classname": "item_healthcharger",
+    "at": "-257 756 1013"
+   },
+   "position": [
+    -257,
+    756,
+    1013
+   ]
+  },
+  {
+   "id": 8830089,
+   "key": "hl2|d2_prison_06|d2_prison_08|charger|item_suitcharger@-256 720 1014",
+   "name": "Entanglement: Suit Charger (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d2_prison_08",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_08",
+    "classname": "item_suitcharger",
+    "at": "-256 720 1014"
+   },
+   "position": [
+    -256,
+    720,
+    1014
+   ]
+  },
+  {
+   "id": 8830090,
+   "key": "hl2|d2_prison_06|d2_prison_08|charger|item_healthcharger@-1329 1225 1140",
+   "name": "Entanglement: Health Charger 2 (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d2_prison_08",
+   "trigger": {
+    "type": "charger",
+    "map": "d2_prison_08",
+    "classname": "item_healthcharger",
+    "at": "-1329 1225 1140"
+   },
+   "position": [
+    -1329,
+    1225,
+    1140
+   ]
+  },
+  {
+   "id": 8830091,
+   "key": "hl2|d2_prison_06|d3_c17_01|charger|item_suitcharger@-7056 -1578 48",
+   "name": "Entanglement: Suit Charger (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d3_c17_01",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_01",
+    "classname": "item_suitcharger",
+    "at": "-7056 -1578 48"
+   },
+   "position": [
+    -7056,
+    -1578,
+    48
+   ]
+  },
+  {
+   "id": 8830092,
+   "key": "hl2|d2_prison_06||chapter_complete",
+   "name": "Entanglement: Complete",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "map": "d3_c17_01",
+   "trigger": {
+    "type": "chapter_complete",
+    "chapter": "d2_prison_06",
+    "on": "forward_exit"
+   }
+  },
+  {
+   "id": 8830093,
+   "key": "hl2|d3_c17_02|d3_c17_02|map_reached",
+   "name": "Anticitizen One: Part 1 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_02",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_02"
+   }
+  },
+  {
+   "id": 8830094,
+   "key": "hl2|d3_c17_02|d3_c17_03|map_reached",
+   "name": "Anticitizen One: Part 2 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_03",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_03"
+   }
+  },
+  {
+   "id": 8830095,
+   "key": "hl2|d3_c17_02|d3_c17_04|map_reached",
+   "name": "Anticitizen One: Part 3 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_04",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_04"
+   }
+  },
+  {
+   "id": 8830096,
+   "key": "hl2|d3_c17_02|d3_c17_05|map_reached",
+   "name": "Anticitizen One: Part 4 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_05",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_05"
+   }
+  },
+  {
+   "id": 8830097,
+   "key": "hl2|d3_c17_02|d3_c17_06a|map_reached",
+   "name": "Anticitizen One: Part 5 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_06a",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_06a"
+   }
+  },
+  {
+   "id": 8830098,
+   "key": "hl2|d3_c17_02|d3_c17_06b|map_reached",
+   "name": "Anticitizen One: Part 6 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_06b",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_06b"
+   }
+  },
+  {
+   "id": 8830099,
+   "key": "hl2|d3_c17_02|d3_c17_07|map_reached",
+   "name": "Anticitizen One: Part 7 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_07",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_07"
+   }
+  },
+  {
+   "id": 8830100,
+   "key": "hl2|d3_c17_02|d3_c17_08|map_reached",
+   "name": "Anticitizen One: Part 8 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_08",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_08"
+   }
+  },
+  {
+   "id": 8830101,
+   "key": "hl2|d3_c17_02|d3_c17_05|charger|item_healthcharger@1971 -4103 269",
+   "name": "Anticitizen One: Health Charger 1 (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_05",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_05",
+    "classname": "item_healthcharger",
+    "at": "1971 -4103 269"
+   },
+   "position": [
+    1971,
+    -4103,
+    269
+   ]
+  },
+  {
+   "id": 8830102,
+   "key": "hl2|d3_c17_02|d3_c17_05|charger|item_healthcharger@1502 -6121 374",
+   "name": "Anticitizen One: Health Charger 2 (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_05",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_05",
+    "classname": "item_healthcharger",
+    "at": "1502 -6121 374"
+   },
+   "position": [
+    1502,
+    -6121,
+    374
+   ]
+  },
+  {
+   "id": 8830103,
+   "key": "hl2|d3_c17_02|d3_c17_05|charger|item_healthcharger@1592 -5760 176",
+   "name": "Anticitizen One: Health Charger 3 (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_05",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_05",
+    "classname": "item_healthcharger",
+    "at": "1592 -5760 176"
+   },
+   "position": [
+    1592,
+    -5760,
+    176
+   ]
+  },
+  {
+   "id": 8830104,
+   "key": "hl2|d3_c17_02|d3_c17_05|charger|item_healthcharger@1596 -3392 -12",
+   "name": "Anticitizen One: Health Charger 4 (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_05",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_05",
+    "classname": "item_healthcharger",
+    "at": "1596 -3392 -12"
+   },
+   "position": [
+    1596,
+    -3392,
+    -12
+   ]
+  },
+  {
+   "id": 8830105,
+   "key": "hl2|d3_c17_02|d3_c17_05|charger|item_suitcharger@1856 -3200 497",
+   "name": "Anticitizen One: Suit Charger (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_05",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_05",
+    "classname": "item_suitcharger",
+    "at": "1856 -3200 497"
+   },
+   "position": [
+    1856,
+    -3200,
+    497
+   ]
+  },
+  {
+   "id": 8830106,
+   "key": "hl2|d3_c17_02|d3_c17_07|charger|item_suitcharger@6500 1587 32",
+   "name": "Anticitizen One: Suit Charger 1 (Part 7)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_07",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_07",
+    "classname": "item_suitcharger",
+    "at": "6500 1587 32"
+   },
+   "position": [
+    6500,
+    1587,
+    32
+   ]
+  },
+  {
+   "id": 8830107,
+   "key": "hl2|d3_c17_02|d3_c17_07|charger|item_healthcharger@6502 1485 32",
+   "name": "Anticitizen One: Health Charger 1 (Part 7)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_07",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_07",
+    "classname": "item_healthcharger",
+    "at": "6502 1485 32"
+   },
+   "position": [
+    6502,
+    1485,
+    32
+   ]
+  },
+  {
+   "id": 8830108,
+   "key": "hl2|d3_c17_02|d3_c17_07|charger|item_suitcharger@4660 1848 176",
+   "name": "Anticitizen One: Suit Charger 2 (Part 7)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_07",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_07",
+    "classname": "item_suitcharger",
+    "at": "4660 1848 176"
+   },
+   "position": [
+    4660,
+    1848,
+    176
+   ]
+  },
+  {
+   "id": 8830109,
+   "key": "hl2|d3_c17_02|d3_c17_07|charger|item_healthcharger@4692 1848 180",
+   "name": "Anticitizen One: Health Charger 2 (Part 7)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_07",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_07",
+    "classname": "item_healthcharger",
+    "at": "4692 1848 180"
+   },
+   "position": [
+    4692,
+    1848,
+    180
+   ]
+  },
+  {
+   "id": 8830110,
+   "key": "hl2|d3_c17_02|d3_c17_07|charger|item_healthcharger@4264 728 180",
+   "name": "Anticitizen One: Health Charger 3 (Part 7)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_07",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_07",
+    "classname": "item_healthcharger",
+    "at": "4264 728 180"
+   },
+   "position": [
+    4264,
+    728,
+    180
+   ]
+  },
+  {
+   "id": 8830111,
+   "key": "hl2|d3_c17_02|d3_c17_07|charger|item_suitcharger@4296 728 176",
+   "name": "Anticitizen One: Suit Charger 3 (Part 7)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_07",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_07",
+    "classname": "item_suitcharger",
+    "at": "4296 728 176"
+   },
+   "position": [
+    4296,
+    728,
+    176
+   ]
+  },
+  {
+   "id": 8830112,
+   "key": "hl2|d3_c17_02|d3_c17_08|charger|item_healthcharger@1621 -862 140",
+   "name": "Anticitizen One: Health Charger (Part 8)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_08",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_08",
+    "classname": "item_healthcharger",
+    "at": "1621 -862 140"
+   },
+   "position": [
+    1621,
+    -862,
+    140
+   ]
+  },
+  {
+   "id": 8830113,
+   "key": "hl2|d3_c17_02|d3_c17_08|charger|item_suitcharger@1620 -833 138",
+   "name": "Anticitizen One: Suit Charger (Part 8)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_08",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_08",
+    "classname": "item_suitcharger",
+    "at": "1620 -833 138"
+   },
+   "position": [
+    1620,
+    -833,
+    138
+   ]
+  },
+  {
+   "id": 8830114,
+   "key": "hl2|d3_c17_02||chapter_complete",
+   "name": "Anticitizen One: Complete",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "map": "d3_c17_08",
+   "trigger": {
+    "type": "chapter_complete",
+    "chapter": "d3_c17_02",
+    "on": "forward_exit"
+   }
+  },
+  {
+   "id": 8830115,
+   "key": "hl2|d3_c17_09|d3_c17_09|map_reached",
+   "name": "Follow Freeman!: Part 1 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_09",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_09"
+   }
+  },
+  {
+   "id": 8830116,
+   "key": "hl2|d3_c17_09|d3_c17_10a|map_reached",
+   "name": "Follow Freeman!: Part 2 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_10a",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_10a"
+   }
+  },
+  {
+   "id": 8830117,
+   "key": "hl2|d3_c17_09|d3_c17_10b|map_reached",
+   "name": "Follow Freeman!: Part 3 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_10b",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_10b"
+   }
+  },
+  {
+   "id": 8830118,
+   "key": "hl2|d3_c17_09|d3_c17_11|map_reached",
+   "name": "Follow Freeman!: Part 4 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_11",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_11"
+   }
+  },
+  {
+   "id": 8830119,
+   "key": "hl2|d3_c17_09|d3_c17_12|map_reached",
+   "name": "Follow Freeman!: Part 5 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_12",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_12"
+   }
+  },
+  {
+   "id": 8830120,
+   "key": "hl2|d3_c17_09|d3_c17_12b|map_reached",
+   "name": "Follow Freeman!: Part 6 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_12b",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_12b"
+   }
+  },
+  {
+   "id": 8830121,
+   "key": "hl2|d3_c17_09|d3_c17_13|map_reached",
+   "name": "Follow Freeman!: Part 7 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_13",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_c17_13"
+   }
+  },
+  {
+   "id": 8830122,
+   "key": "hl2|d3_c17_09|d3_c17_10a|charger|item_healthcharger@-1352 4448 180",
+   "name": "Follow Freeman!: Health Charger 1 (Part 2)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_10a",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_10a",
+    "classname": "item_healthcharger",
+    "at": "-1352 4448 180"
+   },
+   "position": [
+    -1352,
+    4448,
+    180
+   ]
+  },
+  {
+   "id": 8830123,
+   "key": "hl2|d3_c17_09|d3_c17_10a|charger|item_healthcharger@136 4480 180",
+   "name": "Follow Freeman!: Health Charger 2 (Part 2)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_10a",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_10a",
+    "classname": "item_healthcharger",
+    "at": "136 4480 180"
+   },
+   "position": [
+    136,
+    4480,
+    180
+   ]
+  },
+  {
+   "id": 8830124,
+   "key": "hl2|d3_c17_09|d3_c17_10b|charger|item_healthcharger@2808 -1128 564",
+   "name": "Follow Freeman!: Health Charger 1 (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_10b",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_10b",
+    "classname": "item_healthcharger",
+    "at": "2808 -1128 564"
+   },
+   "position": [
+    2808,
+    -1128,
+    564
+   ]
+  },
+  {
+   "id": 8830125,
+   "key": "hl2|d3_c17_09|d3_c17_10b|charger|item_healthcharger@3308 -576 564",
+   "name": "Follow Freeman!: Health Charger 2 (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_10b",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_10b",
+    "classname": "item_healthcharger",
+    "at": "3308 -576 564"
+   },
+   "position": [
+    3308,
+    -576,
+    564
+   ]
+  },
+  {
+   "id": 8830126,
+   "key": "hl2|d3_c17_09|d3_c17_10b|charger|item_suitcharger@3288 -608 564",
+   "name": "Follow Freeman!: Suit Charger 1 (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_10b",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_10b",
+    "classname": "item_suitcharger",
+    "at": "3288 -608 564"
+   },
+   "position": [
+    3288,
+    -608,
+    564
+   ]
+  },
+  {
+   "id": 8830127,
+   "key": "hl2|d3_c17_09|d3_c17_10b|charger|item_healthcharger@2568 300 564",
+   "name": "Follow Freeman!: Health Charger 3 (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_10b",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_10b",
+    "classname": "item_healthcharger",
+    "at": "2568 300 564"
+   },
+   "position": [
+    2568,
+    300,
+    564
+   ]
+  },
+  {
+   "id": 8830128,
+   "key": "hl2|d3_c17_09|d3_c17_10b|charger|item_healthcharger@2592 -1802 564",
+   "name": "Follow Freeman!: Health Charger 4 (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_10b",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_10b",
+    "classname": "item_healthcharger",
+    "at": "2592 -1802 564"
+   },
+   "position": [
+    2592,
+    -1802,
+    564
+   ]
+  },
+  {
+   "id": 8830129,
+   "key": "hl2|d3_c17_09|d3_c17_10b|charger|item_healthcharger@2816 172 308",
+   "name": "Follow Freeman!: Health Charger 5 (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_10b",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_10b",
+    "classname": "item_healthcharger",
+    "at": "2816 172 308"
+   },
+   "position": [
+    2816,
+    172,
+    308
+   ]
+  },
+  {
+   "id": 8830130,
+   "key": "hl2|d3_c17_09|d3_c17_10b|charger|item_suitcharger@2816 140 308",
+   "name": "Follow Freeman!: Suit Charger 2 (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_10b",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_10b",
+    "classname": "item_suitcharger",
+    "at": "2816 140 308"
+   },
+   "position": [
+    2816,
+    140,
+    308
+   ]
+  },
+  {
+   "id": 8830131,
+   "key": "hl2|d3_c17_09|d3_c17_11|charger|item_healthcharger@928 6164 948",
+   "name": "Follow Freeman!: Health Charger (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_11",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_11",
+    "classname": "item_healthcharger",
+    "at": "928 6164 948"
+   },
+   "position": [
+    928,
+    6164,
+    948
+   ]
+  },
+  {
+   "id": 8830132,
+   "key": "hl2|d3_c17_09|d3_c17_11|charger|item_suitcharger@928 6136 948",
+   "name": "Follow Freeman!: Suit Charger (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_11",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_11",
+    "classname": "item_suitcharger",
+    "at": "928 6136 948"
+   },
+   "position": [
+    928,
+    6136,
+    948
+   ]
+  },
+  {
+   "id": 8830133,
+   "key": "hl2|d3_c17_09|d3_c17_12|charger|item_healthcharger@-2681 6895 179",
+   "name": "Follow Freeman!: Health Charger (Part 5)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_12",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_12",
+    "classname": "item_healthcharger",
+    "at": "-2681 6895 179"
+   },
+   "position": [
+    -2681,
+    6895,
+    179
+   ]
+  },
+  {
+   "id": 8830134,
+   "key": "hl2|d3_c17_09|d3_c17_13|charger|item_healthcharger@5448 -392 44",
+   "name": "Follow Freeman!: Health Charger 1 (Part 7)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_13",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_13",
+    "classname": "item_healthcharger",
+    "at": "5448 -392 44"
+   },
+   "position": [
+    5448,
+    -392,
+    44
+   ]
+  },
+  {
+   "id": 8830135,
+   "key": "hl2|d3_c17_09|d3_c17_13|charger|item_healthcharger@5364 -393 44",
+   "name": "Follow Freeman!: Health Charger 2 (Part 7)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_13",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_13",
+    "classname": "item_healthcharger",
+    "at": "5364 -393 44"
+   },
+   "position": [
+    5364,
+    -393,
+    44
+   ]
+  },
+  {
+   "id": 8830136,
+   "key": "hl2|d3_c17_09|d3_c17_13|charger|item_suitcharger@5404 -392 43",
+   "name": "Follow Freeman!: Suit Charger (Part 7)",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_13",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_c17_13",
+    "classname": "item_suitcharger",
+    "at": "5404 -392 43"
+   },
+   "position": [
+    5404,
+    -392,
+    43
+   ]
+  },
+  {
+   "id": 8830137,
+   "key": "hl2|d3_c17_09||chapter_complete",
+   "name": "Follow Freeman!: Complete",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "map": "d3_c17_13",
+   "trigger": {
+    "type": "chapter_complete",
+    "chapter": "d3_c17_09",
+    "on": "forward_exit"
+   }
+  },
+  {
+   "id": 8830138,
+   "key": "hl2|d3_citadel_01|d3_citadel_01|map_reached",
+   "name": "Our Benefactors: Part 1 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_01",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_citadel_01"
+   }
+  },
+  {
+   "id": 8830139,
+   "key": "hl2|d3_citadel_01|d3_citadel_02|map_reached",
+   "name": "Our Benefactors: Part 2 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_02",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_citadel_02"
+   }
+  },
+  {
+   "id": 8830140,
+   "key": "hl2|d3_citadel_01|d3_citadel_03|map_reached",
+   "name": "Our Benefactors: Part 3 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_03",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_citadel_03"
+   }
+  },
+  {
+   "id": 8830141,
+   "key": "hl2|d3_citadel_01|d3_citadel_04|map_reached",
+   "name": "Our Benefactors: Part 4 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_04",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_citadel_04"
+   }
+  },
+  {
+   "id": 8830142,
+   "key": "hl2|d3_citadel_01|d3_citadel_05|map_reached",
+   "name": "Our Benefactors: Part 5 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_05",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_citadel_05"
+   }
+  },
+  {
+   "id": 8830143,
+   "key": "hl2|d3_citadel_01|d3_citadel_03|charger|item_suitcharger@7365 384 2168",
+   "name": "Our Benefactors: Suit Charger 1 (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_03",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_citadel_03",
+    "classname": "item_suitcharger",
+    "at": "7365 384 2168"
+   },
+   "position": [
+    7365,
+    384,
+    2168
+   ]
+  },
+  {
+   "id": 8830144,
+   "key": "hl2|d3_citadel_01|d3_citadel_03|charger|item_suitcharger@787 -253 2416",
+   "name": "Our Benefactors: Suit Charger 2 (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_03",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_citadel_03",
+    "classname": "item_suitcharger",
+    "at": "787 -253 2416"
+   },
+   "position": [
+    787,
+    -253,
+    2416
+   ]
+  },
+  {
+   "id": 8830145,
+   "key": "hl2|d3_citadel_01|d3_citadel_03|charger|item_suitcharger@2766 257 2367",
+   "name": "Our Benefactors: Suit Charger 3 (Part 3)",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_03",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_citadel_03",
+    "classname": "item_suitcharger",
+    "at": "2766 257 2367"
+   },
+   "position": [
+    2766,
+    257,
+    2367
+   ]
+  },
+  {
+   "id": 8830146,
+   "key": "hl2|d3_citadel_01|d3_citadel_04|charger|item_suitcharger@-1359 -2034 6448",
+   "name": "Our Benefactors: Suit Charger 1 (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_04",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_citadel_04",
+    "classname": "item_suitcharger",
+    "at": "-1359 -2034 6448"
+   },
+   "position": [
+    -1359,
+    -2034,
+    6448
+   ]
+  },
+  {
+   "id": 8830147,
+   "key": "hl2|d3_citadel_01|d3_citadel_04|charger|item_suitcharger@316 1822 2352",
+   "name": "Our Benefactors: Suit Charger 2 (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_04",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_citadel_04",
+    "classname": "item_suitcharger",
+    "at": "316 1822 2352"
+   },
+   "position": [
+    316,
+    1822,
+    2352
+   ]
+  },
+  {
+   "id": 8830148,
+   "key": "hl2|d3_citadel_01|d3_citadel_04|charger|item_suitcharger@-1228 -8896 6064",
+   "name": "Our Benefactors: Suit Charger 3 (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_04",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_citadel_04",
+    "classname": "item_suitcharger",
+    "at": "-1228 -8896 6064"
+   },
+   "position": [
+    -1228,
+    -8896,
+    6064
+   ]
+  },
+  {
+   "id": 8830149,
+   "key": "hl2|d3_citadel_01|d3_citadel_04|charger|item_suitcharger@512 -416 6448",
+   "name": "Our Benefactors: Suit Charger 4 (Part 4)",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_04",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_citadel_04",
+    "classname": "item_suitcharger",
+    "at": "512 -416 6448"
+   },
+   "position": [
+    512,
+    -416,
+    6448
+   ]
+  },
+  {
+   "id": 8830150,
+   "key": "hl2|d3_citadel_01|d3_citadel_05|charger|item_suitcharger@-1036 -64 -3024",
+   "name": "Our Benefactors: Suit Charger (Part 5)",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_05",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_citadel_05",
+    "classname": "item_suitcharger",
+    "at": "-1036 -64 -3024"
+   },
+   "position": [
+    -1036,
+    -64,
+    -3024
+   ]
+  },
+  {
+   "id": 8830151,
+   "key": "hl2|d3_citadel_01||chapter_complete",
+   "name": "Our Benefactors: Complete",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "map": "d3_citadel_05",
+   "trigger": {
+    "type": "chapter_complete",
+    "chapter": "d3_citadel_01",
+    "on": "forward_exit"
+   }
+  },
+  {
+   "id": 8830152,
+   "key": "hl2|d3_breen_01|d3_breen_01|map_reached",
+   "name": "Dark Energy: Part 1 Reached",
+   "campaign": "hl2",
+   "chapter": "d3_breen_01",
+   "map": "d3_breen_01",
+   "trigger": {
+    "type": "map_reached",
+    "map": "d3_breen_01"
+   }
+  },
+  {
+   "id": 8830153,
+   "key": "hl2|d3_breen_01|d3_breen_01|charger|item_suitcharger@33 115 565",
+   "name": "Dark Energy: Suit Charger 1 (Part 1)",
+   "campaign": "hl2",
+   "chapter": "d3_breen_01",
+   "map": "d3_breen_01",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_breen_01",
+    "classname": "item_suitcharger",
+    "at": "33 115 565"
+   },
+   "position": [
+    33,
+    115,
+    565
+   ]
+  },
+  {
+   "id": 8830154,
+   "key": "hl2|d3_breen_01|d3_breen_01|charger|item_suitcharger@-928 299 1360",
+   "name": "Dark Energy: Suit Charger 2 (Part 1)",
+   "campaign": "hl2",
+   "chapter": "d3_breen_01",
+   "map": "d3_breen_01",
+   "trigger": {
+    "type": "charger",
+    "map": "d3_breen_01",
+    "classname": "item_suitcharger",
+    "at": "-928 299 1360"
+   },
+   "position": [
+    -928,
+    299,
+    1360
+   ]
+  },
+  {
+   "id": 8830155,
+   "key": "hl2|d3_breen_01||chapter_complete",
+   "name": "Dark Energy: Complete",
+   "campaign": "hl2",
+   "chapter": "d3_breen_01",
+   "map": "d3_breen_01",
+   "trigger": {
+    "type": "chapter_complete",
+    "chapter": "d3_breen_01",
+    "on": "finale"
+   }
+  },
+  {
+   "id": 8830156,
+   "key": "hl2|*|weapon_pickup|weapon_crowbar",
+   "name": "First Crowbar",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "map": "d1_trainstation_06",
+   "trigger": {
+    "type": "weapon_pickup",
+    "map": "d1_trainstation_06",
+    "classnames": [
+     "weapon_crowbar"
+    ]
+   },
+   "sources": [
+    {
+     "chapter": "d1_trainstation_05",
+     "map": "d1_trainstation_06",
+     "how": "placed",
+     "position": [
+      -9616,
+      -3498,
+      600
+     ]
+    }
+   ],
+   "position": [
+    -9616,
+    -3498,
+    600
+   ]
+  },
+  {
+   "id": 8830157,
+   "key": "hl2|*|weapon_pickup|weapon_physcannon",
+   "name": "First Gravity Gun",
+   "campaign": "hl2",
+   "chapter": "d1_eli_01",
+   "map": "d1_eli_02",
+   "trigger": {
+    "type": "weapon_pickup",
+    "map": "d1_eli_02",
+    "classnames": [
+     "weapon_physcannon"
+    ]
+   },
+   "sources": [
+    {
+     "chapter": "d1_eli_01",
+     "map": "d1_eli_02",
+     "how": "give"
+    },
+    {
+     "chapter": "d3_breen_01",
+     "map": "d3_breen_01",
+     "how": "placed",
+     "position": [
+      -1000,
+      88,
+      1452
+     ]
+    }
+   ]
+  },
+  {
+   "id": 8830158,
+   "key": "hl2|*|weapon_pickup|weapon_pistol",
+   "name": "First Pistol",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "map": "d1_trainstation_06",
+   "trigger": {
+    "type": "weapon_pickup",
+    "map": "d1_trainstation_06",
+    "classnames": [
+     "weapon_pistol"
+    ]
+   },
+   "sources": [
+    {
+     "chapter": "d1_trainstation_05",
+     "map": "d1_trainstation_06",
+     "how": "drop",
+     "position": [
+      -7784,
+      -2666,
+      327
+     ]
+    },
+    {
+     "chapter": "d1_canals_01",
+     "map": "d1_canals_01",
+     "how": "drop",
+     "position": [
+      704,
+      -3456,
+      384
+     ]
+    },
+    {
+     "chapter": "d1_canals_06",
+     "map": "d1_canals_06",
+     "how": "drop",
+     "position": [
+      -6004,
+      -638,
+      -100
+     ]
+    },
+    {
+     "chapter": "d1_town_01",
+     "map": "d1_town_01",
+     "how": "placed",
+     "position": [
+      327,
+      -667,
+      -3465
+     ]
+    },
+    {
+     "chapter": "d3_c17_02",
+     "map": "d3_c17_03",
+     "how": "drop",
+     "position": [
+      -1568,
+      -3296,
+      9
+     ]
+    }
+   ],
+   "position": [
+    -7784,
+    -2666,
+    327
+   ]
+  },
+  {
+   "id": 8830159,
+   "key": "hl2|*|weapon_pickup|weapon_357",
+   "name": "First .357 Magnum",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "map": "d1_canals_08",
+   "trigger": {
+    "type": "weapon_pickup",
+    "map": "d1_canals_08",
+    "classnames": [
+     "weapon_357"
+    ]
+   },
+   "sources": [
+    {
+     "chapter": "d1_canals_06",
+     "map": "d1_canals_08",
+     "how": "placed",
+     "position": [
+      -2316,
+      -1843,
+      -250
+     ]
+    },
+    {
+     "chapter": "d1_town_01",
+     "map": "d1_town_05",
+     "how": "placed",
+     "position": [
+      -11407,
+      4272,
+      1044
+     ]
+    },
+    {
+     "chapter": "d2_coast_01",
+     "map": "d2_coast_03",
+     "how": "crate",
+     "position": [
+      -3216,
+      -6264,
+      624
+     ]
+    },
+    {
+     "chapter": "d2_prison_02",
+     "map": "d2_prison_03",
+     "how": "placed",
+     "position": [
+      -3808,
+      4416,
+      40
+     ]
+    },
+    {
+     "chapter": "d3_c17_02",
+     "map": "d3_c17_05",
+     "how": "placed",
+     "position": [
+      76,
+      -6332,
+      514
+     ]
+    },
+    {
+     "chapter": "d3_c17_09",
+     "map": "d3_c17_10a",
+     "how": "placed",
+     "position": [
+      -1448,
+      6328,
+      99
+     ]
+    }
+   ],
+   "position": [
+    -2316,
+    -1843,
+    -250
+   ]
+  },
+  {
+   "id": 8830160,
+   "key": "hl2|*|weapon_pickup|weapon_smg1",
+   "name": "First SMG",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "map": "d1_canals_03",
+   "trigger": {
+    "type": "weapon_pickup",
+    "map": "d1_canals_03",
+    "classnames": [
+     "weapon_smg1"
+    ]
+   },
+   "sources": [
+    {
+     "chapter": "d1_canals_01",
+     "map": "d1_canals_03",
+     "how": "drop",
+     "position": [
+      -1581,
+      -800,
+      -699
+     ]
+    },
+    {
+     "chapter": "d1_canals_06",
+     "map": "d1_canals_06",
+     "how": "drop",
+     "position": [
+      -5812,
+      -1019,
+      -3
+     ]
+    },
+    {
+     "chapter": "d1_eli_01",
+     "map": "d1_eli_02",
+     "how": "drop",
+     "position": [
+      528,
+      2400,
+      -2735
+     ]
+    },
+    {
+     "chapter": "d1_town_01",
+     "map": "d1_town_01a",
+     "how": "placed",
+     "position": [
+      1,
+      -405,
+      -3256
+     ]
+    },
+    {
+     "chapter": "d2_coast_01",
+     "map": "d2_coast_03",
+     "how": "drop",
+     "position": [
+      -3712,
+      3734,
+      485
+     ]
+    },
+    {
+     "chapter": "d2_coast_09",
+     "map": "d2_coast_09",
+     "how": "drop",
+     "position": [
+      2,
+      5215,
+      -461
+     ]
+    },
+    {
+     "chapter": "d2_prison_02",
+     "map": "d2_prison_03",
+     "how": "drop",
+     "position": [
+      -2990,
+      4174,
+      1
+     ]
+    },
+    {
+     "chapter": "d2_prison_06",
+     "map": "d2_prison_06",
+     "how": "drop",
+     "position": [
+      1104,
+      -2840,
+      -236
+     ]
+    },
+    {
+     "chapter": "d3_c17_02",
+     "map": "d3_c17_04",
+     "how": "drop",
+     "position": [
+      -620,
+      -5174,
+      205
+     ]
+    },
+    {
+     "chapter": "d3_c17_09",
+     "map": "d3_c17_10a",
+     "how": "placed",
+     "position": [
+      -1449,
+      6288,
+      98
+     ]
+    },
+    {
+     "chapter": "d3_citadel_01",
+     "map": "d3_citadel_02",
+     "how": "drop",
+     "position": [
+      653,
+      5517,
+      2552
+     ]
+    }
+   ],
+   "position": [
+    -1581,
+    -800,
+    -699
+   ]
+  },
+  {
+   "id": 8830161,
+   "key": "hl2|*|weapon_pickup|weapon_ar2",
+   "name": "First Pulse Rifle",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "map": "d1_town_05",
+   "trigger": {
+    "type": "weapon_pickup",
+    "map": "d1_town_05",
+    "classnames": [
+     "weapon_ar2"
+    ]
+   },
+   "sources": [
+    {
+     "chapter": "d1_town_01",
+     "map": "d1_town_05",
+     "how": "drop",
+     "position": [
+      -3820,
+      7721,
+      906
+     ]
+    },
+    {
+     "chapter": "d2_coast_01",
+     "map": "d2_coast_03",
+     "how": "drop",
+     "position": [
+      -3656,
+      3584,
+      464
+     ]
+    },
+    {
+     "chapter": "d2_coast_09",
+     "map": "d2_coast_09",
+     "how": "drop",
+     "position": [
+      288,
+      6297,
+      -760
+     ]
+    },
+    {
+     "chapter": "d2_prison_02",
+     "map": "d2_prison_02",
+     "how": "placed",
+     "position": [
+      -1862,
+      1821,
+      386
+     ]
+    },
+    {
+     "chapter": "d2_prison_06",
+     "map": "d2_prison_06",
+     "how": "drop",
+     "position": [
+      1070,
+      -2773,
+      -236
+     ]
+    },
+    {
+     "chapter": "d3_c17_02",
+     "map": "d3_c17_02",
+     "how": "drop",
+     "position": [
+      -5737,
+      -6615,
+      0
+     ]
+    },
+    {
+     "chapter": "d3_c17_09",
+     "map": "d3_c17_10a",
+     "how": "drop",
+     "position": [
+      96,
+      6208,
+      289
+     ]
+    },
+    {
+     "chapter": "d3_citadel_01",
+     "map": "d3_citadel_03",
+     "how": "drop",
+     "position": [
+      5968,
+      32,
+      2112
+     ]
+    },
+    {
+     "chapter": "d3_breen_01",
+     "map": "d3_breen_01",
+     "how": "drop",
+     "position": [
+      1100,
+      352,
+      0
+     ]
+    }
+   ],
+   "position": [
+    -3820,
+    7721,
+    906
+   ]
+  },
+  {
+   "id": 8830162,
+   "key": "hl2|*|weapon_pickup|weapon_shotgun",
+   "name": "First Shotgun",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "map": "d1_town_02",
+   "trigger": {
+    "type": "weapon_pickup",
+    "map": "d1_town_02",
+    "classnames": [
+     "weapon_shotgun"
+    ]
+   },
+   "sources": [
+    {
+     "chapter": "d1_town_01",
+     "map": "d1_town_02",
+     "how": "placed",
+     "position": [
+      -3856,
+      -272,
+      -3538
+     ]
+    },
+    {
+     "chapter": "d2_coast_01",
+     "map": "d2_coast_03",
+     "how": "drop",
+     "position": [
+      -4264,
+      3792,
+      469
+     ]
+    },
+    {
+     "chapter": "d2_coast_09",
+     "map": "d2_coast_09",
+     "how": "drop",
+     "position": [
+      -728,
+      6112,
+      -757
+     ]
+    },
+    {
+     "chapter": "d2_prison_02",
+     "map": "d2_prison_02",
+     "how": "drop",
+     "position": [
+      -8535,
+      -2641,
+      0
+     ]
+    },
+    {
+     "chapter": "d2_prison_06",
+     "map": "d2_prison_06",
+     "how": "drop",
+     "position": [
+      981,
+      -2827,
+      -235
+     ]
+    },
+    {
+     "chapter": "d3_c17_02",
+     "map": "d3_c17_06b",
+     "how": "drop",
+     "position": [
+      3619,
+      901,
+      364
+     ]
+    },
+    {
+     "chapter": "d3_c17_09",
+     "map": "d3_c17_10b",
+     "how": "drop",
+     "position": [
+      2376,
+      824,
+      289
+     ]
+    }
+   ],
+   "position": [
+    -3856,
+    -272,
+    -3538
+   ]
+  },
+  {
+   "id": 8830163,
+   "key": "hl2|*|weapon_pickup|weapon_crossbow",
+   "name": "First Crossbow",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "map": "d2_coast_05",
+   "trigger": {
+    "type": "weapon_pickup",
+    "map": "d2_coast_05",
+    "classnames": [
+     "weapon_crossbow"
+    ]
+   },
+   "sources": [
+    {
+     "chapter": "d2_coast_01",
+     "map": "d2_coast_05",
+     "how": "placed",
+     "position": [
+      -3874,
+      -4104,
+      1328
+     ]
+    },
+    {
+     "chapter": "d2_coast_09",
+     "map": "d2_coast_09",
+     "how": "placed",
+     "position": [
+      562,
+      -7042,
+      -432
+     ]
+    },
+    {
+     "chapter": "d2_prison_02",
+     "map": "d2_prison_03",
+     "how": "placed",
+     "position": [
+      -3756,
+      4390,
+      170
+     ]
+    },
+    {
+     "chapter": "d3_c17_09",
+     "map": "d3_c17_10a",
+     "how": "crate",
+     "position": [
+      -2904,
+      6816,
+      133
+     ]
+    }
+   ],
+   "position": [
+    -3874,
+    -4104,
+    1328
+   ]
+  },
+  {
+   "id": 8830164,
+   "key": "hl2|*|weapon_pickup|weapon_frag",
+   "name": "First Grenade",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "map": "d1_canals_03",
+   "trigger": {
+    "type": "weapon_pickup",
+    "map": "d1_canals_03",
+    "classnames": [
+     "weapon_frag"
+    ]
+   },
+   "sources": [
+    {
+     "chapter": "d1_canals_01",
+     "map": "d1_canals_03",
+     "how": "placed",
+     "position": [
+      -2312,
+      837,
+      -1033
+     ]
+    },
+    {
+     "chapter": "d1_canals_06",
+     "map": "d1_canals_07",
+     "how": "placed",
+     "position": [
+      7162,
+      1738,
+      -345
+     ]
+    },
+    {
+     "chapter": "d1_town_01",
+     "map": "d1_town_01",
+     "how": "placed",
+     "position": [
+      661,
+      -1619,
+      -3643
+     ]
+    },
+    {
+     "chapter": "d2_coast_01",
+     "map": "d2_coast_03",
+     "how": "placed",
+     "position": [
+      -3678,
+      -6078,
+      457
+     ]
+    },
+    {
+     "chapter": "d2_coast_09",
+     "map": "d2_coast_09",
+     "how": "placed",
+     "position": [
+      -11628,
+      7131,
+      521
+     ]
+    },
+    {
+     "chapter": "d2_prison_02",
+     "map": "d2_prison_02",
+     "how": "placed",
+     "position": [
+      -1855,
+      1811,
+      389
+     ]
+    },
+    {
+     "chapter": "d2_prison_06",
+     "map": "d2_prison_06",
+     "how": "placed",
+     "position": [
+      1298,
+      -2034,
+      -234
+     ]
+    },
+    {
+     "chapter": "d3_c17_02",
+     "map": "d3_c17_04",
+     "how": "placed",
+     "position": [
+      -1036,
+      -4878,
+      325
+     ]
+    },
+    {
+     "chapter": "d3_c17_09",
+     "map": "d3_c17_09",
+     "how": "placed",
+     "position": [
+      5634,
+      6324,
+      1
+     ]
+    }
+   ],
+   "position": [
+    -2312,
+    837,
+    -1033
+   ]
+  },
+  {
+   "id": 8830165,
+   "key": "hl2|*|weapon_pickup|weapon_rpg",
+   "name": "First RPG",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "map": "d2_coast_03",
+   "trigger": {
+    "type": "weapon_pickup",
+    "map": "d2_coast_03",
+    "classnames": [
+     "weapon_rpg"
+    ]
+   },
+   "sources": [
+    {
+     "chapter": "d2_coast_01",
+     "map": "d2_coast_03",
+     "how": "placed",
+     "position": [
+      8516,
+      4303,
+      285
+     ]
+    },
+    {
+     "chapter": "d3_c17_09",
+     "map": "d3_c17_10b",
+     "how": "placed",
+     "position": [
+      2712,
+      1016,
+      265
+     ]
+    }
+   ],
+   "position": [
+    8516,
+    4303,
+    285
+   ]
+  },
+  {
+   "id": 8830166,
+   "key": "hl2|*|weapon_pickup|weapon_bugbait",
+   "name": "First Bugbait",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "map": "d2_coast_11",
+   "trigger": {
+    "type": "weapon_pickup",
+    "map": "d2_coast_11",
+    "classnames": [
+     "weapon_bugbait"
+    ]
+   },
+   "sources": [
+    {
+     "chapter": "d2_coast_09",
+     "map": "d2_coast_11",
+     "how": "give",
+     "position": [
+      5153,
+      9921,
+      168
+     ]
+    }
+   ],
+   "position": [
+    5153,
+    9921,
+    168
+   ]
+  },
+  {
+   "id": 8830167,
+   "key": "hl2|*|item_pickup|item_suit",
+   "name": "First HEV Suit",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "map": "d1_trainstation_05",
+   "trigger": {
+    "type": "item_pickup",
+    "map": "d1_trainstation_05",
+    "classnames": [
+     "item_suit"
+    ]
+   },
+   "sources": [
+    {
+     "chapter": "d1_trainstation_05",
+     "map": "d1_trainstation_05",
+     "how": "placed",
+     "position": [
+      -6484,
+      -1625,
+      9
+     ]
+    },
+    {
+     "chapter": "d3_breen_01",
+     "map": "d3_breen_01",
+     "how": "placed",
+     "position": [
+      -2434,
+      -1407,
+      -1463
+     ]
+    }
+   ],
+   "position": [
+    -6484,
+    -1625,
+    9
+   ]
+  }
+ ]
+}

@@ -48,16 +48,16 @@ def test_wine_path() -> None:
 def test_plain_install_and_sweep(tmp_path: Path) -> None:
     target = tmp_path / "hl2ap"
     written, has_dll = mod.install(target, dll=b"dll")
-    assert has_dll and written == 3
+    assert has_dll and written == len(mod.MOD_FILES) + 1
     assert (target / "bin" / "server.dll").read_bytes() == b"dll"
-    assert (target / "archipelago").is_dir()
+    assert (target / "archipelago" / "checkdata.txt").is_file()
     assert mod.is_installed(target)
 
     (target / "save").mkdir()
     (target / "save" / "quick.sav").write_bytes(b"mine")
     (target / "archipelago" / "ap_out.txt").write_text("CHECK|1\n")
     removed = mod.uninstall(target)
-    assert removed == 4
+    assert removed == written + 1
     # The player's save survives, and so does the folder holding it.
     assert (target / "save" / "quick.sav").exists()
     assert not (target / "gameinfo.txt").exists()

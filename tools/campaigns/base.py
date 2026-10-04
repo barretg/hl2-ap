@@ -1,0 +1,75 @@
+"""The shape of one campaign: everything about a game that is not shared.
+
+A campaign is one retail game (Half-Life 2, later each episode) with its own
+maps directory, chapters and finale. Adding one is a module that builds a
+`Campaign` and a line in the registry in `__init__`; nothing here names a game.
+
+What a campaign module states is only what the maps cannot: which chapter is
+the finale, which maps are deliberately outside every chapter, and the
+editorial calls confirmed in play. Chapter lists, map order and titles are read
+from the install by `build_campaign_data.py`.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+
+@dataclass(frozen=True)
+class Campaign:
+    # Permanent: the first field of every location key in `data/ids.json`.
+    key: str
+    name: str
+    # What a player types to name this campaign (`ap warp hl2 3`).
+    short: str
+    # The game directory under the install root whose `maps/`, `cfg/` and
+    # `resource/` are read.
+    game_dir: str
+    # Localization file and the key pattern of a chapter title, `{n}` being the
+    # chapter cfg's suffix (`9a` for `chapter9a.cfg`).
+    resource_file: str
+    title_key: str
+    # Chapter numbers (cfg suffixes) that are not playable chapters, such as
+    # Half-Life 2's `chapter14.cfg`, which loads the credits.
+    non_chapters: frozenset[str]
+    # The finale, by chapter key (its first map). Never unlocked by an item.
+    goal_chapter: str
+    # The scene-setting chapter `exclude_intro_missions` drops.
+    intro_chapter: str
+    # Maps in `maps/` deliberately in no chapter, so the scan fails on any map
+    # nobody decided about.
+    excluded_maps: frozenset[str]
+    # Weapon items, `{item: [classname, ...]}`.
+    weapons: dict[str, list[str]]
+    # Equipment items, `{item: [classname, ...]}`.
+    equipment: dict[str, list[str]] = field(default_factory=dict)
+    # NPC classes whose `additionalequipment` the player can take off their
+    # body. Allies are listed separately: a weapon only an ally drops is a
+    # source only behind an option.
+    enemy_npcs: frozenset[str] = frozenset()
+    ally_npcs: frozenset[str] = frozenset()
+    # Drivable vehicles by `vehiclescript` (lowercase), and the key item name
+    # pattern (`{chapter}` is the chapter's display name, `{vehicle}` the
+    # vehicle's word from here).
+    vehicles: dict[str, str] = field(default_factory=dict)
+    vehicle_key_name: str = "{chapter} {vehicle} Keys"
+    # Inputs whose game code spawns an item no entity names: `{input: classname}`
+    # (a vortigaunt sent `ExtractBugbait` creates `weapon_bugbait`). The source
+    # is placed at the entity receiving the input.
+    input_gives: dict[str, str] = field(default_factory=dict)
+    # Display names of charger classnames. Point entities in Source.
+    chargers: dict[str, str] = field(default_factory=dict)
+    # `{item: [map or map@x y z]}` copies of a weapon that do not count as a
+    # source (out of reach, scripted). Same form as HL1's.
+    unreachable_copies: dict[str, list[str]] = field(default_factory=dict)
+    # `{map: {(classname, (x, y, z))}}` chargers no player can reach that the
+    # automatic seam-twin pass does not catch.
+    unreachable_chargers: dict[str, set[tuple[str, tuple[int, int, int]]]] = field(
+        default_factory=dict
+    )
+    # Prefix on this campaign's location and item names. Empty for the base
+    # game; later games use their name so two games never share a name.
+    name_prefix: str = ""
+
+    def display(self, name: str) -> str:
+        return f"{self.name_prefix}{name}"

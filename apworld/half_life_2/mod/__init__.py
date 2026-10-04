@@ -55,6 +55,8 @@ MOD_FILES = (
     ("files/gameinfo.txt", "gameinfo.txt"),
     # HL2 ships no chat layout; see the file's header.
     ("files/resource/ui/basechat.res", "resource/ui/basechat.res"),
+    # Generated from campaign.json by tools/gen_checkdata.py.
+    ("files/archipelago/checkdata.txt", "archipelago/checkdata.txt"),
 )
 
 # Files installed once and then left alone, because the player is expected to
