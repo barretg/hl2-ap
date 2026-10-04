@@ -44,144 +44,69 @@ const int kFramesBeforeClientWrites = 3;
 std::deque<std::string> g_notices;
 const size_t kMaxHeldNotices = 512;
 
-// What is on screen. HL2's chat panel is laid out out of sight (and nothing
-// typed into it reaches us), so notices are drawn as HudMsg text, the channel
-// `game_text` uses, top left. Each line fades on its own clock.
-struct BoardLine {
-    std::string text;
-    double expires;
-};
-std::deque<BoardLine> g_board;
-// HudMsg has six channels; each carries a block of lines joined by newlines.
-const int kBoardChannels = 6;
-// One HudMsg must stay under the engine's 255-byte user message cap.
-const size_t kMaxChannelBytes = 200;
-// Lines are wrapped to this width, at a space where there is one.
-const size_t kBoardWidth = 90;
-const size_t kMaxBoardLines = 16;
-const double kBoardHoldSeconds = 15.0;
-// Redrawing sends one reliable message per channel, so it is rate limited:
-// a burst of lines lands in one redraw rather than one per line.
-const double kBoardRedrawSeconds = 0.25;
-double g_next_redraw = 0.0;
-bool g_board_dirty = false;
-int g_channels_used = 0;
-
-// The spacing between lines, as a fraction of the screen height. HudMsg's font
-// depends on the resolution, so this is a cvar rather than a guess baked in.
-ConVar ap_hud_line_height("ap_hud_line_height", "0.03", FCVAR_ARCHIVE,
-                          "Archipelago: line spacing of on-screen notices, fraction of screen height");
-ConVar ap_hud_y("ap_hud_y", "0.06", FCVAR_ARCHIVE,
-                "Archipelago: top of the on-screen notices, fraction of screen height");
+// Notices go to the chat panel as server chat (TextMsg, HUD_PRINTTALK); how
+// long a line stays is the client's `hud_saytext_time`, 30 s in our client.
+// A few lines per frame, as in HL1: each is a reliable user message.
+const int kNoticesPerFrame = 4;
+// One TextMsg must stay under the engine's 255-byte user message cap, and
+// the chat panel is narrow, so long lines are wrapped at a space.
+const size_t kChatWidth = 120;
 
 void Queue(const std::string& text) {
     // The console always, at once: Msg is a local print and safe from any hook.
     Msg("[AP] %s\n", text.c_str());
-    g_notices.push_back(text);
+    // Wrapped here so the per-frame budget counts what is actually sent.
+    std::string rest = text;
+    for (char& c : rest) {
+        if (c == '\n' || c == '\r') {
+            c = ' ';
+        }
+    }
+    while (!rest.empty()) {
+        std::string piece;
+        if (rest.size() > kChatWidth) {
+            size_t cut = rest.rfind(' ', kChatWidth);
+            if (cut == std::string::npos || cut == 0) {
+                cut = kChatWidth;
+            }
+            piece = rest.substr(0, cut);
+            rest.erase(0, rest[cut] == ' ' ? cut + 1 : cut);
+            rest.insert(0, "  ");  // continuation lines indented
+        } else {
+            piece.swap(rest);
+        }
+        g_notices.push_back(piece);
+    }
     while (g_notices.size() > kMaxHeldNotices) {
         g_notices.pop_front();
     }
 }
 
-void AddToBoard(std::string text) {
-    // A leading '#' would be looked up as a localisation token. Neither it nor
-    // a newline belongs in a location name, but a name that silently vanished
-    // would be worse than an ugly one.
-    for (char& c : text) {
-        if (c == '\n' || c == '\r') {
-            c = ' ';
+// The client formats a TextMsg with printf and looks up a leading '#' as a
+// localisation token; neither belongs in a location name, but a name that
+// silently vanished would be worse than an escaped one.
+std::string ChatSafe(const std::string& text) {
+    std::string out = "\x01";  // default chat colour
+    if (!text.empty() && text[0] == '#') {
+        out += ' ';
+    }
+    for (char c : text) {
+        out += c;
+        if (c == '%') {
+            out += '%';
         }
     }
-    const double expires = Now() + kBoardHoldSeconds;
-    while (!text.empty()) {
-        std::string piece;
-        if (text.size() > kBoardWidth) {
-            size_t cut = text.rfind(' ', kBoardWidth);
-            if (cut == std::string::npos || cut == 0) {
-                cut = kBoardWidth;
-            }
-            piece = text.substr(0, cut);
-            text.erase(0, text[cut] == ' ' ? cut + 1 : cut);
-            text.insert(0, "  ");  // continuation lines indented
-        } else {
-            piece.swap(text);
-        }
-        if (piece[0] == '#') {
-            piece.insert(piece.begin(), ' ');
-        }
-        g_board.push_back(BoardLine{piece, expires});
-    }
-    while (g_board.size() > kMaxBoardLines) {
-        g_board.pop_front();
-    }
-}
-
-void DrawBoard() {
-    CBasePlayer* player = Player();
-    const double now = Now();
-    const float line_height = ap_hud_line_height.GetFloat();
-    float y = ap_hud_y.GetFloat();
-    int channel = 0;
-    size_t i = 0;
-    while (i < g_board.size() && channel < kBoardChannels) {
-        // A block of consecutive lines for one channel, held as long as its
-        // newest line has left.
-        std::string block;
-        int lines = 0;
-        double expires = now;
-        while (i < g_board.size()) {
-            const std::string& line = g_board[i].text;
-            if (!block.empty() && block.size() + 1 + line.size() > kMaxChannelBytes) {
-                break;
-            }
-            block += (block.empty() ? "" : "\n") + line;
-            expires = g_board[i].expires;
-            ++lines;
-            ++i;
-        }
-        hudtextparms_t params = {};
-        params.x = 0.02f;
-        params.y = y;
-        params.r1 = 255; params.g1 = 210; params.b1 = 120; params.a1 = 255;
-        params.r2 = 255; params.g2 = 255; params.b2 = 255; params.a2 = 255;
-        params.fadeoutTime = 0.5f;
-        params.holdTime = static_cast<float>(expires - now);
-        params.channel = channel;
-        UTIL_HudMessage(player, params, block.c_str());
-        y += line_height * lines;
-        ++channel;
-    }
-    // Channels the board no longer needs still show what they last held.
-    for (int unused = channel; unused < g_channels_used; ++unused) {
-        hudtextparms_t params = {};
-        params.holdTime = 0.01f;
-        params.channel = unused;
-        UTIL_HudMessage(player, params, " ");
-    }
-    g_channels_used = channel;
+    return out + "\n";
 }
 
 void FlushNotices() {
-    // Lines whose time is up leave the board, and the rest move up.
-    const double now = Now();
-    while (!g_board.empty() && g_board.front().expires <= now) {
-        g_board.pop_front();
-        g_board_dirty = true;
-    }
     if (!ClientReady()) {
         return;  // held, not dropped: news across a quickload is worth showing
     }
-    if (!g_notices.empty()) {
-        for (const std::string& text : g_notices) {
-            AddToBoard(text);
-        }
-        g_notices.clear();
-        g_board_dirty = true;
-    }
-    if (g_board_dirty && now >= g_next_redraw) {
-        g_board_dirty = false;
-        g_next_redraw = now + kBoardRedrawSeconds;
-        DrawBoard();
+    CBasePlayer* player = Player();
+    for (int sent = 0; sent < kNoticesPerFrame && !g_notices.empty(); ++sent) {
+        ClientPrint(player, HUD_PRINTTALK, ChatSafe(g_notices.front()).c_str());
+        g_notices.pop_front();
     }
 }
 
@@ -290,10 +215,6 @@ public:
         // Requests were for the level that just went away.
         g_requested_map.clear();
         g_player_commands.clear();
-        // The load cleared the client's HudMsg channels; whatever is still on
-        // the board is drawn again once the client can take it.
-        g_board_dirty = true;
-        g_channels_used = 0;
         // The client answers a HELLO with a forced snapshot, so this is what
         // gets our state back after any map load.
         g_bridge.Send("HELLO", CurrentMap());

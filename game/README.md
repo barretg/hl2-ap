@@ -61,6 +61,10 @@ plus our own per-campaign switching.
     naked `_SSE_VectorMA` are compiled out under clang.
   - One `COMPILE_TIME_ASSERT` on a pointer cast is skipped under clang.
   - `clientmode_shared.cpp`: a pointer compared `> 0` becomes `!= NULL`.
+- **`/clang:-fno-delete-null-pointer-checks`** on all Valve code: it calls
+  methods on null pointers (`KeyValues::deleteThis` on NULL) and relies on
+  MSVC keeping the null test, which clang drops by default. Without it the
+  client crashes setting up the HUD.
 - **`compat/hypot_compat.cpp`** defines `_hypot` for the client: Valve's
   VS2013 `particles.lib` calls it, and taking it from the static UCRT also
   brings a second `hypot` that lld-link (unlike MSVC's linker) refuses.
@@ -78,6 +82,10 @@ plus our own per-campaign switching.
     false here). Without this every HUD element in `scripts/hudlayout.res`
     is dropped and the client crashes. `vgui_controls` is therefore built from
     source, not Valve's prebuilt lib.
+  - `game/client/hud_basechat.cpp`: `hud_saytext_time` defaults to 30 s, so
+    notices stay readable.
+  - `game/server/hl2/hl2_player.cpp` `CHL2_Player::Spawn`: no longer sets
+    `HIDEHUD_CHAT`, which hid the chat panel even once it could open.
   - `game/client/clientmode_shared.cpp` `StartMessageMode`: the "multiplayer
     only" early return removed, so chat opens in single player.
 

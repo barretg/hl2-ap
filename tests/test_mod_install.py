@@ -48,7 +48,7 @@ def test_wine_path() -> None:
 def test_plain_install_and_sweep(tmp_path: Path) -> None:
     target = tmp_path / "hl2ap"
     written, has_dll = mod.install(target, dll=b"dll")
-    assert has_dll and written == 2
+    assert has_dll and written == 3
     assert (target / "bin" / "server.dll").read_bytes() == b"dll"
     assert (target / "archipelago").is_dir()
     assert mod.is_installed(target)
@@ -57,10 +57,11 @@ def test_plain_install_and_sweep(tmp_path: Path) -> None:
     (target / "save" / "quick.sav").write_bytes(b"mine")
     (target / "archipelago" / "ap_out.txt").write_text("CHECK|1\n")
     removed = mod.uninstall(target)
-    assert removed == 3
+    assert removed == 4
     # The player's save survives, and so does the folder holding it.
     assert (target / "save" / "quick.sav").exists()
     assert not (target / "gameinfo.txt").exists()
+    assert not (target / "resource").exists()
 
 
 def test_install_without_a_dll_says_so(tmp_path: Path) -> None:
@@ -166,6 +167,17 @@ def test_install_copies_hl2_localization_under_the_mod_name(tmp_path: Path) -> N
 
     mod.uninstall(target)
     assert not (target / "resource").exists()
+
+
+def test_localization_repeats_chapter_titles_under_the_mod_name(tmp_path: Path) -> None:
+    """GameUI asks for #<mod>_Chapter<N>_Title; see CHAPTER_KEY."""
+    source = tmp_path / "hl2_english.txt"
+    source.write_bytes('"lang"\r\n{\r\n\t"HL2_Chapter1_Title"\t\t"POINT INSERTION"\r\n'
+                       '\t"HL2_Crowbar"\t"CROWBAR"\r\n}\r\n'.encode("utf-16"))
+    text = mod.localization_text(source).decode("utf-16")
+    assert '\t"HL2_Chapter1_Title"\t\t"POINT INSERTION"\r\n' in text
+    assert '\t"hl2ap_Chapter1_Title"\t\t"POINT INSERTION"\r\n' in text
+    assert "hl2ap_Crowbar" not in text
 
 
 def test_install_makes_the_chat_panel_visible(tmp_path: Path) -> None:

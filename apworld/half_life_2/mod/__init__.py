@@ -53,6 +53,8 @@ CLIENT_DLL_NAME = "bin/client.dll"
 # mod folder). The dlls are looked up separately because they may be absent.
 MOD_FILES = (
     ("files/gameinfo.txt", "gameinfo.txt"),
+    # HL2 ships no chat layout; see the file's header.
+    ("files/resource/ui/basechat.res", "resource/ui/basechat.res"),
 )
 
 # Files installed once and then left alone, because the player is expected to
@@ -111,6 +113,28 @@ def sourcemod_dir(sourcemods: str | os.PathLike[str] | None = None) -> Path:
 # player's own install at install time, never shipped.
 LOCALIZATION_SOURCE = re.compile(r"hl2_([a-z]+)\.txt")
 LOCALIZATION_TARGET = "resource/" + MOD_DIR + "_{}.txt"
+
+
+# GameUI's New Game dialog looks chapter titles up as `#<mod>_Chapter<N>_Title`,
+# with <mod> our folder name, so each `HL2_Chapter...` key is repeated under it.
+CHAPTER_KEY = re.compile(r'^([ \t]*)"HL2_(Chapter\w+)"([^\r\n]*)', re.IGNORECASE | re.MULTILINE)
+
+
+def localization_text(source: Path) -> bytes:
+    """A retail `hl2_<language>.txt` with chapter keys added under our mod name.
+
+    Valve's files are UTF-16 with a BOM; one that does not decode is copied as is.
+    """
+    raw = source.read_bytes()
+    if not raw.startswith((b"\xff\xfe", b"\xfe\xff")):
+        return raw
+    try:
+        text = raw.decode("utf-16")
+    except UnicodeDecodeError:
+        return raw
+    added = CHAPTER_KEY.sub(lambda m: f'{m.group(0)}\r\n{m.group(1)}"{MOD_DIR}_{m.group(2)}"'
+                            f'{m.group(3)}', text)
+    return added.encode("utf-16")
 
 
 def hl2_install_dir(library: Path | None = None) -> Path | None:
@@ -317,7 +341,7 @@ def install(target_root: Path, dll: bytes | None = None,
 
     if hl2_dir is not None:
         for source_path, relative in localization_files(hl2_dir):
-            _write(target_root / relative, source_path.read_bytes())
+            _write(target_root / relative, localization_text(source_path))
             written += 1
         hudlayout = hudlayout_text(hl2_dir)
         if hudlayout is not None:

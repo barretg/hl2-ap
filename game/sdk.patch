@@ -75,3 +75,30 @@ index 6da33a38..76b54dcb 100644
  			{
  				if ( !EvaluateConditional( token ) )
  				{
+diff --git a/src/game/server/hl2/hl2_player.cpp b/src/game/server/hl2/hl2_player.cpp
+index e7583f5a..106da308 100644
+--- a/src/game/server/hl2/hl2_player.cpp
++++ b/src/game/server/hl2/hl2_player.cpp
+@@ -1128,7 +1128,8 @@ void CHL2_Player::Spawn(void)
+ 
+ 	SuitPower_SetCharge( 100 );
+ 
+-	m_Local.m_iHideHUD |= HIDEHUD_CHAT;
++	// hl2ap: chat stays visible; it is where `!` commands are typed.
++	// m_Local.m_iHideHUD |= HIDEHUD_CHAT;
+ 
+ 	m_pPlayerAISquad = g_AI_SquadManager.FindCreateSquad(AllocPooledString(PLAYER_SQUADNAME));
+ 
+diff --git a/src/game/client/hud_basechat.cpp b/src/game/client/hud_basechat.cpp
+index 69d67862..84de0c5d 100644
+--- a/src/game/client/hud_basechat.cpp
++++ b/src/game/client/hud_basechat.cpp
+@@ -32,7 +32,7 @@
+ #define CHAT_WIDTH_PERCENTAGE 0.6f
+ 
+ #ifndef _XBOX
+-ConVar hud_saytext_time( "hud_saytext_time", "12", 0 );
++ConVar hud_saytext_time( "hud_saytext_time", "30", 0 ); // hl2ap: 12; notices need longer
+ ConVar cl_showtextmsg( "cl_showtextmsg", "1", 0, "Enable/disable text messages printing on the screen." );
+ ConVar cl_chatfilters( "cl_chatfilters", "63", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Stores the chat filter settings " );
+ ConVar cl_chatfilter_version( "cl_chatfilter_version", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE | FCVAR_HIDDEN, "Stores the chat filter version" );

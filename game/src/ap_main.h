@@ -50,13 +50,12 @@ bool ClientReady();
 void Say(const std::string& text);
 
 // Something happened: a check was found, an item arrived, a pickup was
-// refused. Printed to the console at once, and drawn on screen (top left, as
-// HudMsg text: HL2's chat panel is laid out out of sight) where it is
-// readable without opening the console.
+// refused. Printed to the console at once, and shown in the chat panel,
+// where it stays for `hud_saytext_time` (30 s).
 //
-// The screen part is queued: hooks run at moments a user message would crash
-// the game (mid-load, inside a death). The frame loop draws it, redrawing at
-// most four times a second so a burst cannot overrun the reliable channel.
+// The chat part is queued: hooks run at moments a user message would crash
+// the game (mid-load, inside a death). The frame loop sends a few lines per
+// frame so a burst cannot overrun the reliable channel.
 void Notify(const std::string& text);
 
 // Collect the answer to one command instead of sending it line by line. A
