@@ -547,7 +547,9 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
         upgrade_checks.append((name, weapon, point, later))
 
     pickups = [(item, classnames, "weapon_pickup") for item, classnames in campaign.weapons.items()]
-    pickups += [(item, classnames, "item_pickup") for item, classnames in campaign.equipment.items()]
+    # Equipment with no pickup (the flashlight) has no "First ..." check.
+    pickups += [(item, classnames, "item_pickup")
+                for item, classnames in campaign.equipment.items() if classnames]
     for item, classnames, kind in pickups:
         if item in upgraded:
             allowed = set(order) - upgraded[item]
@@ -593,7 +595,9 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
         else:
             add_item(campaign.display(item), "progression", "weapon", classnames=classnames)
     for item, classnames in campaign.equipment.items():
-        add_item(campaign.display(item), "progression", "equipment", classnames=classnames)
+        # As HL1: the suit gates armour and aux power, the flashlight only light.
+        classification = campaign.equipment_classification.get(item, "progression")
+        add_item(campaign.display(item), classification, "equipment", classnames=classnames)
     for chapter in chapters:
         for script in vehicles.get(chapter.key, []):
             add_item(campaign.vehicle_key_name.format(chapter=names[chapter.key],
@@ -604,21 +608,85 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
         add_item(campaign.display("Airboat Gun"), "progression", "vehicle_upgrade",
                  maps=gun_maps)
 
+    chapter_entries = [
+        {"key": c.key, "number": c.number, "name": names[c.key], "maps": c.maps,
+         "campaign": campaign.key, "is_goal": c.key == campaign.goal_chapter,
+         "exits": [list(e) for e in exits.get(c.key, [])],
+         "vehicles": vehicles.get(c.key, [])}
+        for c in chapters
+    ]
+    apply_logic(campaign, chapter_entries, items, locations)
     return {
         "campaign": {
             "key": campaign.key, "name": campaign.name, "short": campaign.short,
             "goal_chapter": campaign.goal_chapter, "intro_chapter": campaign.intro_chapter,
+            "starting_items": [campaign.display(n) for n in campaign.starting_items],
         },
-        "chapters": [
-            {"key": c.key, "number": c.number, "name": names[c.key], "maps": c.maps,
-             "campaign": campaign.key, "is_goal": c.key == campaign.goal_chapter,
-             "exits": [list(e) for e in exits.get(c.key, [])],
-             "vehicles": vehicles.get(c.key, [])}
-            for c in chapters
-        ],
+        "chapters": chapter_entries,
+        "requirement_groups": {k: [campaign.display(n) for n in v]
+                               for k, v in campaign.requirement_groups.items()},
         "items": items,
         "locations": locations,
     }
+
+
+def check_gate(campaign: Campaign, gate: dict, item_names: set[str], where: str) -> dict:
+    """A gate record, checked against the campaign's items and groups."""
+    unknown = set(gate) - {"strict", "items"}
+    if unknown:
+        raise ScanError(f"{where}: unknown gate keys {sorted(unknown)}")
+    for group in gate.get("strict", []):
+        if group not in campaign.requirement_groups:
+            raise ScanError(f"{where}: no requirement group {group!r}")
+    for name, count in gate.get("items", {}).items():
+        if campaign.display(name) not in item_names or count < 1:
+            raise ScanError(f"{where}: no item {name!r} (or a bad count)")
+    return {k: v for k, v in (
+        ("strict", list(gate.get("strict", []))),
+        ("items", {campaign.display(n): c for n, c in gate.get("items", {}).items()}),
+    ) if v}
+
+
+def apply_logic(campaign: Campaign, chapters: list[dict], items: list[dict],
+                locations: list[dict]) -> None:
+    """Write the campaign's gates into its chapters and checks, failing on
+    any chapter, map, item or group name the data does not have."""
+    item_names = {i["name"] for i in items}
+    for group, members in campaign.requirement_groups.items():
+        for name in members:
+            if campaign.display(name) not in item_names:
+                raise ScanError(f"requirement group {group!r}: no item {name!r}")
+    for name in campaign.starting_items:
+        if campaign.display(name) not in item_names:
+            raise ScanError(f"starting item {name!r} is not an item")
+    by_key = {c["key"]: c for c in chapters}
+    for key, record in campaign.gates.items():
+        chapter = by_key.get(key)
+        if chapter is None:
+            raise ScanError(f"gates for unknown chapter {key!r}")
+        unknown = set(record) - {"entry", "maps", "complete"}
+        if unknown:
+            raise ScanError(f"{key}: unknown gate sections {sorted(unknown)}")
+        if "entry" in record:
+            chapter["gates"] = check_gate(campaign, record["entry"], item_names, key)
+        if "complete" in record:
+            chapter["complete_gates"] = check_gate(campaign, record["complete"], item_names,
+                                                   f"{key} complete")
+        map_gates = {}
+        for map_name, gate in record.get("maps", {}).items():
+            if map_name not in chapter["maps"][1:]:
+                raise ScanError(f"{key}: {map_name} is not a later map of the chapter")
+            map_gates[map_name] = check_gate(campaign, gate, item_names, f"{key} {map_name}")
+        if map_gates:
+            chapter["map_gates"] = map_gates
+    checks = {l["name"]: l for l in locations if "sources" in l}
+    for name, gate in campaign.source_gates.items():
+        entry = checks.get(campaign.display(f"First {name}"))
+        if entry is None:
+            raise ScanError(f"source gates for unknown check First {name}")
+        checked = check_gate(campaign, gate, item_names, f"First {name}")
+        for source in entry["sources"]:
+            source["gates"] = checked
 
 
 def data_version(items: list[dict], locations: list[dict]) -> str:
@@ -632,9 +700,11 @@ def data_version(items: list[dict], locations: list[dict]) -> str:
 
 def build(game_root: Path, registry: Registry) -> dict:
     campaigns, chapters, items, locations = [], [], [], []
+    groups: dict[str, list[str]] = {}
     for campaign in CAMPAIGNS:
         built = build_campaign(campaign, game_root, registry)
         campaigns.append(built["campaign"])
+        groups.update(built["requirement_groups"])
         chapters += built["chapters"]
         items += built["items"]
         locations += built["locations"]
@@ -642,8 +712,8 @@ def build(game_root: Path, registry: Registry) -> dict:
         items.append({"id": registry.item(name), "name": name,
                       "classification": classification, "group": group})
     return {"format": FORMAT_VERSION, "data_version": data_version(items, locations),
-            "campaigns": campaigns, "chapters": chapters, "items": items,
-            "locations": locations}
+            "campaigns": campaigns, "chapters": chapters, "requirement_groups": groups,
+            "items": items, "locations": locations}
 
 
 def default_game_root() -> Path | None:

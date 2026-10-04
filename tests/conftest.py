@@ -18,6 +18,8 @@ SUBSETS = {
     "test_map_reader.py": "data",
     "test_campaign_data.py": "data",
     "test_ids.py": "ids",
+    "test_build_apworld.py": "package",
+    "test_logic_data.py": "data",
 }
 
 

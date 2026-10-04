@@ -45,7 +45,9 @@ HL2 = Campaign(
     upgrades={"Super Gravity Gun": ("Gravity Gun", "trigger_weapon_dissolve",
                                     "OnChargingPhyscannon")},
     confiscating_upgrade="Super Gravity Gun",
-    equipment={"HEV Suit": ["item_suit"]},
+    # The flashlight has no pickup: the item lets the flashlight key work.
+    equipment={"HEV Suit": ["item_suit"], "Flashlight": []},
+    equipment_classification={"Flashlight": "useful"},
     enemy_npcs=frozenset({"npc_combine_s", "npc_metropolice"}),
     ally_npcs=frozenset({"npc_citizen", "npc_barney", "npc_alyx", "npc_monk"}),
     input_gives={"ExtractBugbait": "weapon_bugbait"},
@@ -81,4 +83,47 @@ HL2 = Campaign(
         "Super Gravity Gun": ["d3_breen_01"],
     },
     chargers={"item_healthcharger": "Health Charger", "item_suitcharger": "Suit Charger"},
+    # Logic, first cut (2026-10-04). Traversal needs (keys, gravity gun
+    # stages, the RPG where a gunship or strider bars the way, the Airboat
+    # Gun) apply at every difficulty; firepower is strict only. Each gate
+    # here is a claim the `logic` harness group checks in play.
+    starting_items=["Crowbar"],
+    requirement_groups={
+        "firearm": ["Pistol", ".357 Magnum", "SMG", "Pulse Rifle", "Shotgun", "Crossbow"],
+        "heavy": ["SMG", "Pulse Rifle", "Shotgun"],
+    },
+    gates={
+        # Armed cops and manhacks; the airboat is how the chapter ends.
+        "d1_canals_01": {"entry": {"strict": ["firearm"]},
+                         "complete": {"items": {"Route Kanal Boat Keys": 1}}},
+        # Played in the boat from the first map; the hunter-chopper is
+        # killed with the mounted gun in d1_canals_13 (assumed from d1_canals_12).
+        "d1_canals_06": {"entry": {"strict": ["firearm"],
+                                   "items": {"Water Hazard Boat Keys": 1}},
+                         "maps": {"d1_canals_12": {"items": {"Airboat Gun": 1}}}},
+        # Physics puzzles throughout.
+        "d1_town_01": {"entry": {"strict": ["firearm"],
+                                 "items": {"Progressive Gravity Gun": 1}}},
+        # The buggy is handed over in d2_coast_01; Odessa's gunship in
+        # d2_coast_03 needs the RPG to move on.
+        "d2_coast_01": {"entry": {"strict": ["heavy"],
+                                  "items": {"Progressive Gravity Gun": 1}},
+                        "maps": {"d2_coast_03": {"items": {"Highway 17 Car Keys": 1}},
+                                 "d2_coast_04": {"items": {"RPG": 1}}}},
+        # Driven from the first map to the beach; plank bridges over the sand.
+        "d2_coast_09": {"entry": {"strict": ["heavy"],
+                                  "items": {"Progressive Gravity Gun": 1}},
+                        "maps": {"d2_coast_10": {"items": {"Sandtraps Car Keys": 1}}}},
+        "d2_prison_02": {"entry": {"strict": ["heavy"]}},
+        "d2_prison_06": {"entry": {"strict": ["heavy"]}},
+        "d3_c17_02": {"entry": {"strict": ["heavy"]}},
+        # Gunships and the striders at the end.
+        "d3_c17_09": {"entry": {"strict": ["heavy"]},
+                      "maps": {"d3_c17_11": {"items": {"RPG": 1}}}},
+        # Past the confiscation field only the supercharged gun works.
+        "d3_citadel_01": {"maps": {"d3_citadel_04": {"items": {"Progressive Gravity Gun": 3}}}},
+        "d3_breen_01": {"entry": {"items": {"Progressive Gravity Gun": 3}}},
+    },
+    # The supercharge is withheld below stage 3.
+    source_gates={"Super Gravity Gun": {"items": {"Progressive Gravity Gun": 3}}},
 )

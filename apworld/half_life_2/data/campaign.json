@@ -1,13 +1,16 @@
 {
  "format": 1,
- "data_version": "4b690ef8d989",
+ "data_version": "b409acdf1c3b",
  "campaigns": [
   {
    "key": "hl2",
    "name": "Half-Life 2",
    "short": "hl2",
    "goal_chapter": "d3_breen_01",
-   "intro_chapter": "d1_trainstation_01"
+   "intro_chapter": "d1_trainstation_01",
+   "starting_items": [
+    "Crowbar"
+   ]
   }
  ],
  "chapters": [
@@ -70,7 +73,17 @@
    ],
    "vehicles": [
     "scripts/vehicles/airboat.txt"
-   ]
+   ],
+   "gates": {
+    "strict": [
+     "firearm"
+    ]
+   },
+   "complete_gates": {
+    "items": {
+     "Route Kanal Boat Keys": 1
+    }
+   }
   },
   {
    "key": "d1_canals_06",
@@ -96,7 +109,22 @@
    ],
    "vehicles": [
     "scripts/vehicles/airboat.txt"
-   ]
+   ],
+   "gates": {
+    "strict": [
+     "firearm"
+    ],
+    "items": {
+     "Water Hazard Boat Keys": 1
+    }
+   },
+   "map_gates": {
+    "d1_canals_12": {
+     "items": {
+      "Airboat Gun": 1
+     }
+    }
+   }
   },
   {
    "key": "d1_eli_01",
@@ -137,7 +165,15 @@
      "d2_coast_01"
     ]
    ],
-   "vehicles": []
+   "vehicles": [],
+   "gates": {
+    "strict": [
+     "firearm"
+    ],
+    "items": {
+     "Progressive Gravity Gun": 1
+    }
+   }
   },
   {
    "key": "d2_coast_01",
@@ -161,7 +197,27 @@
    ],
    "vehicles": [
     "scripts/vehicles/jeep_test.txt"
-   ]
+   ],
+   "gates": {
+    "strict": [
+     "heavy"
+    ],
+    "items": {
+     "Progressive Gravity Gun": 1
+    }
+   },
+   "map_gates": {
+    "d2_coast_03": {
+     "items": {
+      "Highway 17 Car Keys": 1
+     }
+    },
+    "d2_coast_04": {
+     "items": {
+      "RPG": 1
+     }
+    }
+   }
   },
   {
    "key": "d2_coast_09",
@@ -184,7 +240,22 @@
    ],
    "vehicles": [
     "scripts/vehicles/jeep_test.txt"
-   ]
+   ],
+   "gates": {
+    "strict": [
+     "heavy"
+    ],
+    "items": {
+     "Progressive Gravity Gun": 1
+    }
+   },
+   "map_gates": {
+    "d2_coast_10": {
+     "items": {
+      "Sandtraps Car Keys": 1
+     }
+    }
+   }
   },
   {
    "key": "d2_prison_02",
@@ -204,7 +275,12 @@
      "d2_prison_06"
     ]
    ],
-   "vehicles": []
+   "vehicles": [],
+   "gates": {
+    "strict": [
+     "heavy"
+    ]
+   }
   },
   {
    "key": "d2_prison_06",
@@ -224,7 +300,12 @@
      "d3_c17_02"
     ]
    ],
-   "vehicles": []
+   "vehicles": [],
+   "gates": {
+    "strict": [
+     "heavy"
+    ]
+   }
   },
   {
    "key": "d3_c17_02",
@@ -248,7 +329,12 @@
      "d3_c17_09"
     ]
    ],
-   "vehicles": []
+   "vehicles": [],
+   "gates": {
+    "strict": [
+     "heavy"
+    ]
+   }
   },
   {
    "key": "d3_c17_09",
@@ -271,7 +357,19 @@
      "d3_citadel_01"
     ]
    ],
-   "vehicles": []
+   "vehicles": [],
+   "gates": {
+    "strict": [
+     "heavy"
+    ]
+   },
+   "map_gates": {
+    "d3_c17_11": {
+     "items": {
+      "RPG": 1
+     }
+    }
+   }
   },
   {
    "key": "d3_citadel_01",
@@ -292,7 +390,14 @@
      "d3_breen_01"
     ]
    ],
-   "vehicles": []
+   "vehicles": [],
+   "map_gates": {
+    "d3_citadel_04": {
+     "items": {
+      "Progressive Gravity Gun": 3
+     }
+    }
+   }
   },
   {
    "key": "d3_breen_01",
@@ -304,9 +409,29 @@
    "campaign": "hl2",
    "is_goal": true,
    "exits": [],
-   "vehicles": []
+   "vehicles": [],
+   "gates": {
+    "items": {
+     "Progressive Gravity Gun": 3
+    }
+   }
   }
  ],
+ "requirement_groups": {
+  "firearm": [
+   "Pistol",
+   ".357 Magnum",
+   "SMG",
+   "Pulse Rifle",
+   "Shotgun",
+   "Crossbow"
+  ],
+  "heavy": [
+   "SMG",
+   "Pulse Rifle",
+   "Shotgun"
+  ]
+ },
  "items": [
   {
    "id": 8820000,
@@ -532,6 +657,14 @@
    "classnames": [
     "item_suit"
    ]
+  },
+  {
+   "id": 8820034,
+   "name": "Flashlight",
+   "classification": "useful",
+   "group": "equipment",
+   "campaign": "hl2",
+   "classnames": []
   },
   {
    "id": 8820025,
@@ -3837,7 +3970,12 @@
       7725,
       -1321,
       2209
-     ]
+     ],
+     "gates": {
+      "items": {
+       "Progressive Gravity Gun": 3
+      }
+     }
     },
     {
      "chapter": "d3_breen_01",
@@ -3849,7 +3987,12 @@
       1350
      ],
      "spawner": "spawner_physgun,ForceSpawn",
-     "confirmed": true
+     "confirmed": true,
+     "gates": {
+      "items": {
+       "Progressive Gravity Gun": 3
+      }
+     }
     }
    ],
    "position": [

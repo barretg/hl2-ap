@@ -53,6 +53,8 @@ class Campaign:
     confiscating_upgrade: str = ""
     # Equipment items, `{item: [classname, ...]}`.
     equipment: dict[str, list[str]] = field(default_factory=dict)
+    # Classification of an equipment item when not "progression".
+    equipment_classification: dict[str, str] = field(default_factory=dict)
     # NPC classes whose `additionalequipment` the player can take off their
     # body. Allies are listed separately: a weapon only an ally drops is a
     # source only behind an option.
@@ -81,6 +83,22 @@ class Campaign:
     unreachable_chargers: dict[str, set[tuple[str, tuple[int, int, int]]]] = field(
         default_factory=dict
     )
+    # Logic. A gate is `{"strict": [requirement group, ...], "items": {item:
+    # count}}`: every strict group needs one of its items (strict logic only),
+    # every item its count (any difficulty). Item and group names are the
+    # display names the world uses. Validated by the data build.
+    #
+    # `{group: [item, ...]}`, "any one of these".
+    requirement_groups: dict[str, list[str]] = field(default_factory=dict)
+    # `{chapter key: {"entry": gate, "maps": {map: gate}, "complete": gate}}`.
+    # "entry" applies to the whole chapter, a "maps" gate to walking on into
+    # that map (and so everything after it), "complete" to the chapter's
+    # completion check and the mission it counts as.
+    gates: dict[str, dict] = field(default_factory=dict)
+    # `{check item name: gate}` on every source of that "First ..." check.
+    source_gates: dict[str, dict] = field(default_factory=dict)
+    # Items every run opens with; never in the pool.
+    starting_items: list[str] = field(default_factory=list)
     # Prefix on this campaign's location and item names. Empty for the base
     # game; later games use their name so two games never share a name.
     name_prefix: str = ""
