@@ -53,12 +53,30 @@ class CheckData:
     sources: list[Source] = field(default_factory=list)
     # classname -> item name, for pickups refused until the item arrives.
     lockable: dict[str, str] = field(default_factory=dict)
+    # Progressive item -> its stage count.
+    stages: dict[str, int] = field(default_factory=dict)
+    # Chapter key -> the vehicle key item its vehicle needs.
+    keys: dict[str, str] = field(default_factory=dict)
+    # Vehicle upgrade item -> the maps that enable it.
+    upgrades: dict[str, list[str]] = field(default_factory=dict)
+    hub: str = ""
 
     def chapter_of(self, map_name: str) -> Chapter:
         for chapter in self.chapters:
             if map_name in chapter.maps:
                 return chapter
         raise KeyError(map_name)
+
+    def location_named(self, name: str) -> Location:
+        return next(l for l in self.locations.values() if l.name == name)
+
+    def reached(self, map_name: str) -> int:
+        return next(l.id for l in self.locations.values()
+                    if l.kind == "map_reached" and l.map == map_name)
+
+    def complete(self, chapter_key: str) -> int:
+        return next(l.id for l in self.locations.values()
+                    if l.kind == "chapter_complete" and l.arg == chapter_key)
 
     def part_of(self, map_name: str) -> int:
         return self.chapter_of(map_name).maps.index(map_name) + 1
@@ -86,4 +104,12 @@ def parse(path: Path) -> CheckData:
                                        len(f) > 6 and f[6] == "1"))
         elif kind == "K":
             data.lockable[f[1]] = f[2]
+        elif kind == "P":
+            data.stages[f[1]] = int(f[2])
+        elif kind == "H":
+            data.keys[f[1]] = f[3]
+        elif kind == "U":
+            data.upgrades[f[1]] = f[2].split(",")
+        elif kind == "B":
+            data.hub = f[1]
     return data

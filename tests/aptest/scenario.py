@@ -28,12 +28,17 @@ class Scenario:
     # Items taken out of / added to the default held set for this scenario.
     take: list[str] = field(default_factory=list)
     give: list[str] = field(default_factory=list)
+    # Items held at exactly this many copies (0 removes), e.g. a gravity gun
+    # stage: `{"Progressive Gravity Gun": 2}`.
+    counts: dict[str, int] = field(default_factory=dict)
     # Location ids this scenario is waiting for; any other check is called out.
     expect: list[int] = field(default_factory=list)
     # Chapter keys whose COMPLETE/GOAL this scenario is waiting for.
     expect_complete: list[str] = field(default_factory=list)
     # Missions locked for this scenario.
     closed: list[str] = field(default_factory=list)
+    # Missions not in this seed at all for this scenario (also locked).
+    excluded: list[str] = field(default_factory=list)
     # Locations the server already has (e.g. a part's arrival, for part warps).
     checked: list[int] = field(default_factory=list)
     # What the snapshot says about the client; `!connect`/`!disconnect` change it.

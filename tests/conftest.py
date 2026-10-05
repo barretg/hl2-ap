@@ -12,6 +12,7 @@ import pytest
 SUBSETS = {
     "test_bridge.py": "bridge",
     "test_bridge_cpp.py": "bridge",
+    "test_checkdata_cpp.py": "data",
     "test_mod_install.py": "install",
     "test_aptest.py": "harness",
     "test_no_unreachable_code.py": "lint",
@@ -20,6 +21,7 @@ SUBSETS = {
     "test_ids.py": "ids",
     "test_build_apworld.py": "package",
     "test_logic_data.py": "data",
+    "test_game_names.py": "data",
 }
 
 

@@ -2,6 +2,7 @@
 # Record types:
 #   V|<format version>
 #   D|<data version>                 must match the client's, or ids differ
+#   B|<hub map>                      where runs start and chapters return to
 #   N|<campaign>|<short>|<name>|<goal chapter>
 #   C|<index>|<key>|<number>|<name>|<map,map,...>|<is_goal>|<campaign>|<complete on>|<exits>
 #     <complete on> is forward_exit or finale; <exits> is from>to,... (the
@@ -25,6 +26,7 @@
 # player used by nearest same-class entity within a radius, never by rounding.
 V|1
 D|b409acdf1c3b
+B|background05
 N|hl2|hl2|Half-Life 2|d3_breen_01
 C|0|d1_trainstation_01|1|Point Insertion|d1_trainstation_01,d1_trainstation_02,d1_trainstation_03,d1_trainstation_04|0|hl2|forward_exit|d1_trainstation_04>d1_trainstation_05
 C|1|d1_trainstation_05|2|A Red Letter Day|d1_trainstation_05,d1_trainstation_06|0|hl2|forward_exit|d1_trainstation_06>d1_canals_01

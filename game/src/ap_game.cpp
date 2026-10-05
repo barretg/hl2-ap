@@ -1,0 +1,827 @@
+// Gameplay. See ap_game.h for what calls what; HL1's rules (decide in the
+// hook, act in the frame) hold throughout.
+
+#include "cbase.h"
+#include "player.h"
+#include "hl2_player.h"
+#include "globalstate.h"
+#include "weapon_physcannon.h"
+#include "basecombatweapon_shared.h"
+
+#include "ap_game.h"
+
+#include <cstdio>
+#include <fstream>
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
+
+#include "ap_bridge.h"
+#include "ap_checkdata.h"
+#include "ap_main.h"
+#include "ap_melee.h"
+#include "ap_state.h"
+#include "ap_text.h"
+
+// memdbgon must be the last include file in a .cpp file!!!
+#include "tier0/memdbgon.h"
+
+namespace ap {
+namespace {
+
+// Item names the dll acts on by name. tests/test_game_names.py checks each
+// is an item in campaign.json, so a rename cannot silently ungate one.
+const char* const kSuitItem = "HEV Suit";
+const char* const kFlashlightItem = "Flashlight";
+const char* const kAirboatGunItem = "Airboat Gun";
+const char* const kGravityGunItem = "Progressive Gravity Gun";
+const char* const kPhyscannon = "weapon_physcannon";
+
+// Vehicle classes by the script checkdata names a key with.
+struct VehicleClass {
+    const char* script;
+    const char* classname;
+};
+const VehicleClass kVehicleClasses[] = {
+    {"scripts/vehicles/airboat.txt", "prop_vehicle_airboat"},
+    {"scripts/vehicles/jeep_test.txt", "prop_vehicle_jeep"},
+};
+
+// --- per-map state ---------------------------------------------------------
+
+// Checks this map has found that the client has not been told about yet:
+// held until the run authorises this map (see `Authorised`).
+std::set<long> g_owed;
+// Whether this map has been judged against the snapshot yet.
+bool g_judged = false;
+// A player_weaponstrip fired here: the loadout stops granting until the
+// next map, or it would hand back what the level just took.
+bool g_stripped = false;
+// When the warp save for this map is due, or < 0.
+double g_save_due = -1.0;
+bool g_upgrade_sent = false;
+// Consumable weapons granted on this map: a thrown-away last grenade must not
+// come back every second.
+std::set<std::string> g_granted_here;
+bool g_goal_sent = false;
+// Refusal notices, by what was refused, so one held trigger is one line.
+std::map<std::string, double> g_last_notice;
+const double kNoticeRepeatSeconds = 10.0;
+
+// --- across maps -----------------------------------------------------------
+
+// The slot last seen, for noticing a different one connecting.
+std::string g_last_slot;
+// Item names held at the last snapshot, for "Received" notices.
+std::set<std::string> g_last_items;
+std::map<std::string, int> g_last_counts;
+bool g_have_items = false;
+bool g_version_warned = false;
+// Our own grants pass the gate.
+bool g_granting = false;
+// DeathLink: deaths forgiven since the last one sent, and a window after an
+// incoming DeathLink in which a death is ours to ignore.
+int g_forgiven = 0;
+double g_immune_until = 0.0;
+double g_last_death = -100.0;
+const double kDeathLinkImmunitySeconds = 2.0;
+const double kRevertDebounceSeconds = 15.0;
+const long kDeathLinkFreshSeconds = 10;
+
+bool Debounced(const std::string& key) {
+    const double now = Now();
+    auto it = g_last_notice.find(key);
+    if (it != g_last_notice.end() && now - it->second < kNoticeRepeatSeconds) {
+        return false;
+    }
+    g_last_notice[key] = now;
+    return true;
+}
+
+std::string ItemOf(const std::string& classname) {
+    return Data().GateOf(classname);
+}
+
+bool Holds(const std::string& item) {
+    if (!Gating()) {
+        return true;
+    }
+    return State().Count(item) >= 1;
+}
+
+bool ClassnameHeld(const std::string& classname) {
+    const std::string item = ItemOf(classname);
+    if (item.empty() || State().Ungated(classname)) {
+        return true;
+    }
+    for (const std::string& start : State().starting_weapons) {
+        if (start == classname) {
+            return true;
+        }
+    }
+    return Holds(item);
+}
+
+std::string LocationName(long id) {
+    const Location* location = Data().LocationById(id);
+    return location ? location->name : std::to_string(id);
+}
+
+const Chapter* CurrentChapter() { return Data().ChapterOfMap(CurrentMap()); }
+
+bool IsHub() { return !Data().Hub().empty() && CurrentMap() == Data().Hub(); }
+
+bool ChapterAvailable(const Chapter& chapter) {
+    return State().ChapterOpen(chapter.key) && !State().ChapterExcluded(chapter.key);
+}
+
+bool ChapterDone(const Chapter& chapter) {
+    const long id = Data().ChapterComplete(chapter.key);
+    return id != 0 && State().checked.count(id) != 0;
+}
+
+// May this map's checks reach the client? Only once a snapshot says the run
+// may be here: the engine restores the last save on death, and that save can
+// be from another seed. Unconnected is "wait", never "no".
+bool Authorised() {
+    const Snapshot& state = State();
+    if (state.session.empty() || !state.connected || !g_judged) {
+        return false;
+    }
+    return state.data_version == Data().DataVersion();
+}
+
+void Flush() {
+    if (!Authorised()) {
+        return;
+    }
+    for (long id : g_owed) {
+        if (State().checked.count(id) == 0 && State().InSeed(id)) {
+            Wire().Send("CHECK", std::to_string(id));
+        }
+    }
+    g_owed.clear();
+}
+
+// A location was found. Sent now if this map is authorised, else held.
+void Found(long id) {
+    if (id == 0 || !Data().Loaded()) {
+        return;
+    }
+    if (State().checked.count(id) != 0 || g_owed.count(id) != 0 || !State().InSeed(id)) {
+        return;
+    }
+    // Held even before any client has named a slot: it is sent once one does
+    // and authorises this map.
+    g_owed.insert(id);
+    if (Gating()) {
+        Notify("Found: " + LocationName(id));
+    }
+    Flush();
+}
+
+void GoHub(const std::string& why) {
+    if (Data().Hub().empty()) {
+        return;
+    }
+    if (!why.empty()) {
+        Notify(why);
+    }
+    RequestMap(Data().Hub());
+}
+
+// --- warp saves --------------------------------------------------------------
+
+// FNV-1a of the slot: saves of different runs never collide, and a run's
+// can be swept by prefix.
+std::string SlotKey() {
+    const std::string& slot = State().slot;
+    if (slot.empty()) {
+        return "";
+    }
+    unsigned int hash = 2166136261u;
+    for (unsigned char c : slot) {
+        hash ^= c;
+        hash *= 16777619u;
+    }
+    char text[16];
+    Q_snprintf(text, sizeof(text), "%08x", hash);
+    return text;
+}
+
+std::string WarpSaveName(const std::string& map) {
+    const std::string key = SlotKey();
+    return key.empty() ? std::string() : "apw_" + key + "_" + map;
+}
+
+bool SaveExists(const std::string& name) {
+    char dir[MAX_PATH] = {0};
+    engine->GetGameDir(dir, sizeof(dir));
+    std::ifstream file((std::string(dir) + "/save/" + name + ".sav").c_str());
+    return static_cast<bool>(file);
+}
+
+// --- loadout -------------------------------------------------------------------
+
+bool Confiscated() {
+    // From the Citadel's field on, only the gravity gun is carried.
+    return GlobalEntity_GetState("super_phys_gun") == GLOBAL_ON;
+}
+
+// Weapons that leave the inventory when used up.
+bool IsConsumable(const std::string& classname) { return classname == "weapon_frag"; }
+
+CBaseCombatWeapon* Owned(CBasePlayer* player, const std::string& classname) {
+    return player->Weapon_OwnsThisType(classname.c_str());
+}
+
+// Exactly idempotent: runs on every spawn and every snapshot change.
+void ApplyLoadout() {
+    CBasePlayer* player = Player();
+    if (player == nullptr || !player->IsAlive() || !ClientReady() || !Gating() ||
+        !Data().Loaded()) {
+        return;
+    }
+    if (!player->IsSuitEquipped()) {
+        player->EquipSuit(false);
+    }
+    if (!Holds(kSuitItem) && player->ArmorValue() > 0) {
+        player->SetArmorValue(0);
+    }
+    for (const auto& gate : Data().Gates()) {
+        const std::string& classname = gate.first;
+        if (!StartsWith(classname, "weapon_")) {
+            continue;
+        }
+        const bool held = ClassnameHeld(classname);
+        CBaseCombatWeapon* owned = Owned(player, classname);
+        if (held && owned == nullptr) {
+            if (g_stripped || (Confiscated() && classname != kPhyscannon)) {
+                continue;
+            }
+            if (classname == "weapon_crowbar" && CrowbarThrown()) {
+                continue;  // it comes back by itself
+            }
+            if (IsConsumable(classname) && g_granted_here.count(classname) != 0) {
+                continue;  // once per map; used up is used up
+            }
+            g_granted_here.insert(classname);
+            g_granting = true;
+            player->GiveNamedItem(classname.c_str());
+            g_granting = false;
+        } else if (!held && owned != nullptr) {
+            if (player->GetActiveWeapon() == owned) {
+                player->ClearActiveWeapon();
+            }
+            player->RemovePlayerItem(owned);
+            UTIL_Remove(owned);
+        }
+    }
+    if (player->GetActiveWeapon() == nullptr) {
+        player->SwitchToNextBestWeapon(nullptr);
+    }
+}
+
+// --- hub -----------------------------------------------------------------------
+
+// The stand-in hub is a menu background: its camera, zoom and scripted
+// relays would hold the player's view, so they go before they can fire.
+void TidyHub() {
+    static const char* const kHubStrip[] = {
+        "logic_auto", "point_viewcontrol", "env_zoom", "trigger_multiple",
+        "logic_autosave", "func_monitor",
+    };
+    for (const char* classname : kHubStrip) {
+        CBaseEntity* entity = nullptr;
+        while ((entity = gEntList.FindEntityByClassname(entity, classname)) != nullptr) {
+            UTIL_Remove(entity);
+        }
+    }
+}
+
+// --- judging the map -------------------------------------------------------------
+
+// Once per map, when a snapshot is in: may the run be here at all?
+void Judge() {
+    if (g_judged || !Gating() || !State().connected || !Data().Loaded()) {
+        return;
+    }
+    if (State().data_version != Data().DataVersion()) {
+        if (!g_version_warned) {
+            g_version_warned = true;
+            Notify("This mod's checkdata.txt does not match the client's apworld "
+                   "(data version " + Data().DataVersion() + " vs " + State().data_version +
+                   "). Checks are paused; reinstall the mod from the client with /install.");
+        }
+        return;
+    }
+    g_judged = true;
+    const Chapter* chapter = CurrentChapter();
+    if (chapter != nullptr && !ChapterAvailable(*chapter)) {
+        g_owed.clear();
+        GoHub(chapter->name + (State().ChapterExcluded(chapter->key)
+                                   ? " is not in this seed. Back to the hub."
+                                   : " is locked. Back to the hub."));
+        return;
+    }
+    if (chapter != nullptr) {
+        const long reached = Data().MapReached(CurrentMap());
+        Found(reached);
+        if (Data().ChapterOfMap(CurrentMap()) && SaveExists(WarpSaveName(CurrentMap())) == false) {
+            g_save_due = Now() + 3.0;
+        }
+    }
+    if (IsHub()) {
+        Notify("Hub. !ap lists chapters; !warp <number or name> starts one.");
+    }
+    Flush();
+}
+
+// --- items -------------------------------------------------------------------------
+
+void ApplyFiller(const std::string& name) {
+    CBasePlayer* player = Player();
+    if (player == nullptr || !player->IsAlive()) {
+        return;
+    }
+    if (name == "Ammo Cache") {
+        for (int i = 0; i < player->WeaponCount(); ++i) {
+            CBaseCombatWeapon* weapon = player->GetWeapon(i);
+            if (weapon == nullptr) {
+                continue;
+            }
+            if (weapon->GetPrimaryAmmoType() >= 0) {
+                player->GiveAmmo(Max(weapon->GetDefaultClip1(), 1) * 2,
+                                 weapon->GetPrimaryAmmoType(), true);
+            }
+            if (weapon->GetSecondaryAmmoType() >= 0) {
+                player->GiveAmmo(1, weapon->GetSecondaryAmmoType(), true);
+            }
+        }
+        Notify("Ammo Cache: every weapon you hold topped up.");
+    } else if (name == "Medkit") {
+        player->TakeHealth(25, DMG_GENERIC);
+        Notify("Medkit: +25 health.");
+    } else if (name == "Battery") {
+        if (Holds(kSuitItem)) {
+            player->IncrementArmorValue(15, 100);
+            Notify("Battery: +15 armour.");
+        } else {
+            Notify("Battery: no HEV Suit yet, so no armour.");
+        }
+    } else {
+        Notify("Received " + name + " (no effect in this build).");
+    }
+}
+
+void DeathLinkArrived(const PendingEvent& event) {
+    if (!State().OptionBool("death_link", false)) {
+        return;
+    }
+    if (event.stamp > 0 && Wire().Now() - event.stamp > kDeathLinkFreshSeconds) {
+        return;  // stale: the player was not here for it
+    }
+    CBasePlayer* player = Player();
+    if (player == nullptr || !player->IsAlive()) {
+        return;
+    }
+    const size_t tilde = event.payload.find('~');
+    const std::string source = event.payload.substr(0, tilde);
+    const std::string cause = tilde == std::string::npos ? "" : event.payload.substr(tilde + 1);
+    Notify("DeathLink from " + source + (cause.empty() ? "" : " (" + cause + ")") + ".");
+    g_immune_until = Now() + kDeathLinkImmunitySeconds;
+    player->CommitSuicide(false, true);
+}
+
+void ReportDeath(const std::string& cause) {
+    if (!Gating() || Now() < g_immune_until) {
+        return;
+    }
+    g_last_death = Now();
+    const bool link = State().OptionBool("death_link", false);
+    const long allowance = State().OptionLong("death_link_amnesty", 0);
+    bool forgiven = false;
+    if (link && g_forgiven < allowance) {
+        ++g_forgiven;
+        forgiven = true;
+        Notify("DeathLink amnesty: " + std::to_string(allowance - g_forgiven) +
+               " death(s) left before one is sent.");
+    } else {
+        g_forgiven = 0;
+    }
+    Wire().Send("DEATH", std::vector<std::string>{"Freeman", Sanitise(cause),
+                                                  forgiven ? "1" : "0"});
+}
+
+// --- commands ----------------------------------------------------------------------
+
+std::string ChapterStatus(const Chapter& chapter) {
+    if (State().ChapterExcluded(chapter.key)) {
+        return "not in this seed";
+    }
+    if (ChapterDone(chapter)) {
+        return "complete";
+    }
+    if (State().ChapterOpen(chapter.key)) {
+        return chapter.is_goal ? "OPEN" : "unlocked";
+    }
+    return chapter.is_goal ? "sealed" : "locked";
+}
+
+void ListChapters() {
+    BeginReply("!ap");
+    for (const Chapter& chapter : Data().Chapters()) {
+        Say(chapter.number + ". " + chapter.name + " [" + ChapterStatus(chapter) + "]");
+    }
+    EndReply();
+}
+
+void Warp(const std::string& rest) {
+    const std::vector<std::string> words = Split(Trim(rest), ' ');
+    if (Trim(rest).empty()) {
+        Notify("Usage: !warp <chapter number or name> [part]");
+        return;
+    }
+    // A trailing number is a part when the rest names a chapter.
+    std::string name = Trim(rest);
+    int part = 0;
+    if (words.size() >= 2) {
+        std::string last = Lower(words.back());
+        if (StartsWith(last, "p")) {
+            last = last.substr(1);
+        }
+        std::string head;
+        for (size_t i = 0; i + 1 < words.size(); ++i) {
+            head += (head.empty() ? "" : " ") + words[i];
+        }
+        if (ParseLong(last, -1) > 0 && Data().FindChapter(head) != nullptr) {
+            part = static_cast<int>(ParseLong(last));
+            name = head;
+        }
+    }
+    const Chapter* chapter = Data().FindChapter(name);
+    if (chapter == nullptr) {
+        Notify("No chapter called " + name + ". !ap lists them.");
+        return;
+    }
+    if (Gating() && !ChapterAvailable(*chapter)) {
+        Notify(chapter->name + " is " + ChapterStatus(*chapter) + ".");
+        return;
+    }
+    if (part <= 1) {
+        RequestMap(chapter->maps.front());
+        return;
+    }
+    if (part > static_cast<int>(chapter->maps.size())) {
+        Notify(chapter->name + " has " + std::to_string(chapter->maps.size()) + " parts.");
+        return;
+    }
+    const std::string& map = chapter->maps[part - 1];
+    if (Gating() && State().checked.count(Data().MapReached(map)) == 0) {
+        Notify("You have not reached part " + std::to_string(part) + " of " + chapter->name +
+               " yet.");
+        return;
+    }
+    const std::string save = WarpSaveName(map);
+    if (!save.empty() && SaveExists(save)) {
+        engine->ServerCommand(("load " + save + "\n").c_str());
+    } else {
+        RequestMap(map);
+    }
+}
+
+void Tracker() {
+    BeginReply("!tracker");
+    const std::string map = CurrentMap();
+    int found = 0;
+    int missing = 0;
+    for (const Location& location : Data().Locations()) {
+        if (location.map != map || !State().InSeed(location.id)) {
+            continue;
+        }
+        if (State().checked.count(location.id) != 0) {
+            ++found;
+        } else {
+            ++missing;
+            Say("  missing: " + location.name);
+        }
+    }
+    Say(map + ": " + std::to_string(found) + " found, " + std::to_string(missing) + " missing.");
+    EndReply();
+}
+
+}  // namespace
+
+// --- public ------------------------------------------------------------------------
+
+bool Gating() { return !State().slot.empty() && Data().Loaded(); }
+
+void GameLevelStart() {
+    Data().Load(StoreDir() + "/checkdata.txt");
+    g_owed.clear();
+    g_judged = false;
+    g_stripped = false;
+    g_save_due = -1.0;
+    g_upgrade_sent = false;
+    g_goal_sent = false;
+    g_last_notice.clear();
+    g_granted_here.clear();
+    if (IsHub()) {
+        TidyHub();
+    }
+}
+
+void GameSnapshotChanged() {
+    const Snapshot& state = State();
+    if (!state.slot.empty() && !g_last_slot.empty() && state.slot != g_last_slot) {
+        g_have_items = false;
+        g_forgiven = 0;
+        if (!IsHub()) {
+            GoHub("A different slot connected. Back to the hub.");
+        }
+    }
+    if (!state.slot.empty()) {
+        g_last_slot = state.slot;
+    }
+    if (g_have_items) {
+        for (const std::string& item : state.held_items) {
+            const auto count = state.counts.find(item);
+            const auto before = g_last_counts.find(item);
+            if (count != state.counts.end()) {
+                const int had = before == g_last_counts.end() ? 0 : before->second;
+                if (count->second > had) {
+                    Notify("Received: " + item + " (" + std::to_string(count->second) + ")");
+                }
+            } else if (g_last_items.count(item) == 0) {
+                Notify("Received: " + item);
+            }
+        }
+    }
+    if (!state.session.empty()) {
+        g_last_items = state.held_items;
+        g_last_counts = state.counts;
+        g_have_items = true;
+    }
+    Judge();
+    Flush();
+    ApplyLoadout();
+}
+
+void GameEvent(const PendingEvent& event) {
+    if (event.kind == "ITEM") {
+        ApplyFiller(event.payload);
+    } else if (event.kind == "DEATHLINK") {
+        DeathLinkArrived(event);
+    } else if (event.kind == "TRAP") {
+        Notify("Trap " + event.payload + " (traps are not in this build).");
+    }
+}
+
+void GameFrame() {
+    Judge();
+    CBasePlayer* player = Player();
+    if (player == nullptr || !ClientReady()) {
+        return;
+    }
+    static int frame = 0;
+    if (++frame % 30 == 0) {
+        ApplyLoadout();  // catches spawns and quickloads without a hook
+    }
+    if (Gating() && !Holds(kSuitItem) && player->ArmorValue() > 0) {
+        player->SetArmorValue(0);
+    }
+    if (!g_upgrade_sent && Gating() && PlayerHasMegaPhysCannon() &&
+        Owned(player, kPhyscannon) != nullptr) {
+        g_upgrade_sent = true;
+        Found(Data().Pickup("weapon_upgrade", kPhyscannon));
+    }
+    if (g_save_due > 0 && Now() >= g_save_due && player->IsAlive() && Authorised()) {
+        g_save_due = -1.0;
+        const std::string save = WarpSaveName(CurrentMap());
+        if (!save.empty() && !SaveExists(save)) {
+            engine->ServerCommand(("save " + save + "\n").c_str());
+        }
+    }
+}
+
+bool GameDispatch(const std::string& name, const std::string& rest) {
+    if (name == "ap" || name == "chapters" || name == "missions") {
+        ListChapters();
+    } else if (name == "warp") {
+        Warp(rest);
+    } else if (name == "hub") {
+        GoHub("");
+    } else if (name == "tracker") {
+        Tracker();
+    } else {
+        return false;
+    }
+    return true;
+}
+
+void GameHelp() {
+    Say("!ap          every chapter and its status");
+    Say("!warp <n>    start a chapter (number or name); !warp <n> <part> a part reached");
+    Say("!hub         back to the hub");
+    Say("!tracker     checks found and missing on this map");
+}
+
+void GameStatus() {
+    const Chapter* chapter = CurrentChapter();
+    Say(chapter ? "Chapter " + chapter->name + " [" + ChapterStatus(*chapter) + "]"
+                : std::string(IsHub() ? "In the hub" : "Not in a chapter"));
+    if (Gating()) {
+        Say("Gravity gun stage " + std::to_string(GravityGunStage()) + ", suit " +
+            (Holds(kSuitItem) ? "on" : "off") + ", flashlight " +
+            (Holds(kFlashlightItem) ? "on" : "off"));
+    }
+}
+
+Touch WeaponTouch(CBasePlayer* player, CBaseCombatWeapon* weapon) {
+    if (player == nullptr || weapon == nullptr || !Gating() || g_granting) {
+        return Touch::kAllow;
+    }
+    const std::string classname = weapon->GetClassname();
+    if (ItemOf(classname).empty() || !StartsWith(classname, "weapon_")) {
+        return Touch::kAllow;
+    }
+    Found(Data().Pickup("weapon_pickup", classname));
+    if (ClassnameHeld(classname)) {
+        return Touch::kAllow;
+    }
+    if (Debounced("refuse:" + classname)) {
+        Notify(ItemOf(classname) + " not received yet; left where it is.");
+    }
+    return Touch::kRefuse;
+}
+
+bool RefuseGive(CBasePlayer* player, const char* classname) {
+    if (player == nullptr || classname == nullptr || !Gating() || g_granting) {
+        return false;
+    }
+    // Weapons only: the suit (`give item_suit` in Dark Energy) is ours to
+    // equip, gated by armour rather than by the give.
+    if (ItemOf(classname).empty() || !StartsWith(classname, "weapon_")) {
+        return false;
+    }
+    Found(Data().Pickup("weapon_pickup", classname));
+    if (ClassnameHeld(classname)) {
+        return false;
+    }
+    if (Debounced(std::string("refuse:") + classname)) {
+        Notify(ItemOf(classname) + " not received yet; it comes when the item does.");
+    }
+    return true;
+}
+
+void SuitTouched(CBasePlayer* player) {
+    if (player != nullptr) {
+        Found(Data().Pickup("item_pickup", "item_suit"));
+    }
+}
+
+void ChargerUsed(CBaseEntity* charger, CBaseEntity* user) {
+    if (charger == nullptr || user == nullptr || !user->IsPlayer()) {
+        return;
+    }
+    // The nearest charger check of this class on this map, within reach of
+    // the unit's origin: positions are rounded in the data, never compared
+    // exactly.
+    const Vector at = charger->GetAbsOrigin();
+    const std::string classname = charger->GetClassname();
+    long best = 0;
+    float best_distance = 64.0f * 64.0f;
+    for (const Location* location : Data().Chargers(CurrentMap())) {
+        if (!StartsWith(location->arg, classname + "@")) {
+            continue;
+        }
+        const Vector there(location->position[0], location->position[1], location->position[2]);
+        const float distance = (there - at).LengthSqr();
+        if (distance < best_distance) {
+            best_distance = distance;
+            best = location->id;
+        }
+    }
+    Found(best);
+}
+
+bool BlockChangeLevel(const char* next_map) {
+    if (next_map == nullptr || !Gating() || !Data().Loaded()) {
+        return false;
+    }
+    const std::string from = CurrentMap();
+    const std::string to = Lower(next_map);
+    const Chapter* here = Data().ChapterOfMap(from);
+    const Chapter* there = Data().ChapterOfMap(to);
+    if (here != nullptr) {
+        for (const auto& exit : here->exits) {
+            if (exit.first == from && exit.second == to) {
+                Found(Data().ChapterComplete(here->key));
+                Wire().Send("COMPLETE", here->key);
+                GoHub(here->name + " complete! Back to the hub.");
+                return true;
+            }
+        }
+    }
+    if (there != nullptr && there != here && !ChapterAvailable(*there)) {
+        if (Debounced("changelevel:" + to)) {
+            Notify(there->name + " is " + ChapterStatus(*there) + "; that way is closed.");
+        }
+        return true;
+    }
+    return false;
+}
+
+void PlayerKilled() { ReportDeath("death"); }
+
+void ReloadFired() {
+    CBasePlayer* player = Player();
+    if (player != nullptr && !player->IsAlive()) {
+        return;  // already counted as a death
+    }
+    if (Now() - g_last_death < kRevertDebounceSeconds) {
+        return;
+    }
+    ReportDeath("a failed objective");
+}
+
+void OutroCredits() {
+    const Chapter* chapter = CurrentChapter();
+    if (chapter == nullptr || !chapter->is_goal || g_goal_sent || !Gating()) {
+        return;
+    }
+    g_goal_sent = true;
+    Found(Data().ChapterComplete(chapter->key));
+    Wire().Send("GOAL", chapter->key);
+    Notify(chapter->name + " complete. Well done, Mr. Freeman.");
+}
+
+void WeaponsStripped() { g_stripped = true; }
+
+bool CanEnterVehicle(CBasePlayer* player, CBaseEntity* vehicle) {
+    if (player == nullptr || vehicle == nullptr || !Gating()) {
+        return true;
+    }
+    const Chapter* chapter = CurrentChapter();
+    const VehicleKey* key = chapter ? Data().KeyFor(chapter->key) : nullptr;
+    if (key == nullptr) {
+        return true;
+    }
+    bool keyed = false;
+    for (const VehicleClass& known : kVehicleClasses) {
+        if (key->vehiclescript == known.script && FClassnameIs(vehicle, known.classname)) {
+            keyed = true;
+        }
+    }
+    if (!keyed || Holds(key->item)) {
+        return true;
+    }
+    if (Debounced("vehicle:" + key->item)) {
+        Notify("You need " + key->item + " to drive here.");
+    }
+    return false;
+}
+
+bool AirboatGunAllowed() { return Holds(kAirboatGunItem); }
+
+void AirboatGunPulled() {
+    if (!AirboatGunAllowed() && Debounced("airboat_gun")) {
+        Notify("The mounted gun needs the Airboat Gun item.");
+    }
+}
+
+int GravityGunStage() {
+    if (!Gating()) {
+        return 4;
+    }
+    return State().Count(kGravityGunItem);
+}
+
+void GravityGunRefused(const char* what) {
+    if (what != nullptr && Debounced(std::string("physcannon:") + what)) {
+        Notify(what);
+    }
+}
+
+bool SuitPowerAllowed() {
+    if (Holds(kSuitItem)) {
+        return true;
+    }
+    if (Debounced("suit_power")) {
+        Notify("No aux power until the HEV Suit item arrives.");
+    }
+    return false;
+}
+
+bool FlashlightAllowed() {
+    if (Holds(kFlashlightItem)) {
+        return true;
+    }
+    if (Debounced("flashlight")) {
+        Notify("The flashlight needs the Flashlight item.");
+    }
+    return false;
+}
+
+}  // namespace ap

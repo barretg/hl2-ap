@@ -1,16 +1,3 @@
-diff --git a/src/game/client/clientmode_shared.cpp b/src/game/client/clientmode_shared.cpp
-index 5d10db6c..ccf5abaa 100644
---- a/src/game/client/clientmode_shared.cpp
-+++ b/src/game/client/clientmode_shared.cpp
-@@ -1115,7 +1115,7 @@ void ClientModeShared::FireGameEvent( IGameEvent *event )
- 			}
- 		}
- 
--		if ( team == 0 && GetLocalTeam() > 0 )
-+		if ( team == 0 && GetLocalTeam() != NULL )
- 		{
- 			bValidTeam = false;
- 		}
 diff --git a/src/game/server/ai_navigator.cpp b/src/game/server/ai_navigator.cpp
 index d136c923..fd2d4d01 100644
 --- a/src/game/server/ai_navigator.cpp

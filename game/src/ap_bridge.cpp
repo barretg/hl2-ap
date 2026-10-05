@@ -132,6 +132,17 @@ bool Bridge::Poll(Snapshot& out, std::vector<PendingEvent>& events) {
             CollectStrings(value, ';', parsed.ungated_classnames);
         } else if (key == "starting") {
             CollectList(value, ';', parsed.starting_weapons);
+        } else if (key == "counts") {
+            parsed.counts.clear();
+            if (!Trim(value).empty()) {
+                for (const std::string& part : Split(value, ';')) {
+                    const size_t colon = part.rfind(':');
+                    if (colon != std::string::npos) {
+                        parsed.counts[Trim(part.substr(0, colon))] =
+                            static_cast<int>(ParseLong(part.substr(colon + 1)));
+                    }
+                }
+            }
         } else if (key == "checked") {
             CollectIds(value, parsed.checked);
         } else if (key == "missing") {

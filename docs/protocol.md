@@ -103,6 +103,7 @@ event=5|DEATHLINK|PlayerTwo~a hunter|1786000001
 | `items` | received item names, `;` separated (names may contain commas) |
 | `ungated` | classnames the seed does not gate: neither granted nor refused |
 | `starting` | classnames the run opens with and must never lose, in the seed's order. Empty means "use checkdata.txt", never "start with nothing" |
+| `counts` | copies held of items that come in copies, `name:count;...` (`Progressive Gravity Gun:2`). Items held once appear in `items` only |
 | `checked`, `missing` | location ids; between them they say which locations the seed contains, for the in-game tracker |
 | other `key=value` | seed options the game acts on (`client.bridge` `options`), sorted; booleans as 1/0. New options need no protocol change; the game ignores keys it does not know |
 | `now` | the client's clock. Event freshness compares an event's stamp to `now` from the same snapshot, so clocks never need to agree |

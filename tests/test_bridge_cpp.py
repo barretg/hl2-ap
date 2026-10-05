@@ -71,6 +71,7 @@ def test_parses_a_full_snapshot(probe: Path, tmp_path: Path) -> None:
         excluded=["d3_breen_01"],
         ungated=["item_battery"],
         starting=["weapon_crowbar", "weapon_physcannon"],
+        counts={"Progressive Gravity Gun": 2, "Other: Thing": 1},
         checked=[8000001, 8000002],
         missing=[8000003],
         options={"gravity_gun_stage": 2, "melee_throw": True},
@@ -91,6 +92,7 @@ def test_parses_a_full_snapshot(probe: Path, tmp_path: Path) -> None:
     assert fields["items"] == "Item, with comma;Shotgun;Water Hazard Boat Keys"
     assert fields["ungated"] == "item_battery"
     assert fields["starting"] == "weapon_crowbar;weapon_physcannon"
+    assert fields["counts"] == "Other: Thing:1;Progressive Gravity Gun:2"
     assert fields["checked"] == "8000001;8000002"
     assert fields["missing"] == "8000003"
     # Options, including the fixed DeathLink keys, land in the generic map.

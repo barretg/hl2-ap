@@ -1,0 +1,14 @@
+# A Half-Life 2 slot with the defaults spelled out; generate it alone or
+# alongside other games.
+name: Gordon
+game: Half-Life 2
+Half-Life 2:
+  missions_required: 12
+  logic_difficulty: strict
+  exclude_intro_missions: true
+  chargesanity: true
+  shuffle_hev_suit: false
+  shuffle_flashlight: false
+  melee_throw: true
+  death_link: false
+  death_link_amnesty: 4

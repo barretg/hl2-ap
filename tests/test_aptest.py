@@ -93,8 +93,21 @@ def test_start_writes_go_file_and_snapshot(harness: aptest.Harness) -> None:
     go = harness.go_path.read_text(encoding="utf-8").splitlines()
     assert go[0].startswith("seq=") and go[1] == f"map={harness.scenarios[0].map}"
     snap = harness.bridge.in_path.read_text(encoding="utf-8")
-    assert "Progressive Gravity Gun;Progressive Gravity Gun" in snap
+    assert "items=HEV Suit;Progressive Gravity Gun" in snap
+    assert "starting=weapon_crowbar" in snap
     assert "slot=aptest:1" in snap
+
+
+def test_counts_and_default_items_from_checkdata(ctx: Context) -> None:
+    ctx.checkdata = checkdata.parse(REPO_CHECKDATA)
+    ctx.default_items = aptest.default_items(ctx.checkdata)
+    assert ctx.default_items["Progressive Gravity Gun"] == 4
+    assert ctx.default_items["Water Hazard Boat Keys"] == 1
+    assert ctx.default_items["Airboat Gun"] == 1
+    assert ctx.default_items["Flashlight"] == 1
+    harness = aptest.Harness(ctx, group_registry.discover(), "foundation")
+    harness.command("next", "")
+    assert "counts=Progressive Gravity Gun:4" in harness.bridge.in_path.read_text()
 
 
 def test_redo_moves_the_sequence(harness: aptest.Harness) -> None:
@@ -185,7 +198,8 @@ def test_item_and_trap_queue_events(harness: aptest.Harness) -> None:
     harness.command("trap", "headcrab")
     harness.command("item", "nonsense")
     snap = harness.bridge.in_path.read_text()
-    assert "|ITEM|Medkit|" in snap and "|TRAP|Headcrab Trap|" in snap
+    assert "|ITEM|Medkit|" in snap
+    assert "No trap 'headcrab'" in said(harness)  # none in this build
     assert "No item 'nonsense'" in said(harness)
 
 

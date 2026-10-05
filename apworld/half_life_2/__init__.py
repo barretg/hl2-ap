@@ -17,6 +17,7 @@ from typing import Any, ClassVar
 from BaseClasses import Tutorial
 from Options import OptionGroup
 from worlds.AutoWorld import WebWorld, World
+from worlds.LauncherComponents import Component, Type, components, launch_subprocess
 
 from .data import (
     ABILITY_ITEM_NAMES,
@@ -47,6 +48,23 @@ from .regions import create_regions
 from .rules import chapter_is_startable
 
 GAME_NAME = "Half-Life 2"
+
+
+def launch_client(*args: str) -> None:
+    from .client.launcher import launch
+
+    launch_subprocess(launch, name="HalfLife2Client", args=args)
+
+
+components.append(
+    Component(
+        "Half-Life 2 Client",
+        func=launch_client,
+        component_type=Type.CLIENT,
+        game_name=GAME_NAME,
+        supports_uri=True,
+    )
+)
 
 
 class HalfLife2Web(WebWorld):
@@ -243,4 +261,6 @@ class HalfLife2World(World):
             "shuffle_hev_suit": bool(self.options.shuffle_hev_suit),
             "shuffle_flashlight": bool(self.options.shuffle_flashlight),
             "melee_throw": bool(self.options.melee_throw),
+            "death_link": bool(self.options.death_link),
+            "death_link_amnesty": self.options.death_link_amnesty.value,
         }

@@ -31,6 +31,7 @@ HEADER = """\
 # Record types:
 #   V|<format version>
 #   D|<data version>                 must match the client's, or ids differ
+#   B|<hub map>                      where runs start and chapters return to
 #   N|<campaign>|<short>|<name>|<goal chapter>
 #   C|<index>|<key>|<number>|<name>|<map,map,...>|<is_goal>|<campaign>|<complete on>|<exits>
 #     <complete on> is forward_exit or finale; <exits> is from>to,... (the
@@ -56,7 +57,8 @@ HEADER = """\
 
 
 def render(data: dict) -> str:
-    lines = [HEADER.rstrip("\n"), f"V|{FORMAT_VERSION}", f"D|{data['data_version']}"]
+    lines = [HEADER.rstrip("\n"), f"V|{FORMAT_VERSION}", f"D|{data['data_version']}",
+             f"B|{data['hub_map']}"]
     for campaign in data["campaigns"]:
         lines.append("N|{key}|{short}|{name}|{goal_chapter}".format(**campaign))
     for index, chapter in enumerate(data["chapters"]):

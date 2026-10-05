@@ -34,7 +34,7 @@ sys.path.insert(0, str(REPO_ROOT / "apworld" / "half_life_2"))
 
 from bsp_entities import (  # noqa: E402
     BspError, Entity, brush_model_bounds, load_map, world_position)
-from campaigns import CAMPAIGNS, Campaign  # noqa: E402
+from campaigns import CAMPAIGNS, HUB_MAP, Campaign  # noqa: E402
 from map_logic import MapLogic  # noqa: E402
 
 DATA_DIR = REPO_ROOT / "apworld" / "half_life_2" / "data"
@@ -711,9 +711,13 @@ def build(game_root: Path, registry: Registry) -> dict:
     for name, classification, group in WORLD_ITEMS:
         items.append({"id": registry.item(name), "name": name,
                       "classification": classification, "group": group})
+    if not any(HUB_MAP in c.excluded_maps for c in CAMPAIGNS):
+        raise ScanError(f"hub map {HUB_MAP} is in no campaign's excluded_maps")
+    if not (game_root / CAMPAIGNS[0].game_dir / "maps" / f"{HUB_MAP}.bsp").is_file():
+        raise ScanError(f"hub map {HUB_MAP} is not in the install")
     return {"format": FORMAT_VERSION, "data_version": data_version(items, locations),
-            "campaigns": campaigns, "chapters": chapters, "requirement_groups": groups,
-            "items": items, "locations": locations}
+            "hub_map": HUB_MAP, "campaigns": campaigns, "chapters": chapters,
+            "requirement_groups": groups, "items": items, "locations": locations}
 
 
 def default_game_root() -> Path | None:

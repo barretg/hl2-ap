@@ -51,7 +51,7 @@ REPLACE_RETRY_DELAY = 0.02
 CORE_KEYS = frozenset({
     "session", "slot", "data_version", "connected", "death_link",
     "death_link_amnesty", "chapters", "excluded", "items", "ungated",
-    "starting", "checked", "missing", "now", "event",
+    "starting", "counts", "checked", "missing", "now", "event",
 })
 
 _OPTION_KEY = re.compile(r"^[a-z][a-z0-9_]*$")
@@ -208,6 +208,7 @@ class Bridge:
         excluded: Iterable[str] = (),
         ungated: Iterable[str] = (),
         starting: Iterable[str] = (),
+        counts: Mapping[str, int] | None = None,
         checked: Iterable[int] = (),
         missing: Iterable[int] = (),
         options: Mapping[str, object] | None = None,
@@ -253,6 +254,9 @@ class Bridge:
             # What the run opens with, in the seed's order. Empty means "use
             # checkdata.txt", never "start with nothing".
             "starting=" + ";".join(starting),
+            # How many of each item that comes in copies (Progressive Gravity
+            # Gun), `name:count;...`. Items held once are only in `items`.
+            "counts=" + ";".join(f"{name}:{int(n)}" for name, n in sorted((counts or {}).items())),
             # Between them, which locations the seed contains (for the tracker).
             "checked=" + ",".join(str(i) for i in checked),
             "missing=" + ",".join(str(i) for i in missing),

@@ -77,6 +77,13 @@ int main(int argc, char** argv) {
             std::printf(j ? ";%s" : "%s", state.starting_weapons[j].c_str());
         }
         std::printf("\n");
+        std::printf("counts=");
+        bool first_count = true;
+        for (const auto& entry : state.counts) {
+            std::printf(first_count ? "%s:%d" : ";%s:%d", entry.first.c_str(), entry.second);
+            first_count = false;
+        }
+        std::printf("\n");
         PrintSet("checked", state.checked);
         PrintSet("missing", state.missing);
         for (const auto& option : state.options) {

@@ -67,7 +67,13 @@ TEST_DLL_MARKER = b"ap_test"
 # Deliveries the harness accepts for `!item` / `!trap`. Placeholders until the
 # item table exists (plan Phase 3); the game ignores names it does not know.
 FILLER = ["Ammo Cache", "Medkit", "Battery"]
-TRAPS = ["Headcrab Trap", "Butterfingers Trap", "Sticky Key Trap", "Reload Trap"]
+# None in this build; the game says so if sent one.
+TRAPS: list[str] = []
+# Every run opens with these and never loses them (the seed's starting items).
+STARTING = ["weapon_crowbar"]
+# Held by default beyond the gated pickups, so a scenario plays as retail
+# unless it takes something.
+EXTRA_DEFAULT_ITEMS = ["Flashlight", "Melee Throw"]
 
 RESULTS_NAME = "aptest_results.txt"
 CLEARED_NAME = "aptest_results_cleared.txt"
@@ -240,11 +246,25 @@ class Harness:
         data = self.ctx.checkdata
         chapters = [c.key for c in data.chapters] if data is not None else []
         options = dict(s.snapshot) if s is not None else {}
+        # The DeathLink settings are snapshot keys of their own, not options.
+        death_link = bool(options.pop("death_link", False))
+        amnesty = int(options.pop("death_link_amnesty", 0))
+        stages = data.stages if data is not None else {}
         self.bridge.write_snapshot(
             connected=self.connected,
-            chapters=[c for c in chapters if s is None or c not in s.closed],
-            items=list(self.items.elements()),
+            chapters=[c for c in chapters
+                      if s is None or (c not in s.closed and c not in s.excluded)],
+            excluded=sorted(s.excluded) if s is not None else [],
+            items=[name for name, n in self.items.items() if n > 0],
+            counts={name: n for name, n in self.items.items() if name in stages and n > 0},
+            starting=STARTING,
+            death_link=death_link,
+            death_link_amnesty=amnesty,
             checked=sorted(s.checked) if s is not None else [],
+            # Every other location is still to find: the game reads ids in
+            # neither list as not in the seed.
+            missing=sorted(set(data.locations) - set(s.checked if s is not None else ()))
+            if data is not None else [],
             options=options,
             data_version=self.ctx.data_version,
             slot="aptest:1",
@@ -268,6 +288,10 @@ class Harness:
             self.items = Counter(self.ctx.default_items)
             for name in s.take:
                 self.items.pop(name, None)
+            for name, count in s.counts.items():
+                self.items[name] = count
+                if not count:
+                    del self.items[name]
             for name in s.give:
                 self.items[name] += 1
             self.seen = set()
@@ -533,7 +557,19 @@ def make_context(mod_dir: Path, game_root: Path | None) -> Context:
     if checkdata.is_file():
         ctx.checkdata = checkdata_module.parse(checkdata)
         ctx.data_version = ctx.checkdata.data_version
+        ctx.default_items = default_items(ctx.checkdata)
     return ctx
+
+
+def default_items(data: checkdata_module.CheckData) -> dict[str, int]:
+    """Everything, every stage: a scenario plays as retail unless it takes
+    or sets counts."""
+    items = {name: 1 for name in data.lockable.values()}
+    items.update(data.stages)
+    items.update({name: 1 for name in data.keys.values()})
+    items.update({name: 1 for name in data.upgrades})
+    items.update({name: 1 for name in EXTRA_DEFAULT_ITEMS})
+    return items
 
 
 def main(argv: list[str] | None = None) -> int:

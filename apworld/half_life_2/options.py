@@ -2,7 +2,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from Options import Choice, DefaultOnToggle, PerGameCommonOptions, Range, StartInventoryPool, Toggle
+from Options import (
+    Choice,
+    DeathLink,
+    DefaultOnToggle,
+    PerGameCommonOptions,
+    Range,
+    StartInventoryPool,
+    Toggle,
+)
 
 from .data import HALF_LIFE_2, MAX_MISSIONS_BY_CAMPAIGN
 
@@ -85,6 +93,21 @@ class MeleeThrow(Toggle):
     display_name = "Add Melee Throw"
 
 
+class DeathLinkAmnesty(Range):
+    """How many deaths are forgiven before one is sent to the multiworld.
+
+    Only outgoing DeathLinks are affected: an incoming one always kills you.
+    Each forgiven death says how much amnesty is left; once it runs out the
+    next death goes out and the allowance starts again. Failing an objective
+    (an escort lost, a fade to black) counts as a death. 0 sends every death.
+    """
+
+    display_name = "DeathLink Amnesty"
+    range_start = 0
+    range_end = 20
+    default = 4
+
+
 @dataclass
 class HalfLife2Options(PerGameCommonOptions):
     missions_required: MissionsRequired
@@ -95,3 +118,5 @@ class HalfLife2Options(PerGameCommonOptions):
     shuffle_flashlight: ShuffleFlashlight
     melee_throw: MeleeThrow
     start_inventory_from_pool: StartInventoryPool
+    death_link: DeathLink
+    death_link_amnesty: DeathLinkAmnesty

@@ -18,6 +18,8 @@
 
 #include "ap_aptest.h"
 #include "ap_bridge.h"
+#include "ap_game.h"
+#include "ap_melee.h"
 #include "ap_state.h"
 #include "ap_text.h"
 
@@ -138,11 +140,9 @@ void ApplyEvent(const PendingEvent& event) {
     if (event.kind == "CHAT") {
         Notify(event.payload);
     } else {
-        // ITEM, TRAP and DEATHLINK arrive with their features (plan Phases 5
-        // and 7). ACKed anyway by the caller: holding one would stall the
-        // client's whole event window.
-        Msg("[AP] %s event not handled yet: %s\n", event.kind.c_str(),
-            event.payload.c_str());
+        // ITEM, TRAP and DEATHLINK. ACKed by the caller whatever happens:
+        // holding one would stall the client's whole event window.
+        GameEvent(event);
     }
 }
 
@@ -156,6 +156,7 @@ void Poll() {
     if (!g_bridge.Poll(State(), events)) {
         return;
     }
+    GameSnapshotChanged();
     for (const PendingEvent& event : events) {
         ApplyEvent(event);
         g_bridge.Acknowledge(event.seq);
@@ -173,13 +174,15 @@ void Status() {
         Say("Slot " + state.slot + ", " + std::to_string(state.held_items.size()) +
             " items, " + std::to_string(state.checked.size()) + " checks sent");
     }
+    GameStatus();
     EndReply();
 }
 
 void Help() {
     BeginReply("!help");
-    Say("!status  where the client and this map stand");
-    Say("!help    this list");
+    Say("!status      where the client and this map stand");
+    GameHelp();
+    Say("!help        this list");
     if (TestBuild()) {
         Say("Test build: !pass !fail !note !next !prev !redo !go !info !list "
             "!groups !group !tp and more; !info in a scenario");
@@ -200,15 +203,18 @@ bool Dispatch(const std::string& name, const std::string& rest) {
         Help();
         return true;
     }
-    return false;
+    return GameDispatch(name, rest);
 }
 
 class CArchipelagoSystem : public CAutoGameSystemPerFrame {
 public:
     CArchipelagoSystem() : CAutoGameSystemPerFrame("CArchipelagoSystem") {}
 
+    void LevelInitPreEntity() override { MeleePrecache(); }
+
     void LevelInitPostEntity() override {
         g_bridge.Open(StoreDir());
+        GameLevelStart();
         g_started = true;
         g_next_poll = 0.0;
         g_frames_this_map = 0;
@@ -233,6 +239,7 @@ public:
         RunRequests();
         RunTestHarness();
         Poll();
+        GameFrame();
     }
 };
 

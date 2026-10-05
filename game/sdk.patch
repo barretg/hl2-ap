@@ -1,3 +1,65 @@
+diff --git a/src/game/client/clientmode_shared.cpp b/src/game/client/clientmode_shared.cpp
+index 5d10db6c..bc97456b 100644
+--- a/src/game/client/clientmode_shared.cpp
++++ b/src/game/client/clientmode_shared.cpp
+@@ -788,11 +788,8 @@ vgui::Panel *ClientModeShared::GetMessagePanel()
+ //-----------------------------------------------------------------------------
+ void ClientModeShared::StartMessageMode( int iMessageModeType )
+ {
+-	// Can only show chat UI in multiplayer!!!
+-	if ( gpGlobals->maxClients == 1 )
+-	{
+-		return;
+-	}
++	// hl2ap: chat is open in single player too; it is where Archipelago
++	// commands are typed (`!status`), and Host_Say hands them to ap::HandleChat.
+ 	if ( m_pChatElement )
+ 	{
+ 		m_pChatElement->StartMessageMode( iMessageModeType );
+@@ -1115,7 +1112,7 @@ void ClientModeShared::FireGameEvent( IGameEvent *event )
+ 			}
+ 		}
+ 
+-		if ( team == 0 && GetLocalTeam() > 0 )
++		if ( team == 0 && GetLocalTeam() != NULL )
+ 		{
+ 			bValidTeam = false;
+ 		}
+diff --git a/src/game/client/hud_basechat.cpp b/src/game/client/hud_basechat.cpp
+index 69d67862..84de0c5d 100644
+--- a/src/game/client/hud_basechat.cpp
++++ b/src/game/client/hud_basechat.cpp
+@@ -32,7 +32,7 @@
+ #define CHAT_WIDTH_PERCENTAGE 0.6f
+ 
+ #ifndef _XBOX
+-ConVar hud_saytext_time( "hud_saytext_time", "12", 0 );
++ConVar hud_saytext_time( "hud_saytext_time", "30", 0 ); // hl2ap: 12; notices need longer
+ ConVar cl_showtextmsg( "cl_showtextmsg", "1", 0, "Enable/disable text messages printing on the screen." );
+ ConVar cl_chatfilters( "cl_chatfilters", "63", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Stores the chat filter settings " );
+ ConVar cl_chatfilter_version( "cl_chatfilter_version", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE | FCVAR_HIDDEN, "Stores the chat filter version" );
+diff --git a/src/game/server/EnvMessage.cpp b/src/game/server/EnvMessage.cpp
+index a22dfc11..6b6776d4 100644
+--- a/src/game/server/EnvMessage.cpp
++++ b/src/game/server/EnvMessage.cpp
+@@ -13,6 +13,8 @@
+ #include "Color.h"
+ #include "gamestats.h"
+ 
++#include "ap_game.h"
++
+ // memdbgon must be the last include file in a .cpp file!!!
+ #include "tier0/memdbgon.h"
+ 
+@@ -217,6 +219,8 @@ void CCredits::OnRestore()
+ 
+ void CCredits::RollOutroCredits()
+ {
++	ap::OutroCredits(); // hl2ap: the finale's end
++
+ 	sv_unlockedchapters.SetValue( "15" );
+ 	
+ 	CBasePlayer *pPlayer = UTIL_GetLocalPlayer();
 diff --git a/src/game/server/client.cpp b/src/game/server/client.cpp
 index 357f0f22..fc871ab2 100644
 --- a/src/game/server/client.cpp
@@ -21,23 +83,387 @@ index 357f0f22..fc871ab2 100644
  	if ( !p )
  		return;
  
-diff --git a/src/game/client/clientmode_shared.cpp b/src/game/client/clientmode_shared.cpp
---- a/src/game/client/clientmode_shared.cpp
-+++ b/src/game/client/clientmode_shared.cpp
-@@ -788,11 +788,8 @@
+diff --git a/src/game/server/hl2/func_recharge.cpp b/src/game/server/hl2/func_recharge.cpp
+index 37c42637..f08cfb82 100644
+--- a/src/game/server/hl2/func_recharge.cpp
++++ b/src/game/server/hl2/func_recharge.cpp
+@@ -19,6 +19,8 @@
+ #include "engine/IEngineSound.h"
+ #include "in_buttons.h"
+ 
++#include "ap_game.h"
++
+ // memdbgon must be the last include file in a .cpp file!!!
+ #include "tier0/memdbgon.h"
+ 
+@@ -201,6 +203,7 @@ void CRecharge::InputRecharge( inputdata_t &inputdata )
+ 
+ void CRecharge::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+ { 
++	ap::ChargerUsed( this, pActivator ); // hl2ap
+ 	// if it's not a player, ignore
+ 	if ( !pActivator || !pActivator->IsPlayer() )
+ 		return;
+@@ -589,6 +592,7 @@ void CNewRecharge::InputSetCharge( inputdata_t &inputdata )
+ 
+ void CNewRecharge::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+ { 
++	ap::ChargerUsed( this, pActivator ); // hl2ap
+ 	// if it's not a player, ignore
+ 	if ( !pActivator || !pActivator->IsPlayer() )
+ 		return;
+diff --git a/src/game/server/hl2/hl2_player.cpp b/src/game/server/hl2/hl2_player.cpp
+index e7583f5a..9245a84e 100644
+--- a/src/game/server/hl2/hl2_player.cpp
++++ b/src/game/server/hl2/hl2_player.cpp
+@@ -55,6 +55,8 @@
+ #include "portal_player.h"
+ #endif // PORTAL
+ 
++#include "ap_game.h"
++
+ // memdbgon must be the last include file in a .cpp file!!!
+ #include "tier0/memdbgon.h"
+ 
+@@ -1128,7 +1130,8 @@ void CHL2_Player::Spawn(void)
+ 
+ 	SuitPower_SetCharge( 100 );
+ 
+-	m_Local.m_iHideHUD |= HIDEHUD_CHAT;
++	// hl2ap: chat stays visible; it is where `!` commands are typed.
++	// m_Local.m_iHideHUD |= HIDEHUD_CHAT;
+ 
+ 	m_pPlayerAISquad = g_AI_SquadManager.FindCreateSquad(AllocPooledString(PLAYER_SQUADNAME));
+ 
+@@ -1193,6 +1196,9 @@ void CHL2_Player::StartAutoSprint()
  //-----------------------------------------------------------------------------
- void ClientModeShared::StartMessageMode( int iMessageModeType )
+ void CHL2_Player::StartSprinting( void )
  {
--	// Can only show chat UI in multiplayer!!!
--	if ( gpGlobals->maxClients == 1 )
--	{
--		return;
--	}
-+	// hl2ap: chat is open in single player too; it is where Archipelago
-+	// commands are typed (`!status`), and Host_Say hands them to ap::HandleChat.
- 	if ( m_pChatElement )
++	if ( !ap::SuitPowerAllowed() ) // hl2ap: aux power needs the HEV Suit item
++		return;
++
+ 	if( m_HL2Local.m_flSuitPower < 10 )
  	{
- 		m_pChatElement->StartMessageMode( iMessageModeType );
+ 		// Don't sprint unless there's a reasonable
+@@ -2025,6 +2031,9 @@ int CHL2_Player::FlashlightIsOn( void )
+ //-----------------------------------------------------------------------------
+ void CHL2_Player::FlashlightTurnOn( void )
+ {
++	if ( !ap::FlashlightAllowed() ) // hl2ap
++		return;
++
+ 	if( m_bFlashlightDisabled )
+ 		return;
+ 
+diff --git a/src/game/server/hl2/item_healthkit.cpp b/src/game/server/hl2/item_healthkit.cpp
+index 9a56ee98..4839c077 100644
+--- a/src/game/server/hl2/item_healthkit.cpp
++++ b/src/game/server/hl2/item_healthkit.cpp
+@@ -12,6 +12,8 @@
+ #include "in_buttons.h"
+ #include "engine/IEngineSound.h"
+ 
++#include "ap_game.h"
++
+ // memdbgon must be the last include file in a .cpp file!!!
+ #include "tier0/memdbgon.h"
+ 
+@@ -296,6 +298,7 @@ void CWallHealth::Precache(void)
+ //-----------------------------------------------------------------------------
+ void CWallHealth::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+ { 
++	ap::ChargerUsed( this, pActivator ); // hl2ap
+ 	// Make sure that we have a caller
+ 	if (!pActivator)
+ 		return;
+@@ -597,6 +600,7 @@ void CNewWallHealth::StudioFrameAdvance( void )
+ //-----------------------------------------------------------------------------
+ void CNewWallHealth::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+ { 
++	ap::ChargerUsed( this, pActivator ); // hl2ap
+ 	// Make sure that we have a caller
+ 	if (!pActivator)
+ 		return;
+diff --git a/src/game/server/hl2/item_suit.cpp b/src/game/server/hl2/item_suit.cpp
+index 5441234f..71afe371 100644
+--- a/src/game/server/hl2/item_suit.cpp
++++ b/src/game/server/hl2/item_suit.cpp
+@@ -17,6 +17,8 @@
+ #include "gamerules.h"
+ #include "items.h"
+ 
++#include "ap_game.h"
++
+ // memdbgon must be the last include file in a .cpp file!!!
+ #include "tier0/memdbgon.h"
+ 
+@@ -41,8 +43,11 @@ public:
+ 	}
+ 	bool MyTouch( CBasePlayer *pPlayer )
+ 	{
++		ap::SuitTouched( pPlayer ); // hl2ap
++		// hl2ap: the suit is equipped by us from the first spawn, so taken
++		// anyway: a level scripted around its pickup still moves on.
+ 		if ( pPlayer->IsSuitEquipped() )
+-			return FALSE;
++			return true;
+ 
+ 		if ( m_spawnflags & SF_SUIT_SHORTLOGON )
+ 			UTIL_EmitSoundSuit(pPlayer->edict(), "!HEV_A0");		// short version of suit logon,
+diff --git a/src/game/server/hl2/vehicle_airboat.cpp b/src/game/server/hl2/vehicle_airboat.cpp
+index c8a49ddb..34657b98 100644
+--- a/src/game/server/hl2/vehicle_airboat.cpp
++++ b/src/game/server/hl2/vehicle_airboat.cpp
+@@ -25,6 +25,8 @@
+ #include "rumble_shared.h"
+ // NVNT for airboat weapon fire
+ #include "haptics/haptic_utils.h"
++#include "ap_game.h"
++
+ // memdbgon must be the last include file in a .cpp file!!!
+ #include "tier0/memdbgon.h"
+ 
+@@ -1007,7 +1009,7 @@ void CPropAirboat::RemoveAmmo( float flAmmoAmount )
+ //-----------------------------------------------------------------------------
+ void CPropAirboat::RechargeAmmo(void)
+ {
+-	if ( !m_bHasGun )
++	if ( !m_bHasGun || !ap::AirboatGunAllowed() ) // hl2ap
+ 	{
+ 		m_nAmmoCount = -1;
+ 		return;
+@@ -1716,6 +1718,9 @@ void CPropAirboat::UpdateGunState( CUserCmd *ucmd )
+ {
+ 	bool bStopRumble = false;
+ 
++	if ( m_bHasGun && ( ucmd->buttons & IN_ATTACK ) )
++		ap::AirboatGunPulled(); // hl2ap
++
+ 	if ( ucmd->buttons & IN_ATTACK )
+ 	{
+ 		if ( m_nGunState == GUN_STATE_IDLE )
+diff --git a/src/game/server/hl2/weapon_crowbar.h b/src/game/server/hl2/weapon_crowbar.h
+index 1890ef6e..576d8bba 100644
+--- a/src/game/server/hl2/weapon_crowbar.h
++++ b/src/game/server/hl2/weapon_crowbar.h
+@@ -8,6 +8,7 @@
+ #define WEAPON_CROWBAR_H
+ 
+ #include "basebludgeonweapon.h"
++#include "ap_melee.h" // hl2ap
+ 
+ #if defined( _WIN32 )
+ #pragma once
+@@ -41,7 +42,7 @@ public:
+ 	float		GetDamageForActivity( Activity hitActivity );
+ 
+ 	virtual int WeaponMeleeAttack1Condition( float flDot, float flDist );
+-	void		SecondaryAttack( void )	{	return;	}
++	void		SecondaryAttack( void )	{	ap::CrowbarSecondary( this );	} // hl2ap: Melee Throw
+ 
+ 	// Animation event
+ 	virtual void Operator_HandleAnimEvent( animevent_t *pEvent, CBaseCombatCharacter *pOperator );
+diff --git a/src/game/server/hl2/weapon_physcannon.cpp b/src/game/server/hl2/weapon_physcannon.cpp
+index 7e49b7f4..f5f38461 100644
+--- a/src/game/server/hl2/weapon_physcannon.cpp
++++ b/src/game/server/hl2/weapon_physcannon.cpp
+@@ -43,6 +43,8 @@
+ // NVNT haptic utils
+ #include "haptics/haptic_utils.h"
+ 
++#include "ap_game.h"
++
+ // memdbgon must be the last include file in a .cpp file!!!
+ #include "tier0/memdbgon.h"
+ 
+@@ -1457,7 +1459,8 @@ enum
+ //-----------------------------------------------------------------------------
+ bool PlayerHasMegaPhysCannon()
+ {
+-	return ( HL2GameRules()->MegaPhyscannonActive() == true );
++	// hl2ap: the Citadel supercharges the gun only from gravity gun stage 3.
++	return ( HL2GameRules()->MegaPhyscannonActive() == true ) && ap::GravityGunStage() >= 3;
+ }
+ 
+ 
+@@ -2110,6 +2113,14 @@ void CWeaponPhysCannon::PrimaryAttack( void )
+ 	if( m_flNextPrimaryAttack > gpGlobals->curtime )
+ 		return;
+ 
++	// hl2ap: stage 1 holds and drops; punting is stage 2.
++	if ( ap::GravityGunStage() < 2 )
++	{
++		DryFire();
++		ap::GravityGunRefused( "Punting needs a second Progressive Gravity Gun." );
++		return;
++	}
++
+ 	CBasePlayer *pOwner = ToBasePlayer( GetOwner() );
+ 	
+ 	if ( pOwner == NULL )
+@@ -2216,7 +2227,7 @@ void CWeaponPhysCannon::PrimaryAttack( void )
+ 			return;
+ 		}
+ 
+-		if( GetOwner()->IsPlayer() && !IsMegaPhysCannon() )
++		if( GetOwner()->IsPlayer() && ( !IsMegaPhysCannon() || ap::GravityGunStage() < 4 ) ) // hl2ap: organics are stage 4
+ 		{
+ 			// Don't let the player zap any NPC's except regular antlions and headcrabs.
+ 			if( pEntity->IsNPC() && pEntity->Classify() != CLASS_HEADCRAB && !FClassnameIs(pEntity, "npc_antlion") )
+@@ -2226,7 +2237,7 @@ void CWeaponPhysCannon::PrimaryAttack( void )
+ 			}
+ 		}
+ 
+-		if ( IsMegaPhysCannon() )
++		if ( IsMegaPhysCannon() && ap::GravityGunStage() >= 4 ) // hl2ap
+ 		{
+ 			if ( pEntity->IsNPC() && !pEntity->IsEFlagSet( EFL_NO_MEGAPHYSCANNON_RAGDOLL ) && pEntity->MyNPCPointer()->CanBecomeRagdoll() )
+ 			{
+@@ -2265,6 +2276,13 @@ void CWeaponPhysCannon::PrimaryAttack( void )
+ 		}
+ 		else
+ 		{
++			// hl2ap: the super gravity gun leaves organics alone below stage 4.
++			if ( ap::GravityGunStage() < 4 && ( pEntity->VPhysicsIsFlesh() || dynamic_cast<CRagdollProp*>(pEntity) ) )
++			{
++				DryFire();
++				ap::GravityGunRefused( "Organics need the fourth Progressive Gravity Gun." );
++				return;
++			}
+ 			if ( dynamic_cast<CRagdollProp*>(pEntity) )
+ 			{
+ 				PuntRagdoll( pEntity, forward, tr );
+@@ -3466,6 +3484,10 @@ bool CWeaponPhysCannon::CanPickupObject( CBaseEntity *pTarget )
+ 		return CBasePlayer::CanPickupObject( pTarget, physcannon_maxmass.GetFloat(), 0 );
+ 	}
+ 
++	// hl2ap: organics are the fourth Progressive Gravity Gun.
++	if ( ap::GravityGunStage() < 4 && ( pTarget->IsNPC() || dynamic_cast<CRagdollProp*>(pTarget) || pTarget->VPhysicsIsFlesh() ) )
++		return false;
++
+ 	if ( pTarget->IsNPC() && pTarget->MyNPCPointer()->CanBecomeRagdoll() )
+ 		return true;
+ 
+diff --git a/src/game/server/player.cpp b/src/game/server/player.cpp
+index 0538f90a..200f2184 100644
+--- a/src/game/server/player.cpp
++++ b/src/game/server/player.cpp
+@@ -97,6 +97,8 @@ ConVar sv_bonus_challenge( "sv_bonus_challenge", "0", FCVAR_REPLICATED, "Set to
+ 
+ static ConVar sv_maxusrcmdprocessticks( "sv_maxusrcmdprocessticks", "24", FCVAR_NOTIFY, "Maximum number of client-issued usrcmd ticks that can be replayed in packet loss conditions, 0 to allow no restrictions" );
+ 
++#include "ap_game.h"
++
+ // memdbgon must be the last include file in a .cpp file!!!
+ #include "tier0/memdbgon.h"
+ 
+@@ -1651,6 +1653,8 @@ void CBasePlayer::Event_Killed( const CTakeDamageInfo &info )
+ {
+ 	CSound *pSound;
+ 
++	ap::PlayerKilled(); // hl2ap
++
+ 	if ( Hints() )
+ 	{
+ 		Hints()->ResetHintTimers();
+@@ -5389,6 +5393,10 @@ bool CBasePlayer::CanEnterVehicle( IServerVehicle *pVehicle, int nRole )
+ 	if ( IsEFlagSet( EFL_IS_BEING_LIFTED_BY_BARNACLE ) )
+ 		return false;
+ 
++	// hl2ap: this chapter's key; refuses entry, never ejects.
++	if ( !ap::CanEnterVehicle( this, pVehicle->GetVehicleEnt() ) )
++		return false;
++
+ 	return true;
+ }
+ 
+@@ -5655,6 +5663,9 @@ void CBloodSplat::Think( void )
+ //-----------------------------------------------------------------------------
+ CBaseEntity	*CBasePlayer::GiveNamedItem( const char *pszName, int iSubType )
+ {
++	if ( ap::RefuseGive( this, pszName ) ) // hl2ap
++		return NULL;
++
+ 	// If I already own this type don't create one
+ 	if ( Weapon_OwnsThisType(pszName, iSubType) )
+ 		return NULL;
+@@ -7601,6 +7612,7 @@ void CStripWeapons::StripWeapons(inputdata_t &data, bool stripSuit)
+ 
+ 	if ( pPlayer )
+ 	{
++		ap::WeaponsStripped(); // hl2ap
+ 		pPlayer->RemoveAllItems( stripSuit );
+ 	}
+ }
+@@ -7708,6 +7720,8 @@ void CRevertSaved::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
+ 
+ void CRevertSaved::InputReload( inputdata_t &inputdata )
+ {
++	ap::ReloadFired(); // hl2ap
++
+ 	UTIL_ScreenFadeAll( m_clrRender, Duration(), HoldTime(), FFADE_OUT );
+ 
+ #ifdef HL1_DLL
+diff --git a/src/game/server/triggers.cpp b/src/game/server/triggers.cpp
+index 295e826a..9f5ec7c0 100644
+--- a/src/game/server/triggers.cpp
++++ b/src/game/server/triggers.cpp
+@@ -38,6 +38,8 @@
+ #include "hl2_player.h"
+ #endif
+ 
++#include "ap_game.h"
++
+ // memdbgon must be the last include file in a .cpp file!!!
+ #include "tier0/memdbgon.h"
+ 
+@@ -1568,6 +1570,11 @@ void CChangeLevel::ChangeLevelNow( CBaseEntity *pActivator )
+ 	if ( m_bTouched )
+ 		return;
+ 
++	// hl2ap: a chapter's exit completes it and returns to the hub; a way
++	// into a locked chapter stays shut.
++	if ( ap::BlockChangeLevel( m_szMapName ) )
++		return;
++
+ 	m_bTouched = true;
+ 
+ 	CBaseEntity *pPlayer = (pActivator && pActivator->IsPlayer()) ? pActivator : UTIL_GetLocalPlayer();
+diff --git a/src/game/shared/basecombatweapon_shared.cpp b/src/game/shared/basecombatweapon_shared.cpp
+index 754919d3..814f8939 100644
+--- a/src/game/shared/basecombatweapon_shared.cpp
++++ b/src/game/shared/basecombatweapon_shared.cpp
+@@ -38,6 +38,10 @@
+ 
+ #endif
+ 
++#ifndef CLIENT_DLL
++#include "ap_game.h"
++#endif
++
+ // memdbgon must be the last include file in a .cpp file!!!
+ #include "tier0/memdbgon.h"
+ 
+@@ -837,6 +841,19 @@ void CBaseCombatWeapon::DefaultTouch( CBaseEntity *pOther )
+ 	if( HasSpawnFlags(SF_WEAPON_NO_PLAYER_PICKUP) )
+ 		return;
+ 
++	// hl2ap: a weapon whose item has not arrived stays put; one the level
++	// scripted around is taken (its outputs fire) and arrives with the item.
++	ap::Touch apTouch = ap::WeaponTouch( pPlayer, this );
++	if ( apTouch != ap::Touch::kAllow )
++	{
++		if ( apTouch == ap::Touch::kConsume || m_OnPlayerPickup.NumberOfElements() > 0 )
++		{
++			m_OnPlayerPickup.FireOutput( pOther, this );
++			UTIL_Remove( this );
++		}
++		return;
++	}
++
+ 	if (pPlayer->BumpWeapon(this))
+ 	{
+ 		OnPickedUp( pPlayer );
 diff --git a/src/tier1/KeyValues.cpp b/src/tier1/KeyValues.cpp
 index 19d6d66c..06423fd6 100644
 --- a/src/tier1/KeyValues.cpp
@@ -75,30 +501,3 @@ index 6da33a38..76b54dcb 100644
  			{
  				if ( !EvaluateConditional( token ) )
  				{
-diff --git a/src/game/server/hl2/hl2_player.cpp b/src/game/server/hl2/hl2_player.cpp
-index e7583f5a..106da308 100644
---- a/src/game/server/hl2/hl2_player.cpp
-+++ b/src/game/server/hl2/hl2_player.cpp
-@@ -1128,7 +1128,8 @@ void CHL2_Player::Spawn(void)
- 
- 	SuitPower_SetCharge( 100 );
- 
--	m_Local.m_iHideHUD |= HIDEHUD_CHAT;
-+	// hl2ap: chat stays visible; it is where `!` commands are typed.
-+	// m_Local.m_iHideHUD |= HIDEHUD_CHAT;
- 
- 	m_pPlayerAISquad = g_AI_SquadManager.FindCreateSquad(AllocPooledString(PLAYER_SQUADNAME));
- 
-diff --git a/src/game/client/hud_basechat.cpp b/src/game/client/hud_basechat.cpp
-index 69d67862..84de0c5d 100644
---- a/src/game/client/hud_basechat.cpp
-+++ b/src/game/client/hud_basechat.cpp
-@@ -32,7 +32,7 @@
- #define CHAT_WIDTH_PERCENTAGE 0.6f
- 
- #ifndef _XBOX
--ConVar hud_saytext_time( "hud_saytext_time", "12", 0 );
-+ConVar hud_saytext_time( "hud_saytext_time", "30", 0 ); // hl2ap: 12; notices need longer
- ConVar cl_showtextmsg( "cl_showtextmsg", "1", 0, "Enable/disable text messages printing on the screen." );
- ConVar cl_chatfilters( "cl_chatfilters", "63", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Stores the chat filter settings " );
- ConVar cl_chatfilter_version( "cl_chatfilter_version", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE | FCVAR_HIDDEN, "Stores the chat filter version" );

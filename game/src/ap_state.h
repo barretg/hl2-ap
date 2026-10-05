@@ -35,6 +35,8 @@ struct Snapshot {
     std::set<std::string> held_items;         // item names the player has been sent
     std::set<std::string> ungated_classnames; // left entirely to the game
     std::vector<std::string> starting_weapons;
+    // Copies held of items that come in copies (`counts=`).
+    std::map<std::string, int> counts;
 
     std::set<long> checked;   // for the tracker
     std::set<long> missing;   // ids in neither set are not in this seed
@@ -47,6 +49,14 @@ struct Snapshot {
 
     bool Has(const std::string& item) const {
         return held_items.find(item) != held_items.end();
+    }
+    // Copies of an item: its count when it comes in copies, else 1 or 0.
+    int Count(const std::string& item) const {
+        const auto it = counts.find(item);
+        if (it != counts.end()) {
+            return it->second;
+        }
+        return Has(item) ? 1 : 0;
     }
     bool ChapterOpen(const std::string& key) const {
         return open_chapters.find(key) != open_chapters.end();

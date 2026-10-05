@@ -275,7 +275,7 @@ def uninstall_sourcemod(steam_dir: Path, library: Path | None = None) -> int:
     """Undo `install_sourcemod`. Returns the number of files removed."""
     steam_dir = Path(steam_dir)
     game_dir = proton_game_dir(steam_dir, library)
-    removed = 0
+    removed = clear_warp_saves(game_dir) if game_dir.is_dir() else 0
     if game_dir != steam_dir:
         if game_dir.is_symlink():
             game_dir.unlink()
@@ -375,9 +375,9 @@ def uninstall(target_root: Path) -> int:
 
     Swept by ownership, not by deleting the folder: the player's saves and
     configs live in the mod folder too and survive, as does the folder if anything is
-    left in it.
+    left in it. Warp saves are ours and go.
     """
-    return sweep(Path(target_root))
+    return clear_warp_saves(Path(target_root)) + sweep(Path(target_root))
 
 
 def sweep(directory: Path) -> int:
@@ -411,6 +411,42 @@ def sweep(directory: Path) -> int:
     if not any(directory.iterdir()):
         directory.rmdir()
 
+    return removed
+
+
+def installed_game_dir(sourcemods: str | os.PathLike[str] | None = None) -> Path | None:
+    """The folder the game actually runs the mod from (where the bridge lives),
+    or None when the mod is not installed as a sourcemod."""
+    try:
+        steam_dir = sourcemod_dir(sourcemods)
+    except ValueError:
+        return None
+    game_dir = proton_game_dir(steam_dir)
+    return game_dir if (game_dir / "gameinfo.txt").is_file() else None
+
+
+# Warp saves the dll writes: `save/apw_<slot key>_<map>.sav`, the key an
+# FNV-1a of `<seed>:<slot>` (see ap_game.cpp `SlotKey`).
+WARP_SAVE_GLOB = "save/apw_{}_*"
+
+
+def warp_save_key(slot: str) -> str:
+    """The dll's key for a slot's warp saves; empty for no slot."""
+    if not slot:
+        return ""
+    value = 2166136261
+    for byte in slot.encode("utf-8"):
+        value = ((value ^ byte) * 16777619) & 0xFFFFFFFF
+    return f"{value:08x}"
+
+
+def clear_warp_saves(game_dir: Path, key: str = "*") -> int:
+    """Delete one run's warp saves (or every run's). Returns files removed."""
+    removed = 0
+    for path in sorted(Path(game_dir).glob(WARP_SAVE_GLOB.format(key))):
+        if path.is_file():
+            path.unlink()
+            removed += 1
     return removed
 
 

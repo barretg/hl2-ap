@@ -88,6 +88,35 @@ plus our own per-campaign switching.
     `HIDEHUD_CHAT`, which hid the chat panel even once it could open.
   - `game/client/clientmode_shared.cpp` `StartMessageMode`: the "multiplayer
     only" early return removed, so chat opens in single player.
+  - Gameplay, each one line into `src/ap_game.cpp` (gating, checks, travel)
+    or `src/ap_melee.cpp`:
+    - `shared/basecombatweapon_shared.cpp` `DefaultTouch` -> `ap::WeaponTouch`:
+      a weapon without its item stays put; one with `OnPlayerPickup` outputs
+      is taken (outputs fire) so a scripted level moves on. Sends the weapon's
+      First check either way.
+    - `server/player.cpp`: `GiveNamedItem` -> `ap::RefuseGive` (scripted and
+      console gives); `Event_Killed` and `CRevertSaved::InputReload` -> deaths
+      and failed objectives; `CStripWeapons::StripWeapons` (the loadout stops
+      granting on that map); `CanEnterVehicle` -> the chapter's vehicle key.
+    - `server/hl2/item_suit.cpp` `MyTouch`: sends the suit check and always
+      takes the suit (we equip it ourselves, so the lab scene never stalls).
+    - `server/hl2/item_healthkit.cpp`, `func_recharge.cpp` `Use` -> charger
+      checks, matched to the nearest unit of the class within 64 units.
+    - `server/triggers.cpp` `ChangeLevelNow`: a chapter's exit completes it
+      and returns to the hub; a way into a locked chapter stays shut.
+    - `server/EnvMessage.cpp` `RollOutroCredits`: the finale's end (GOAL).
+    - `server/hl2/vehicle_airboat.cpp`: the mounted gun has no ammo without
+      the Airboat Gun item.
+    - `server/hl2/weapon_physcannon.cpp`: the four gravity gun stages
+      (`PlayerHasMegaPhysCannon` needs stage 3; punts need 2; organics in
+      super mode need 4).
+    - `server/hl2/hl2_player.cpp` `StartSprinting`, `FlashlightTurnOn`: aux
+      power needs the HEV Suit item, the flashlight the Flashlight item.
+    - `server/hl2/weapon_crowbar.h` `SecondaryAttack` -> Melee Throw.
+
+`tools/sdk_patches.py` regenerates both patches from the SDK checkout
+(`--check` in CI terms); its `HOOK_FILES` list decides which patch a changed
+file belongs to.
 
 ## The client
 
