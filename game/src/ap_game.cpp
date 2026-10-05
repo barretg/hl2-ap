@@ -68,6 +68,8 @@ bool g_goal_sent = false;
 // Refusal notices, by what was refused, so one held trigger is one line.
 std::map<std::string, double> g_last_notice;
 const double kNoticeRepeatSeconds = 10.0;
+// "Found:" repeats until the server confirms the check.
+const double kFoundRepeatSeconds = 5.0;
 
 // --- across maps -----------------------------------------------------------
 
@@ -89,10 +91,10 @@ const double kDeathLinkImmunitySeconds = 2.0;
 const double kRevertDebounceSeconds = 15.0;
 const long kDeathLinkFreshSeconds = 10;
 
-bool Debounced(const std::string& key) {
+bool Debounced(const std::string& key, double window = kNoticeRepeatSeconds) {
     const double now = Now();
     auto it = g_last_notice.find(key);
-    if (it != g_last_notice.end() && now - it->second < kNoticeRepeatSeconds) {
+    if (it != g_last_notice.end() && now - it->second < window) {
         return false;
     }
     g_last_notice[key] = now;
@@ -175,7 +177,7 @@ void Found(long id) {
     // Held even before any client has named a slot: it is sent once one does
     // and authorises this map.
     g_owed.insert(id);
-    if (Gating()) {
+    if (Gating() && Debounced("found:" + std::to_string(id), kFoundRepeatSeconds)) {
         Notify("Found: " + LocationName(id));
     }
     Flush();
