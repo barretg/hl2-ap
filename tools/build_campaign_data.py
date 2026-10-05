@@ -612,7 +612,8 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
         {"key": c.key, "number": c.number, "name": names[c.key], "maps": c.maps,
          "campaign": campaign.key, "is_goal": c.key == campaign.goal_chapter,
          "exits": [list(e) for e in exits.get(c.key, [])],
-         "vehicles": vehicles.get(c.key, [])}
+         "vehicles": vehicles.get(c.key, []),
+         "kits": {m: kit_names(maps[m]) for m in c.maps if kit_names(maps[m])}}
         for c in chapters
     ]
     apply_logic(campaign, chapter_entries, items, locations)
@@ -687,6 +688,19 @@ def apply_logic(campaign: Campaign, chapters: list[dict], items: list[dict],
         checked = check_gate(campaign, gate, item_names, f"First {name}")
         for source in entry["sources"]:
             source["gates"] = checked
+
+
+def kit_names(data: MapData) -> list[str]:
+    """Targetnames of the pickups a map spawns only on a cold load (see
+    `MapLogic`), shared by nothing that exists in play: the game must not
+    count them as pickups."""
+    kit, real = set(), set()
+    for index, entity in enumerate(data.entities):
+        name = (entity.targetname or "").lower()
+        if not name or not entity.classname.startswith(("weapon_", "item_")):
+            continue
+        (real if data.logic.exists_in_play(index) else kit).add(name)
+    return sorted(kit - real)
 
 
 def data_version(items: list[dict], locations: list[dict]) -> str:

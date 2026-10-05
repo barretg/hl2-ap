@@ -8,6 +8,7 @@
 #pragma once
 
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -92,6 +93,10 @@ public:
     const VehicleKey* KeyFor(const std::string& chapter_key) const;
     // Maps that enable a vehicle upgrade (the Airboat Gun).
     const std::vector<std::string>* UpgradeMaps(const std::string& item) const;
+    // Whether an entity of this targetname on this map is a cold-load kit
+    // pickup (spawned only when the map is loaded directly). A template copy's
+    // `&NNNN` suffix is ignored.
+    bool IsKit(const std::string& map, const std::string& targetname) const;
 
 private:
     int format_ = 0;
@@ -104,6 +109,7 @@ private:
     std::map<std::string, int> stages_;
     std::map<std::string, VehicleKey> keys_;
     std::map<std::string, std::vector<std::string>> upgrades_;
+    std::map<std::string, std::set<std::string>> kits_;
     std::map<std::string, size_t> chapter_of_map_;
 };
 

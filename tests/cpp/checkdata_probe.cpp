@@ -52,6 +52,8 @@ int main(int argc, char** argv) {
     } else if (query == "key") {
         const ap::VehicleKey* k = data.KeyFor(a);
         std::printf("%s\n", k ? (k->vehiclescript + "|" + k->item).c_str() : "");
+    } else if (query == "kit") {
+        std::printf("%d\n", data.IsKit(a, b) ? 1 : 0);
     } else if (query == "upgrade") {
         const auto* maps = data.UpgradeMaps(a);
         for (size_t i = 0; maps && i < maps->size(); ++i) {

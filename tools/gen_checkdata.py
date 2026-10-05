@@ -51,6 +51,7 @@ HEADER = """\
 #   P|<item name>|<stages>|<classname>   a progressive item and its stage count
 #   H|<chapter key>|<vehiclescript>|<item name>   the key a chapter's vehicle needs
 #   U|<item name>|<map,map,...>      a vehicle upgrade and the maps that enable it
+#   X|<map>|<targetname,...>         a cold-load kit's pickups: never checks
 # A charger's position is its rounded origin. The game matches the unit a
 # player used by nearest same-class entity within a radius, never by rounding.
 """
@@ -68,6 +69,9 @@ def render(data: dict) -> str:
             campaign=chapter["campaign"],
             on="finale" if chapter["is_goal"] else "forward_exit",
             exits=",".join(f"{a}>{b}" for a, b in chapter["exits"])))
+    for chapter in data["chapters"]:
+        for map_name, names in chapter.get("kits", {}).items():
+            lines.append(f"X|{map_name}|{','.join(names)}")
     for location in data["locations"]:
         trigger = location["trigger"]
         kind = trigger["type"]

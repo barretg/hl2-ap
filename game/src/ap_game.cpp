@@ -519,9 +519,9 @@ void Tracker() {
 }
 
 // The kit a map spawns at the player when loaded directly rather than through
-// a level change (`global_newgame_spawner_*` templates): not a pickup.
+// a level change (`logic_auto` OnNewGame templates): not a pickup.
 bool NewGameKit(CBaseEntity* entity) {
-    return StartsWith(STRING(entity->GetEntityName()), "global_newgame_");
+    return Data().IsKit(CurrentMap(), STRING(entity->GetEntityName()));
 }
 
 }  // namespace

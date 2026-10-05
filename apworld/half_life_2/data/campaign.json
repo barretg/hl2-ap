@@ -33,7 +33,8 @@
      "d1_trainstation_05"
     ]
    ],
-   "vehicles": []
+   "vehicles": [],
+   "kits": {}
   },
   {
    "key": "d1_trainstation_05",
@@ -51,7 +52,12 @@
      "d1_canals_01"
     ]
    ],
-   "vehicles": []
+   "vehicles": [],
+   "kits": {
+    "d1_trainstation_06": [
+     "player_spawn_items"
+    ]
+   }
   },
   {
    "key": "d1_canals_01",
@@ -75,6 +81,33 @@
    "vehicles": [
     "scripts/vehicles/airboat.txt"
    ],
+   "kits": {
+    "d1_canals_01": [
+     "start_item"
+    ],
+    "d1_canals_01a": [
+     "spawnitems"
+    ],
+    "d1_canals_02": [
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_suit"
+    ],
+    "d1_canals_03": [
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_mrounds1",
+     "global_newgame_spawner_mrounds2",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_suit"
+    ],
+    "d1_canals_05": [
+     "global_newgame_resupply",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ]
+   },
    "gates": {
     "strict": [
      "firearm"
@@ -111,6 +144,62 @@
    "vehicles": [
     "scripts/vehicles/airboat.txt"
    ],
+   "kits": {
+    "d1_canals_06": [
+     "global_newgame_ammo",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_smg",
+     "global_newgame_spawner_suit"
+    ],
+    "d1_canals_07": [
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_smg",
+     "global_newgame_spawner_suit"
+    ],
+    "d1_canals_08": [
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d1_canals_09": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_smg",
+     "global_newgame_spawner_suit"
+    ],
+    "d1_canals_10": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_smg",
+     "global_newgame_spawner_suit"
+    ],
+    "d1_canals_11": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_smg",
+     "global_newgame_spawner_suit"
+    ],
+    "d1_canals_12": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d1_canals_13": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_smg",
+     "global_newgame_spawner_suit"
+    ]
+   },
    "gates": {
     "strict": [
      "firearm"
@@ -143,7 +232,25 @@
      "d1_town_01"
     ]
    ],
-   "vehicles": []
+   "vehicles": [],
+   "kits": {
+    "d1_eli_01": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d1_eli_02": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ]
+   }
   },
   {
    "key": "d1_town_01",
@@ -167,6 +274,29 @@
     ]
    ],
    "vehicles": [],
+   "kits": {
+    "d1_town_01": [
+     "player_spawn_items"
+    ],
+    "d1_town_01a": [
+     "player_spawn_items"
+    ],
+    "d1_town_02": [
+     "startobjects"
+    ],
+    "d1_town_03": [
+     "startobjects"
+    ],
+    "d1_town_02a": [
+     "startobjects"
+    ],
+    "d1_town_04": [
+     "player_spawn_items"
+    ],
+    "d1_town_05": [
+     "player_spawn_items"
+    ]
+   },
    "gates": {
     "strict": [
      "firearm"
@@ -199,6 +329,43 @@
    "vehicles": [
     "scripts/vehicles/jeep_test.txt"
    ],
+   "kits": {
+    "d2_coast_01": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d2_coast_03": [
+     "player_spawn_items"
+    ],
+    "d2_coast_04": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d2_coast_05": [
+     "player_spawn_items"
+    ],
+    "d2_coast_07": [
+     "player_spawn_items"
+    ],
+    "d2_coast_08": [
+     "player_spawn_items"
+    ]
+   },
    "gates": {
     "strict": [
      "heavy"
@@ -242,6 +409,54 @@
    "vehicles": [
     "scripts/vehicles/jeep_test.txt"
    ],
+   "kits": {
+    "d2_coast_09": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d2_coast_10": [
+     "player_spawn_items"
+    ],
+    "d2_coast_11": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d2_coast_12": [
+     "player_spawn_items"
+    ],
+    "d2_prison_01": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_bugbait",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ]
+   },
    "gates": {
     "strict": [
      "heavy"
@@ -277,6 +492,64 @@
     ]
    ],
    "vehicles": [],
+   "kits": {
+    "d2_prison_02": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_bugbait",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d2_prison_03": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_bugbait",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d2_prison_04": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_bugbait",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d2_prison_05": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_bugbait",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ]
+   },
    "gates": {
     "strict": [
      "heavy"
@@ -302,6 +575,64 @@
     ]
    ],
    "vehicles": [],
+   "kits": {
+    "d2_prison_06": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_bugbait",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d2_prison_07": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_bugbait",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d2_prison_08": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_bugbait",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d3_c17_01": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_bugbait",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ]
+   },
    "gates": {
     "strict": [
      "heavy"
@@ -331,6 +662,53 @@
     ]
    ],
    "vehicles": [],
+   "kits": {
+    "d3_c17_02": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_bugbait",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d3_c17_03": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d3_c17_04": [
+     "player_spawn_items"
+    ],
+    "d3_c17_05": [
+     "spawn_items"
+    ],
+    "d3_c17_06a": [
+     "player_spawn_items"
+    ],
+    "d3_c17_06b": [
+     "player_spawn_items"
+    ],
+    "d3_c17_07": [
+     "player_items"
+    ],
+    "d3_c17_08": [
+     "player_spawn_items"
+    ]
+   },
    "gates": {
     "strict": [
      "heavy"
@@ -359,6 +737,29 @@
     ]
    ],
    "vehicles": [],
+   "kits": {
+    "d3_c17_09": [
+     "player_spawn_items"
+    ],
+    "d3_c17_10a": [
+     "player_spawn_items"
+    ],
+    "d3_c17_10b": [
+     "player_spawn_items"
+    ],
+    "d3_c17_11": [
+     "player_items"
+    ],
+    "d3_c17_12": [
+     "player_spawn_items"
+    ],
+    "d3_c17_12b": [
+     "player_spawn_items"
+    ],
+    "d3_c17_13": [
+     "player_spawn_items"
+    ]
+   },
    "gates": {
     "strict": [
      "heavy"
@@ -392,6 +793,64 @@
     ]
    ],
    "vehicles": [],
+   "kits": {
+    "d3_citadel_01": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_bugbait",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit",
+     "newgame_hk"
+    ],
+    "d3_citadel_02": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d3_citadel_03": [
+     "global_newgame_spawner_357",
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_bugbait",
+     "global_newgame_spawner_crossbow",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_pistol",
+     "global_newgame_spawner_rpg",
+     "global_newgame_spawner_shotgun",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d3_citadel_04": [
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_crowbar",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ],
+    "d3_citadel_05": [
+     "global_newgame_spawner_ammo",
+     "global_newgame_spawner_ar2",
+     "global_newgame_spawner_physcannon",
+     "global_newgame_spawner_smg1",
+     "global_newgame_spawner_suit"
+    ]
+   },
    "map_gates": {
     "d3_citadel_04": {
      "items": {
@@ -411,6 +870,7 @@
    "is_goal": true,
    "exits": [],
    "vehicles": [],
+   "kits": {},
    "gates": {
     "items": {
      "Progressive Gravity Gun": 3

@@ -93,6 +93,10 @@ bool CheckData::Load(const std::string& path) {
             parsed.keys_[f[1]] = VehicleKey{f[2], f[3]};
         } else if (kind == "U" && f.size() >= 3) {
             parsed.upgrades_[f[1]] = List(f[2], ',');
+        } else if (kind == "X" && f.size() >= 3) {
+            for (const std::string& name : List(f[2], ',')) {
+                parsed.kits_[Lower(f[1])].insert(Lower(name));
+            }
         }
         // Unknown record kinds are a newer generator's; skipped, never fatal.
     }
@@ -206,6 +210,14 @@ const VehicleKey* CheckData::KeyFor(const std::string& chapter_key) const {
 const std::vector<std::string>* CheckData::UpgradeMaps(const std::string& item) const {
     const auto it = upgrades_.find(item);
     return it == upgrades_.end() ? nullptr : &it->second;
+}
+
+bool CheckData::IsKit(const std::string& map, const std::string& targetname) const {
+    const auto it = kits_.find(Lower(map));
+    if (it == kits_.end() || targetname.empty()) {
+        return false;
+    }
+    return it->second.count(Lower(targetname.substr(0, targetname.find('&')))) != 0;
 }
 
 CheckData& Data() {

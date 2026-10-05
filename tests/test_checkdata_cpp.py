@@ -81,6 +81,16 @@ def test_pickups_and_gates(probe: Path) -> None:
     assert ask(probe, "upgrade", "Airboat Gun") == ["d1_canals_11", "d1_canals_13"]
 
 
+def test_cold_load_kits(probe: Path) -> None:
+    # d1_canals_01's suit and crowbar spawn only on a direct load; a template
+    # copy carries an `&NNNN` suffix.
+    assert ask(probe, "kit", "d1_canals_01", "start_item") == ["1"]
+    assert ask(probe, "kit", "D1_Canals_01", "start_item&0000") == ["1"]
+    assert ask(probe, "kit", "d1_canals_03", "global_newgame_spawner_suit") == ["1"]
+    assert ask(probe, "kit", "d1_canals_03", "start_item") == ["0"]
+    assert ask(probe, "kit", "d1_canals_01", "") == ["0"]
+
+
 def test_chargers_carry_positions(probe: Path) -> None:
     expected = [l for l in CAMPAIGN["locations"]
                 if l["trigger"]["type"] == "charger" and l["map"] == "d1_canals_06"]

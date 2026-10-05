@@ -77,7 +77,7 @@ def test_checkdata_is_current() -> None:
 def test_checkdata_records_parse() -> None:
     lines = [l for l in gen_checkdata.OUT_PATH.read_text(encoding="utf-8").splitlines()
              if l and not l.startswith("#")]
-    widths = {"V": 2, "D": 2, "B": 2, "N": 5, "C": 10, "K": 3, "P": 4, "H": 4, "U": 3, "F": 7}
+    widths = {"V": 2, "D": 2, "B": 2, "N": 5, "C": 10, "K": 3, "P": 4, "H": 4, "U": 3, "F": 7, "X": 3}
     for line in lines:
         fields = line.split("|")
         if fields[0] == "L":
