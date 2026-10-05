@@ -484,7 +484,7 @@ class Harness:
         if s is not None and location_id in s.expect:
             if location_id not in self.seen:
                 self.tell(f"[aptest] Expected check arrived: {location_id}.")
-        else:
+        elif location_id not in self.seen:
             self.tell(f"[aptest] Other check: {location_id}")
         self.seen.add(location_id)
 

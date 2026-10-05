@@ -53,6 +53,9 @@ const VehicleClass kVehicleClasses[] = {
 // Checks this map has found that the client has not been told about yet:
 // held until the run authorises this map (see `Authorised`).
 std::set<long> g_owed;
+// Checks already sent from this map: a pickup that keeps firing until the
+// server confirms it must not resend (or re-announce) every frame.
+std::set<long> g_sent;
 // Whether this map has been judged against the snapshot yet.
 bool g_judged = false;
 // A player_weaponstrip fired here: the loadout stops granting until the
@@ -161,6 +164,7 @@ void Flush() {
     for (long id : g_owed) {
         if (State().checked.count(id) == 0 && State().InSeed(id)) {
             Wire().Send("CHECK", std::to_string(id));
+            g_sent.insert(id);
         }
     }
     g_owed.clear();
@@ -171,7 +175,8 @@ void Found(long id) {
     if (id == 0 || !Data().Loaded()) {
         return;
     }
-    if (State().checked.count(id) != 0 || g_owed.count(id) != 0 || !State().InSeed(id)) {
+    if (State().checked.count(id) != 0 || g_owed.count(id) != 0 || g_sent.count(id) != 0 ||
+        !State().InSeed(id)) {
         return;
     }
     // Held even before any client has named a slot: it is sent once one does
@@ -522,6 +527,7 @@ bool Gating() { return !State().slot.empty() && Data().Loaded(); }
 void GameLevelStart() {
     Data().Load(StoreDir() + "/checkdata.txt");
     g_owed.clear();
+    g_sent.clear();
     g_judged = false;
     g_stripped = false;
     g_save_due = -1.0;
