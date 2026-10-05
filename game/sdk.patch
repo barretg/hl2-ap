@@ -185,7 +185,7 @@ index 9a56ee98..4839c077 100644
  	if (!pActivator)
  		return;
 diff --git a/src/game/server/hl2/item_suit.cpp b/src/game/server/hl2/item_suit.cpp
-index 5441234f..71afe371 100644
+index 5441234f..7ac5c934 100644
 --- a/src/game/server/hl2/item_suit.cpp
 +++ b/src/game/server/hl2/item_suit.cpp
 @@ -17,6 +17,8 @@
@@ -201,7 +201,7 @@ index 5441234f..71afe371 100644
  	}
  	bool MyTouch( CBasePlayer *pPlayer )
  	{
-+		ap::SuitTouched( pPlayer ); // hl2ap
++		ap::SuitTouched( pPlayer, this ); // hl2ap
 +		// hl2ap: the suit is equipped by us from the first spawn, so taken
 +		// anyway: a level scripted around its pickup still moves on.
  		if ( pPlayer->IsSuitEquipped() )

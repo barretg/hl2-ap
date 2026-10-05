@@ -518,6 +518,12 @@ void Tracker() {
     EndReply();
 }
 
+// The kit a map spawns at the player when loaded directly rather than through
+// a level change (`global_newgame_spawner_*` templates): not a pickup.
+bool NewGameKit(CBaseEntity* entity) {
+    return StartsWith(STRING(entity->GetEntityName()), "global_newgame_");
+}
+
 }  // namespace
 
 // --- public ------------------------------------------------------------------------
@@ -654,7 +660,9 @@ Touch WeaponTouch(CBasePlayer* player, CBaseCombatWeapon* weapon) {
     if (ItemOf(classname).empty() || !StartsWith(classname, "weapon_")) {
         return Touch::kAllow;
     }
-    Found(Data().Pickup("weapon_pickup", classname));
+    if (!NewGameKit(weapon)) {
+        Found(Data().Pickup("weapon_pickup", classname));
+    }
     if (ClassnameHeld(classname)) {
         return Touch::kAllow;
     }
@@ -683,8 +691,8 @@ bool RefuseGive(CBasePlayer* player, const char* classname) {
     return true;
 }
 
-void SuitTouched(CBasePlayer* player) {
-    if (player != nullptr) {
+void SuitTouched(CBasePlayer* player, CBaseEntity* suit) {
+    if (player != nullptr && suit != nullptr && !NewGameKit(suit)) {
         Found(Data().Pickup("item_pickup", "item_suit"));
     }
 }

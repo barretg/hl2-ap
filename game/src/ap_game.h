@@ -42,7 +42,7 @@ bool RefuseGive(CBasePlayer* player, const char* classname);
 
 // hl2/item_suit.cpp MyTouch. Reports the suit check; the suit itself is
 // ours to equip, so the item is always taken (its map outputs fire).
-void SuitTouched(CBasePlayer* player);
+void SuitTouched(CBasePlayer* player, CBaseEntity* suit);
 
 // hl2/item_healthkit.cpp, hl2/func_recharge.cpp Use.
 void ChargerUsed(CBaseEntity* charger, CBaseEntity* user);
