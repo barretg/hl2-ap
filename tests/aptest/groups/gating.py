@@ -52,11 +52,13 @@ def build(ctx) -> list[Scenario]:
             map="d2_coast_03", pos=rpg.position, take=["RPG"], expect=[first(data, "RPG")],
             setup=spawn_setup(rpg),
             steps="""
-                Odessa's RPG was spawned here and you do not hold the RPG item. Walk
-                over it: it stays on the ground, the level's pickup scene carries on
-                (Odessa's next lines, the train horn), First RPG is reported, and you
-                still have no RPG. Then !give RPG: the RPG arrives, and walking over the
-                one on the ground gives ammo without replaying the scene.
+                Odessa's RPG was spawned onto you, as the level does when you reach
+                him, and you do not hold the RPG item. It should drop to the floor in
+                front of you, the level's pickup scene carries on (the train horn),
+                First RPG is reported, and you still have no RPG. In a real run the
+                same happens when Odessa hands it over: it falls to the floor rather
+                than vanishing. Then !give RPG: the RPG arrives, and walking over the
+                one on the floor gives ammo without replaying the scene.
                 !pass or !fail <what happened>.
             """,
         ),

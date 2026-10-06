@@ -104,6 +104,17 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
+            title="!setwarp moves the part's warp point; !setwarp <name> adds one",
+            map="d1_canals_02", checked=[data.reached("d1_canals_02")],
+            steps="""
+                Walk somewhere distinctive and type !setwarp: chat says the warp point
+                for Route Kanal part 3 is set. !hub, then !warp 3 3: you arrive where
+                you typed it. Walk elsewhere, !setwarp bridge, !hub, then !warps lists
+                bridge, and !warp bridge brings you there. !setwarp in the hub refuses.
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
             title="The way back into a locked chapter is shut",
             map="d1_canals_06", pos="13500 9408 -160", closed=["d1_canals_01"],
             steps="""

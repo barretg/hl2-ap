@@ -7,12 +7,14 @@
 #include "globalstate.h"
 #include "weapon_physcannon.h"
 #include "basecombatweapon_shared.h"
+#include "filesystem.h"
 
 #include "ap_game.h"
 
 #include <cstdio>
 #include <fstream>
 #include <map>
+#include <algorithm>
 #include <set>
 #include <string>
 #include <vector>
@@ -231,6 +233,64 @@ bool SaveExists(const std::string& name) {
     engine->GetGameDir(dir, sizeof(dir));
     std::ifstream file((std::string(dir) + "/save/" + name + ".sav").c_str());
     return static_cast<bool>(file);
+}
+
+// The player's own warp points, `!setwarp <name>`: `apw_<key>_u<label>_<map>`.
+// The label is letters and digits only, so the last underscore splits it from
+// the map. The directory is the record; nothing about them is kept in memory.
+struct NamedWarp {
+    std::string save;
+    std::string label;
+    std::string map;
+};
+
+std::string WarpLabel(const std::string& text) {
+    std::string out;
+    for (char c : Lower(text)) {
+        if (((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) && out.size() < 12) {
+            out.push_back(c);
+        }
+    }
+    return out;
+}
+
+std::vector<NamedWarp> NamedWarps() {
+    std::vector<NamedWarp> found;
+    const std::string key = SlotKey();
+    if (key.empty()) {
+        return found;
+    }
+    const std::string prefix = "apw_" + key + "_u";
+    FileFindHandle_t handle;
+    for (const char* file = filesystem->FindFirstEx(("save/" + prefix + "*.sav").c_str(), "MOD",
+                                                    &handle);
+         file != nullptr; file = filesystem->FindNext(handle)) {
+        std::string name = file;
+        if (name.size() <= prefix.size() + 4) {
+            continue;
+        }
+        name = name.substr(0, name.size() - 4);
+        const std::string tail = name.substr(prefix.size());
+        const size_t split = tail.find('_');
+        if (split == std::string::npos || split == 0 || split + 1 >= tail.size()) {
+            continue;
+        }
+        found.push_back({name, tail.substr(0, split), tail.substr(split + 1)});
+    }
+    filesystem->FindClose(handle);
+    std::sort(found.begin(), found.end(),
+              [](const NamedWarp& a, const NamedWarp& b) { return a.label < b.label; });
+    return found;
+}
+
+const NamedWarp* FindNamedWarp(const std::vector<NamedWarp>& warps, const std::string& text) {
+    const std::string label = WarpLabel(text);
+    for (const NamedWarp& warp : warps) {
+        if (!label.empty() && warp.label == label) {
+            return &warp;
+        }
+    }
+    return nullptr;
 }
 
 // --- loadout -------------------------------------------------------------------
@@ -460,10 +520,16 @@ void ReportDeath(const std::string& cause) {
     if (link && g_forgiven < allowance) {
         ++g_forgiven;
         forgiven = true;
-        Notify("DeathLink amnesty: " + std::to_string(allowance - g_forgiven) +
-               " death(s) left before one is sent.");
+        const long left = allowance - g_forgiven;
+        Notify(left > 0 ? "DeathLink amnesty: this death is forgiven; " + std::to_string(left) +
+                              " more before one is sent."
+                        : std::string("DeathLink amnesty: this death is forgiven; the next "
+                                      "one will be sent."));
     } else {
         g_forgiven = 0;
+        if (link && allowance > 0) {
+            Notify("DeathLink sent. Amnesty is back to " + std::to_string(allowance) + ".");
+        }
     }
     Wire().Send("DEATH", std::vector<std::string>{"Freeman", Sanitise(cause),
                                                   forgiven ? "1" : "0"});
@@ -492,6 +558,84 @@ void ListChapters() {
     EndReply();
 }
 
+// A named warp point. The save says where; the seed still says whether.
+void WarpToNamed(const NamedWarp& warp) {
+    const Chapter* chapter = Data().ChapterOfMap(warp.map);
+    if (chapter == nullptr) {
+        Notify("Warp point " + warp.label + " is outside any chapter.");
+        return;
+    }
+    if (Gating() && !ChapterAvailable(*chapter)) {
+        Notify(chapter->name + " is " + ChapterStatus(*chapter) + ".");
+        return;
+    }
+    if (Gating() && warp.map != chapter->maps.front() &&
+        State().checked.count(Data().MapReached(warp.map)) == 0) {
+        Notify("Warp point " + warp.label + " is in a part this run has not reached.");
+        return;
+    }
+    Notify("Warping to " + warp.label + ".");
+    engine->ServerCommand(("load " + warp.save + "\n").c_str());
+}
+
+void SetWarp(const std::string& rest) {
+    const std::string key = SlotKey();
+    if (key.empty()) {
+        Notify("No slot is connected, so there is nothing to key a warp point to.");
+        return;
+    }
+    const std::string map = CurrentMap();
+    const Chapter* chapter = Data().ChapterOfMap(map);
+    if (chapter == nullptr) {
+        Notify(IsHub() ? "This is the hub; !hub already comes back here."
+                       : "Warp points can only be set inside a chapter.");
+        return;
+    }
+    CBasePlayer* player = UTIL_GetLocalPlayer();
+    if (player == nullptr || !player->IsAlive()) {
+        Notify("Not while dead.");
+        return;
+    }
+    if (Trim(rest).empty()) {
+        engine->ServerCommand(("save " + WarpSaveName(map) + "\n").c_str());
+        const auto at = std::find(chapter->maps.begin(), chapter->maps.end(), map);
+        const int part = static_cast<int>(at - chapter->maps.begin()) + 1;
+        Notify("Warp point for " + chapter->name + " part " + std::to_string(part) +
+               " set to where you stand.");
+        return;
+    }
+    const std::string label = WarpLabel(rest);
+    if (label.empty()) {
+        Notify("A warp point name needs letters or numbers: !setwarp lab");
+        return;
+    }
+    // The same name elsewhere is that warp point moved: one name, one save.
+    const std::vector<NamedWarp> warps = NamedWarps();
+    const NamedWarp* existing = FindNamedWarp(warps, label);
+    if (existing != nullptr && existing->map != map) {
+        char dir[MAX_PATH] = {0};
+        engine->GetGameDir(dir, sizeof(dir));
+        std::remove((std::string(dir) + "/save/" + existing->save + ".sav").c_str());
+    }
+    engine->ServerCommand(("save apw_" + key + "_u" + label + "_" + map + "\n").c_str());
+    Notify("Warp point " + label + " set. Come back with !warp " + label + ".");
+}
+
+void ListWarps() {
+    BeginReply("!warps");
+    const std::vector<NamedWarp> warps = NamedWarps();
+    if (warps.empty()) {
+        Say("No warp points of your own. !setwarp <name> makes one where you stand.");
+    }
+    for (const NamedWarp& warp : warps) {
+        const Chapter* chapter = Data().ChapterOfMap(warp.map);
+        Say("!warp " + warp.label + "    " + (chapter ? chapter->name : std::string("?")) +
+            " (" + warp.map + ")");
+    }
+    Say("Parts you have reached: !warp <chapter> <part>.");
+    EndReply();
+}
+
 void Warp(const std::string& rest) {
     const std::vector<std::string> words = Split(Trim(rest), ' ');
     if (Trim(rest).empty()) {
@@ -517,14 +661,21 @@ void Warp(const std::string& rest) {
     }
     const Chapter* chapter = Data().FindChapter(name);
     if (chapter == nullptr) {
-        Notify("No chapter called " + name + ". !ap lists them.");
+        const std::vector<NamedWarp> warps = NamedWarps();
+        if (const NamedWarp* warp = FindNamedWarp(warps, Trim(rest))) {
+            WarpToNamed(*warp);
+            return;
+        }
+        Notify("No chapter or warp point called " + name + ". !ap and !warps list them.");
         return;
     }
     if (Gating() && !ChapterAvailable(*chapter)) {
         Notify(chapter->name + " is " + ChapterStatus(*chapter) + ".");
         return;
     }
-    if (part <= 1) {
+    // No part starts the chapter fresh; part 1 named is its warp point, which
+    // `!setwarp` may have moved.
+    if (part == 0) {
         RequestMap(chapter->maps.front());
         return;
     }
@@ -533,7 +684,7 @@ void Warp(const std::string& rest) {
         return;
     }
     const std::string& map = chapter->maps[part - 1];
-    if (Gating() && State().checked.count(Data().MapReached(map)) == 0) {
+    if (part > 1 && Gating() && State().checked.count(Data().MapReached(map)) == 0) {
         Notify("You have not reached part " + std::to_string(part) + " of " + chapter->name +
                " yet.");
         return;
@@ -703,6 +854,10 @@ bool GameDispatch(const std::string& name, const std::string& rest) {
         Warp(rest);
     } else if (name == "hub") {
         GoHub("");
+    } else if (name == "setwarp") {
+        SetWarp(rest);
+    } else if (name == "warps") {
+        ListWarps();
     } else if (name == "tracker") {
         Tracker();
     } else {
@@ -714,6 +869,9 @@ bool GameDispatch(const std::string& name, const std::string& rest) {
 void GameHelp() {
     Say("!ap          every chapter and its status");
     Say("!warp <n>    start a chapter (number or name); !warp <n> <part> a part reached");
+    Say("!setwarp     move this part's warp point to where you stand");
+    Say("!setwarp <name>  make a warp point here; !warp <name> returns");
+    Say("!warps       your warp points");
     Say("!hub         back to the hub");
     Say("!tracker     checks found and missing on this map");
 }
@@ -747,6 +905,22 @@ Touch WeaponTouch(CBasePlayer* player, CBaseCombatWeapon* weapon) {
         Notify(ItemOf(classname) + " not received yet; left where it is.");
     }
     return Touch::kRefuse;
+}
+
+void ScriptedWeaponRefused(CBasePlayer* player, CBaseCombatWeapon* weapon) {
+    if (player == nullptr || weapon == nullptr) {
+        return;
+    }
+    Vector forward;
+    AngleVectors(QAngle(0, player->EyeAngles().y, 0), &forward);
+    // Chest high and clear of the player's box; back off toward them if a
+    // wall is closer, then let it fall.
+    const Vector from = player->WorldSpaceCenter();
+    trace_t tr;
+    UTIL_TraceLine(from, from + forward * 48.0f, MASK_SOLID, player, COLLISION_GROUP_NONE, &tr);
+    const Vector spot = from + forward * MAX(48.0f * tr.fraction - 8.0f, 0.0f);
+    const Vector still(0, 0, 0);
+    weapon->Teleport(&spot, nullptr, &still);
 }
 
 bool RefuseGive(CBasePlayer* player, const char* classname) {

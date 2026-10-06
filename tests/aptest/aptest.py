@@ -509,7 +509,15 @@ class Harness:
             self.bridge.acknowledge(int(event.arg))
         elif event.kind in ("COMPLETE", "GOAL"):
             self.judge_complete(event.kind, event.arg)
-        elif event.kind in ("DEATH", "CHAT"):
+        elif event.kind == "DEATH":
+            # The last field is the forgiven flag: say it in words, since a bare
+            # 1 reads as an amnesty count.
+            *rest, flag = event.args or ["?"]
+            verdict = "forgiven (not sent)" if flag == "1" else "sent"
+            self.tell("[aptest] DEATH: " + " | ".join(rest) + f" -> {verdict}")
+            if flag != "1":
+                self.tell("[aptest] DeathLink sent")
+        elif event.kind == "CHAT":
             self.tell(f"[aptest] {event.kind}: " + " | ".join(event.args))
         elif event.kind == "HELLO":
             self.publish(force=True)

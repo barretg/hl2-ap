@@ -15,7 +15,7 @@ def build(ctx) -> list[Scenario]:
             map="d1_canals_01", snapshot={"death_link": True, "death_link_amnesty": 0},
             steps="""
                 Type kill in the console. The harness should show DEATH | Freeman |
-                death | 0 (not forgiven).
+                death -> sent, then [aptest] DeathLink sent.
                 !pass or !fail <what happened>.
             """,
         ),
@@ -23,9 +23,10 @@ def build(ctx) -> list[Scenario]:
             title="Amnesty forgives deaths, then sends one",
             map="d1_canals_01", snapshot={"death_link": True, "death_link_amnesty": 2},
             steps="""
-                Type kill three times, letting the game reload in between. The first two
-                say how much amnesty is left and arrive forgiven (| 1); the third
-                arrives as | 0.
+                Type kill three times, letting the game reload in between. The first
+                says it is forgiven with 1 more to go, the second that the next will be
+                sent; both show -> forgiven (not sent). The third shows -> sent and [aptest] DeathLink sent, and
+                chat says amnesty is back to 2. Further kills repeat the cycle.
                 !pass or !fail <what happened>.
             """,
         ),
@@ -53,7 +54,7 @@ def build(ctx) -> list[Scenario]:
             steps="""
                 The setup fired a player_loadsaved (what an escort failure or a fall
                 into the void fires). The screen fades and the save reloads, and the
-                harness shows DEATH | Freeman | a failed objective | 0.
+                harness shows DEATH | Freeman | a failed objective -> sent.
                 !pass or !fail <what happened>.
             """,
         ),

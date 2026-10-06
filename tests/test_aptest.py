@@ -240,7 +240,8 @@ def test_game_events_are_handled(harness: aptest.Harness) -> None:
         harness.handle(event)
     assert harness.results_path.exists()
     assert "Other check: 123" in said(harness)
-    assert "DEATH: Gordon | a hunter | 0" in said(harness)
+    assert "DEATH: Gordon | a hunter -> sent" in said(harness)
+    assert "[aptest] DeathLink sent" in said(harness)
 
 
 def test_unknown_verb_prints_help(harness: aptest.Harness) -> None:

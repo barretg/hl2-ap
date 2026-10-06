@@ -37,6 +37,11 @@ bool Gating();
 enum class Touch { kAllow, kRefuse, kConsume };
 Touch WeaponTouch(CBasePlayer* player, CBaseCombatWeapon* weapon);
 
+// DefaultTouch again, once, when a refused weapon was one the level scripted
+// around (its pickup outputs just fired). Such weapons are spawned onto the
+// player, so this drops it to the floor in front of them to be seen.
+void ScriptedWeaponRefused(CBasePlayer* player, CBaseCombatWeapon* weapon);
+
 // player.cpp GiveNamedItem, first line. True refuses the give.
 bool RefuseGive(CBasePlayer* player, const char* classname);
 

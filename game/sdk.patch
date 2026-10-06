@@ -445,7 +445,7 @@ index 295e826a..9f5ec7c0 100644
  
  	CBaseEntity *pPlayer = (pActivator && pActivator->IsPlayer()) ? pActivator : UTIL_GetLocalPlayer();
 diff --git a/src/game/shared/basecombatweapon_shared.cpp b/src/game/shared/basecombatweapon_shared.cpp
-index 754919d3..cb37e7c8 100644
+index 754919d3..e76452c3 100644
 --- a/src/game/shared/basecombatweapon_shared.cpp
 +++ b/src/game/shared/basecombatweapon_shared.cpp
 @@ -38,6 +38,10 @@
@@ -459,13 +459,13 @@ index 754919d3..cb37e7c8 100644
  // memdbgon must be the last include file in a .cpp file!!!
  #include "tier0/memdbgon.h"
  
-@@ -837,6 +841,24 @@ void CBaseCombatWeapon::DefaultTouch( CBaseEntity *pOther )
+@@ -837,6 +841,25 @@ void CBaseCombatWeapon::DefaultTouch( CBaseEntity *pOther )
  	if( HasSpawnFlags(SF_WEAPON_NO_PLAYER_PICKUP) )
  		return;
  
 +	// hl2ap: a weapon whose item has not arrived stays put. One the level
-+	// scripted around fires its outputs once so the scene goes on, and stays
-+	// to be picked up when the item arrives.
++	// scripted around fires its outputs once so the scene goes on, and drops
++	// to the floor to be picked up when the item arrives.
 +	ap::Touch apTouch = ap::WeaponTouch( pPlayer, this );
 +	if ( apTouch != ap::Touch::kAllow )
 +	{
@@ -473,6 +473,7 @@ index 754919d3..cb37e7c8 100644
 +		{
 +			m_OnPlayerPickup.FireOutput( pOther, this );
 +			m_OnPlayerPickup.DeleteAllElements();
++			ap::ScriptedWeaponRefused( pPlayer, this );
 +		}
 +		if ( apTouch == ap::Touch::kConsume )
 +		{
