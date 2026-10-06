@@ -54,8 +54,8 @@ def build(ctx) -> list[Scenario]:
             steps="""
                 Walk through the confiscation field. Your other weapons dissolve; the
                 gravity gun stays the normal orange one (not supercharged), and First
-                Super Gravity Gun is not sent. Afterwards no weapon but the gravity gun
-                comes back.
+                Super Gravity Gun is not sent. Afterwards your other weapons come back,
+                since an orange gun alone cannot get you through the Citadel.
                 !pass or !fail <what happened>.
             """,
         ),
@@ -73,9 +73,12 @@ def build(ctx) -> list[Scenario]:
         Scenario(
             title="Stage 4 at the Citadel field: the full super gravity gun",
             map=field.map, pos=field.position, counts={GUN: 4}, expect=[upgrade.id],
+            setup=["sv_cheats 1"],
             steps="""
                 Walk through the field. Soldiers can be grabbed, punted and vaporised as
-                in retail.
+                in retail. A soldier killed by the gun (punted, hit by a thrown prop or
+                an energy ball) drops a weapon that dissolves. Look at another and type
+                npc_kill: that one's weapon stays on the floor.
                 !pass or !fail <what happened>.
             """,
         ),
@@ -83,9 +86,10 @@ def build(ctx) -> list[Scenario]:
             title="Black Mesa East's gravity gun give with stage 0",
             map="d1_eli_02", counts={GUN: 0}, expect=[first(data, "Gravity Gun")],
             steps="""
-                Play on until Alyx hands over the gravity gun. You do not get it,
-                First Gravity Gun is sent, and the scene carries on (Alyx tells you to
-                try it on Dog). !note whether the level waits for you to use the gun.
+                Play on until Alyx hands over the gravity gun. You do not get it, it
+                lands on the floor in front of you, First Gravity Gun is sent, and the
+                scene carries on (Alyx tells you to try it on Dog). Then !give
+                Progressive Gravity Gun: the gun arrives and the level goes on.
                 !pass or !fail <what happened>.
             """,
         ),

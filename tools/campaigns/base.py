@@ -81,13 +81,15 @@ class Campaign:
     unreachable_chargers: dict[str, set[tuple[str, tuple[int, int, int]]]] = field(
         default_factory=dict
     )
-    # Logic. A gate is `{"strict": [requirement group, ...], "items": {item:
-    # count}}`: every strict group needs one of its items (strict logic only),
-    # every item its count (any difficulty). Item and group names are the
+    # Logic. A gate is `{"strict": [requirement group, ...], "any":
+    # [requirement group, ...], "items": {item: count}}`: every strict group
+    # needs one of its items (strict logic only), every any group one of its
+    # items (any difficulty), every item its count (any difficulty). Item and group names are the
     # display names the world uses. Validated by the data build.
     #
-    # `{group: [item, ...]}`, "any one of these".
-    requirement_groups: dict[str, list[str]] = field(default_factory=dict)
+    # `{group: [option, ...]}`, "any one of these". An option is an item, or
+    # a list of items that only count together (a vehicle's gun and its keys).
+    requirement_groups: dict[str, list[str | list[str]]] = field(default_factory=dict)
     # `{chapter key: {"entry": gate, "maps": {map: gate}, "complete": gate}}`.
     # "entry" applies to the whole chapter, a "maps" gate to walking on into
     # that map (and so everything after it), "complete" to the chapter's
@@ -95,6 +97,9 @@ class Campaign:
     gates: dict[str, dict] = field(default_factory=dict)
     # `{check item name: gate}` on every source of that "First ..." check.
     source_gates: dict[str, dict] = field(default_factory=dict)
+    # `{check name: gate}` on one check that sits past a stretch its map
+    # gate does not cover (a charger beyond a puzzle mid-map).
+    check_gates: dict[str, dict] = field(default_factory=dict)
     # Items every run opens with; never in the pool.
     starting_items: list[str] = field(default_factory=list)
     # Prefix on this campaign's location and item names. Empty for the base

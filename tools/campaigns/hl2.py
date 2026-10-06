@@ -51,7 +51,7 @@ HL2 = Campaign(
     ally_npcs=frozenset({"npc_citizen", "npc_barney", "npc_alyx", "npc_monk"}),
     input_gives={"ExtractBugbait": "weapon_bugbait"},
     vehicles={"scripts/vehicles/airboat.txt": "Boat",
-              "scripts/vehicles/jeep_test.txt": "Car"},
+              "scripts/vehicles/jeep_test.txt": "Buggy"},
     # Verdicts from the `sources` harness group (2026-10-04) unless noted.
     unreachable_copies={
         # Point Insertion's and A Red Letter Day's metrocops are scripted and
@@ -82,38 +82,68 @@ HL2 = Campaign(
         "Super Gravity Gun": ["d3_breen_01"],
     },
     chargers={"item_healthcharger": "Health Charger", "item_suitcharger": "Suit Charger"},
-    # Logic, first cut (2026-10-04). Traversal needs (keys, gravity gun
+    # Logic, first cut (2026-10-04). Traversal needs (boat keys, gravity gun
     # stages, the RPG where a gunship or strider bars the way, the Airboat
-    # Gun) apply at every difficulty; firepower is strict only. Each gate
+    # Gun) apply at every difficulty; firepower, buggy keys and the gravity gun
+    # where it only helps are strict only. Each gate
     # here is a claim the `logic` harness group checks in play.
     starting_items=["Crowbar"],
     requirement_groups={
         "firearm": ["Pistol", ".357 Magnum", "SMG", "Pulse Rifle", "Shotgun", "Crossbow"],
         "heavy": ["SMG", "Pulse Rifle", "Shotgun"],
+        # Ravenholm's zombies need the shotgun or better; the RPG has too few
+        # shots (2026-10-06).
+        "zombie killer": ["Shotgun", ".357 Magnum", "Pulse Rifle", "Crossbow"],
+        "gravity gun": ["Progressive Gravity Gun"],
+        # The buggy chapters can in theory be run on foot (2026-10-06).
+        "highway 17 buggy": ["Highway 17 Buggy Keys"],
+        "sandtraps buggy": ["Sandtraps Buggy Keys"],
+        "airboat gun": ["Airboat Gun"],
+        # The hunter-chopper can also be brought down with the RPG, and with
+        # neither it cannot (confirmed in play, 2026-10-06).
+        "chopper killer": ["Airboat Gun", "RPG"],
+        "explosives": ["Grenade", "RPG"],
+        # Nova Prospekt can be done without it, but strict expects it (2026-10-06).
+        "bugbait": ["Bugbait"],
+        # Sandtraps' battery is reached by blasting its way with the buggy's
+        # cannon or the RPG (2026-10-06).
+        # The gun only counts with the buggy it is mounted on.
+        "sandtraps battery": [["Buggy Gun", "Sandtraps Buggy Keys"], "RPG"],
     },
     gates={
         # Armed cops and manhacks; the airboat is how the chapter ends.
         "d1_canals_01": {"entry": {"strict": ["firearm"]},
                          "complete": {"items": {"Route Kanal Boat Keys": 1}}},
-        # Played in the boat from the first map; the hunter-chopper is
-        # killed with the mounted gun in d1_canals_13 (assumed from d1_canals_12).
+        # Played in the boat from the first map; the hunter-chopper in
+        # d1_canals_13 is killed with the mounted gun, or the RPG under loose
+        # logic (2026-10-06).
         "d1_canals_06": {"entry": {"strict": ["firearm"],
                                    "items": {"Water Hazard Boat Keys": 1}},
-                         "maps": {"d1_canals_12": {"items": {"Airboat Gun": 1}}}},
-        # Physics puzzles throughout.
-        "d1_town_01": {"entry": {"strict": ["firearm"],
-                                 "items": {"Progressive Gravity Gun": 1}}},
-        # The buggy is handed over in d2_coast_01; Odessa's gunship in
-        # d2_coast_03 needs the RPG to move on.
-        "d2_coast_01": {"entry": {"strict": ["heavy"],
-                                  "items": {"Progressive Gravity Gun": 1}},
-                        "maps": {"d2_coast_03": {"items": {"Highway 17 Car Keys": 1}},
+                         "maps": {"d1_canals_13": {"strict": ["airboat gun"],
+                                                   "any": ["chopper killer"]}}},
+        # Black Mesa East goes on without Alyx's gravity gun (props stack),
+        # and Ravenholm is passable without it too (2026-10-06).
+        "d1_town_01": {"entry": {"strict": ["zombie killer", "gravity gun"]}},
+        # The buggy is handed over flipped in d2_coast_01, and parts of the
+        # chapter need it: explosives flip it at any difficulty, with the
+        # gravity gun as well under strict logic. Odessa's gunship in
+        # d2_coast_03 needs the RPG to move on (2026-10-06).
+        "d2_coast_01": {"entry": {"strict": ["heavy", "gravity gun"],
+                                  "any": ["explosives"]},
+                        "maps": {"d2_coast_03": {"strict": ["highway 17 buggy"]},
                                  "d2_coast_04": {"items": {"RPG": 1}}}},
         # Driven from the first map to the beach; plank bridges over the sand.
+        # Fine on foot under loose logic. Under strict, the buggy, and the
+        # Buggy Gun or the RPG to get the battery that lets it into
+        # d2_coast_10 (2026-10-06).
         "d2_coast_09": {"entry": {"strict": ["heavy"],
                                   "items": {"Progressive Gravity Gun": 1}},
-                        "maps": {"d2_coast_10": {"items": {"Sandtraps Car Keys": 1}}}},
-        "d2_prison_02": {"entry": {"strict": ["heavy"]}},
+                        # Part 2's gunship (d2_coast_10) needs the RPG to move
+                        # on, at any difficulty (2026-10-06).
+                        "maps": {"d2_coast_10": {"strict": ["sandtraps buggy",
+                                                          "sandtraps battery"]},
+                                 "d2_coast_11": {"items": {"RPG": 1}}}},
+        "d2_prison_02": {"entry": {"strict": ["heavy", "bugbait"]}},
         "d2_prison_06": {"entry": {"strict": ["heavy"]}},
         "d3_c17_02": {"entry": {"strict": ["heavy"]}},
         # Gunships and the striders at the end.
@@ -125,4 +155,11 @@ HL2 = Campaign(
     },
     # The supercharge is withheld below stage 3.
     source_gates={"Super Gravity Gun": {"items": {"Progressive Gravity Gun": 3}}},
+    # d3_citadel_03 runs from the field (x 7700) to the exit (x 720); its
+    # first energy-ball gate (x 3500) needs the supercharged gun, so the
+    # chargers past it do too (2026-10-06).
+    check_gates={
+        "Our Benefactors: Suit Charger 2 (Part 3)": {"items": {"Progressive Gravity Gun": 3}},
+        "Our Benefactors: Suit Charger 3 (Part 3)": {"items": {"Progressive Gravity Gun": 3}},
+    },
 )

@@ -1,15 +1,20 @@
 """Access rules.
 
 Gates come from the campaign data (`tools/campaigns/<game>.py`, baked into
-`data/campaign.json`). A gate is `{"strict": [group, ...], "items": {item:
-count}}`:
+`data/campaign.json`). A gate is `{"strict": [group, ...], "any": [group,
+...], "items": {item: count}}`:
 
-* **strict** groups are firepower: one item from each, under strict logic only.
-* **items** are traversal (vehicle keys, gravity gun stages, the RPG where a
+* **strict** groups are what helps but is not needed (firepower, car keys):
+  one item from each, under strict logic only.
+* **any** groups are traversal with more than one way through (the Airboat
+  Gun or the RPG for the hunter-chopper): one item from each, at every
+  difficulty.
+* **items** are traversal (boat keys, gravity gun stages, the RPG where a
   gunship bars the way): each at its count, at every difficulty.
 
 A gate sits on a chapter's entrance, on walking on into one of its later maps,
-on the chapter's completion, or on one source of a "First ..." check. This
+on the chapter's completion, on one source of a "First ..." check, or on one
+other check past a mid-map obstacle. This
 module only turns them into callables.
 """
 
@@ -28,9 +33,11 @@ if TYPE_CHECKING:
 Rule = Callable[[CollectionState], bool]
 
 
-def group_items(world: "HalfLife2World", group: str) -> list[str]:
-    """The items satisfying a requirement group that this seed can receive."""
-    return [name for name in REQUIREMENT_GROUPS[group] if name in world.obtainable_item_names]
+def group_options(world: "HalfLife2World", group: str) -> list[list[str]]:
+    """The options satisfying a requirement group that this seed can receive,
+    each the items that count together (most are one item)."""
+    options = [o if isinstance(o, list) else [o] for o in REQUIREMENT_GROUPS[group]]
+    return [o for o in options if all(n in world.obtainable_item_names for n in o)]
 
 
 def gate_conditions(world: "HalfLife2World", gate: dict) -> list[Rule]:
@@ -38,11 +45,17 @@ def gate_conditions(world: "HalfLife2World", gate: dict) -> list[Rule]:
     this seed can receive is not a gate."""
     player = world.player
     conditions: list[Rule] = []
+    groups = list(gate.get("any", []))
     if world.options.logic_difficulty.value == LogicDifficulty.option_strict:
-        for group in gate.get("strict", []):
-            names = group_items(world, group)
-            if names:
-                conditions.append(lambda state, names=names: state.has_any(names, player))
+        groups += gate.get("strict", [])
+    for group in groups:
+        options = group_options(world, group)
+        if all(len(o) == 1 for o in options) and options:
+            names = [o[0] for o in options]
+            conditions.append(lambda state, names=names: state.has_any(names, player))
+        elif options:
+            conditions.append(lambda state, options=options: any(
+                state.has_all(o, player) for o in options))
     for name, count in gate.get("items", {}).items():
         if name in world.obtainable_item_names:
             conditions.append(
@@ -74,11 +87,13 @@ def chapter_is_startable(world: "HalfLife2World", chapter: dict) -> bool:
     Called before the pool exists, so it asks only whether a gate names
     anything this seed can receive beyond what the run starts with."""
     gate = chapter.get("gates", {})
+    groups = list(gate.get("any", []))
     if world.options.logic_difficulty.value == LogicDifficulty.option_strict:
-        for group in gate.get("strict", []):
-            names = group_items(world, group)
-            if names and not set(names) & set(world.starting_items):
-                return False
+        groups += gate.get("strict", [])
+    for group in groups:
+        options = group_options(world, group)
+        if options and not any(set(o) <= set(world.starting_items) for o in options):
+            return False
     for name in gate.get("items", {}):
         if name in world.obtainable_item_names and name not in world.starting_items:
             return False

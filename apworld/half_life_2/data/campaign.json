@@ -1,6 +1,6 @@
 {
  "format": 1,
- "data_version": "b409acdf1c3b",
+ "data_version": "544d29ded2a4",
  "hub_map": "temp_hub",
  "campaigns": [
   {
@@ -208,10 +208,13 @@
     }
    },
    "map_gates": {
-    "d1_canals_12": {
-     "items": {
-      "Airboat Gun": 1
-     }
+    "d1_canals_13": {
+     "strict": [
+      "airboat gun"
+     ],
+     "any": [
+      "chopper killer"
+     ]
     }
    }
   },
@@ -298,11 +301,9 @@
    },
    "gates": {
     "strict": [
-     "firearm"
-    ],
-    "items": {
-     "Progressive Gravity Gun": 1
-    }
+     "zombie killer",
+     "gravity gun"
+    ]
    }
   },
   {
@@ -367,17 +368,18 @@
    },
    "gates": {
     "strict": [
-     "heavy"
+     "heavy",
+     "gravity gun"
     ],
-    "items": {
-     "Progressive Gravity Gun": 1
-    }
+    "any": [
+     "explosives"
+    ]
    },
    "map_gates": {
     "d2_coast_03": {
-     "items": {
-      "Highway 17 Car Keys": 1
-     }
+     "strict": [
+      "highway 17 buggy"
+     ]
     },
     "d2_coast_04": {
      "items": {
@@ -466,8 +468,14 @@
    },
    "map_gates": {
     "d2_coast_10": {
+     "strict": [
+      "sandtraps buggy",
+      "sandtraps battery"
+     ]
+    },
+    "d2_coast_11": {
      "items": {
-      "Sandtraps Car Keys": 1
+      "RPG": 1
      }
     }
    }
@@ -551,7 +559,8 @@
    },
    "gates": {
     "strict": [
-     "heavy"
+     "heavy",
+     "bugbait"
     ]
    }
   },
@@ -890,6 +899,42 @@
    "SMG",
    "Pulse Rifle",
    "Shotgun"
+  ],
+  "zombie killer": [
+   "Shotgun",
+   ".357 Magnum",
+   "Pulse Rifle",
+   "Crossbow"
+  ],
+  "gravity gun": [
+   "Progressive Gravity Gun"
+  ],
+  "highway 17 buggy": [
+   "Highway 17 Buggy Keys"
+  ],
+  "sandtraps buggy": [
+   "Sandtraps Buggy Keys"
+  ],
+  "airboat gun": [
+   "Airboat Gun"
+  ],
+  "chopper killer": [
+   "Airboat Gun",
+   "RPG"
+  ],
+  "explosives": [
+   "Grenade",
+   "RPG"
+  ],
+  "bugbait": [
+   "Bugbait"
+  ],
+  "sandtraps battery": [
+   [
+    "Buggy Gun",
+    "Sandtraps Buggy Keys"
+   ],
+   "RPG"
   ]
  },
  "items": [
@@ -1146,7 +1191,7 @@
   },
   {
    "id": 8820027,
-   "name": "Highway 17 Car Keys",
+   "name": "Highway 17 Buggy Keys",
    "classification": "progression",
    "group": "vehicle_key",
    "campaign": "hl2",
@@ -1155,7 +1200,7 @@
   },
   {
    "id": 8820028,
-   "name": "Sandtraps Car Keys",
+   "name": "Sandtraps Buggy Keys",
    "classification": "progression",
    "group": "vehicle_key",
    "campaign": "hl2",
@@ -1171,6 +1216,23 @@
    "maps": [
     "d1_canals_11",
     "d1_canals_13"
+   ]
+  },
+  {
+   "id": 8820035,
+   "name": "Buggy Gun",
+   "classification": "progression",
+   "group": "vehicle_upgrade",
+   "campaign": "hl2",
+   "maps": [
+    "d2_coast_01",
+    "d2_coast_03",
+    "d2_coast_04",
+    "d2_coast_05",
+    "d2_coast_07",
+    "d2_coast_08",
+    "d2_coast_09",
+    "d2_coast_10"
    ]
   },
   {
@@ -3411,7 +3473,12 @@
     787,
     -253,
     2416
-   ]
+   ],
+   "gates": {
+    "items": {
+     "Progressive Gravity Gun": 3
+    }
+   }
   },
   {
    "id": 8830145,
@@ -3430,7 +3497,12 @@
     2766,
     257,
     2367
-   ]
+   ],
+   "gates": {
+    "items": {
+     "Progressive Gravity Gun": 3
+    }
+   }
   },
   {
    "id": 8830146,

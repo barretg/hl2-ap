@@ -7,6 +7,7 @@
 #include "globalstate.h"
 #include "weapon_physcannon.h"
 #include "basecombatweapon_shared.h"
+#include "ammodef.h"
 #include "filesystem.h"
 
 #include "ap_game.h"
@@ -37,6 +38,7 @@ namespace {
 const char* const kSuitItem = "HEV Suit";
 const char* const kFlashlightItem = "Flashlight";
 const char* const kAirboatGunItem = "Airboat Gun";
+const char* const kBuggyGunItem = "Buggy Gun";
 const char* const kGravityGunItem = "Progressive Gravity Gun";
 const char* const kPhyscannon = "weapon_physcannon";
 
@@ -343,22 +345,30 @@ void Unstick(CBasePlayer* player) {
     }
 }
 
-// As in the first game, a weapon handed over comes with half a magazine and
-// nothing spare, not the full default load a pickup carries. Weapons without a
-// magazine get half their default load as reserve. `reserve` holds the ammo
-// counts from before the grant.
+// As in the first game, a weapon handed over comes with half the ammo its
+// type can be carried at (rounded up), magazine first, not the default load a
+// pickup carries; what the player already had of that type stays if it is
+// more. Alt-fire ammo (SMG grenades, energy balls) starts at 2. `reserve`
+// holds the counts from before the grant.
 void KitAmmo(CBasePlayer* player, CBaseCombatWeapon* weapon, const int* reserve) {
     for (int i = 0; i < MAX_AMMO_SLOTS; ++i) {
         player->SetAmmoCount(reserve[i], i);
+    }
+    const int secondary = weapon->GetSecondaryAmmoType();
+    if (secondary >= 0 && player->GetAmmoCount(secondary) < 2) {
+        player->SetAmmoCount(2, secondary);
     }
     const int primary = weapon->GetPrimaryAmmoType();
     if (primary < 0) {
         return;
     }
+    int load = (GetAmmoDef()->MaxCarry(primary) + 1) / 2;
     if (weapon->UsesClipsForAmmo1()) {
-        weapon->m_iClip1 = Max(weapon->GetMaxClip1() / 2, 1);
-    } else {
-        player->GiveAmmo(Max(weapon->GetDefaultClip1() / 2, 1), primary, true);
+        weapon->m_iClip1 = Min(load, weapon->GetMaxClip1());
+        load -= weapon->m_iClip1;
+    }
+    if (player->GetAmmoCount(primary) < load) {
+        player->SetAmmoCount(load, primary);
     }
 }
 
@@ -399,9 +409,7 @@ void ApplyLoadout() {
             for (int i = 0; i < MAX_AMMO_SLOTS; ++i) {
                 reserve[i] = player->GetAmmoCount(i);
             }
-            g_granting = true;
-            CBaseEntity* given = player->GiveNamedItem(classname.c_str());
-            g_granting = false;
+            CBaseEntity* given = GrantWeapon(player, classname.c_str());
             CBaseCombatWeapon* granted = Owned(player, classname);
             if (granted == nullptr) {
                 // Never left lying about, where a later touch would count.
@@ -941,20 +949,40 @@ Touch WeaponTouch(CBasePlayer* player, CBaseCombatWeapon* weapon) {
     return Touch::kRefuse;
 }
 
+// A fresh, unscripted copy of a refused weapon on the floor in front of the
+// player, to be picked up once its item arrives. A fresh copy, free of the
+// level's template and outputs.
+void DropForLater(CBasePlayer* player, const char* classname) {
+    Vector forward;
+    AngleVectors(QAngle(0, player->EyeAngles().y, 0), &forward);
+    // Chest high and clear of the player's box, backed off toward them if a
+    // wall is closer, then down to the floor.
+    const Vector from = player->WorldSpaceCenter();
+    trace_t tr;
+    UTIL_TraceLine(from, from + forward * 48.0f, MASK_SOLID, player, COLLISION_GROUP_NONE, &tr);
+    const Vector ahead = from + forward * MAX(48.0f * tr.fraction - 8.0f, 0.0f);
+    UTIL_TraceLine(ahead, ahead - Vector(0, 0, 256.0f), MASK_SOLID, player, COLLISION_GROUP_NONE,
+                   &tr);
+    CBaseEntity* weapon = CreateEntityByName(classname);
+    if (weapon == nullptr) {
+        return;
+    }
+    weapon->SetAbsOrigin(tr.endpos + Vector(0, 0, 8.0f));
+    weapon->SetAbsAngles(QAngle(0, player->EyeAngles().y + 90.0f, 0));
+    DispatchSpawn(weapon);
+    // Kept for the player: Odessa, a citizen who picks up weapons, otherwise
+    // takes his RPG straight back (it looked as if it vanished).
+    if (CBaseCombatWeapon* gun = dynamic_cast<CBaseCombatWeapon*>(weapon)) {
+        gun->Lock(1.0e6f, player);
+    }
+}
+
 void ScriptedWeaponRefused(CBasePlayer* player, CBaseCombatWeapon* weapon) {
     if (player == nullptr || weapon == nullptr) {
         return;
     }
-    Vector forward;
-    AngleVectors(QAngle(0, player->EyeAngles().y, 0), &forward);
-    // Chest high and clear of the player's box; back off toward them if a
-    // wall is closer, then let it fall.
-    const Vector from = player->WorldSpaceCenter();
-    trace_t tr;
-    UTIL_TraceLine(from, from + forward * 48.0f, MASK_SOLID, player, COLLISION_GROUP_NONE, &tr);
-    const Vector spot = from + forward * MAX(48.0f * tr.fraction - 8.0f, 0.0f);
-    const Vector still(0, 0, 0);
-    weapon->Teleport(&spot, nullptr, &still);
+    DropForLater(player, weapon->GetClassname());
+    UTIL_Remove(weapon);
 }
 
 bool RefuseGive(CBasePlayer* player, const char* classname) {
@@ -971,8 +999,9 @@ bool RefuseGive(CBasePlayer* player, const char* classname) {
         return false;
     }
     if (Debounced(std::string("refuse:") + classname)) {
-        Notify(ItemOf(classname) + " not received yet; it comes when the item does.");
+        Notify(ItemOf(classname) + " not received yet; left on the floor for when it does.");
     }
+    DropForLater(player, classname);
     return true;
 }
 
@@ -1084,11 +1113,35 @@ bool CanEnterVehicle(CBasePlayer* player, CBaseEntity* vehicle) {
     return false;
 }
 
+CBaseEntity* GrantWeapon(CBasePlayer* player, const char* classname) {
+    g_granting = true;
+    CBaseEntity* given = player->GiveNamedItem(classname);
+    g_granting = false;
+    return given;
+}
+
+bool GravityGunKill(const CTakeDamageInfo& info) {
+    if (!Gating()) {
+        return true;  // retail
+    }
+    CBaseEntity* attacker = info.GetAttacker();
+    return attacker != nullptr && attacker->IsPlayer() &&
+           (info.GetDamageType() & (DMG_PHYSGUN | DMG_CRUSH | DMG_DISSOLVE)) != 0;
+}
+
 bool AirboatGunAllowed() { return Holds(kAirboatGunItem); }
 
 void AirboatGunPulled() {
     if (!AirboatGunAllowed() && Debounced("airboat_gun")) {
         Notify("The mounted gun needs the Airboat Gun item.");
+    }
+}
+
+bool BuggyGunAllowed() { return Holds(kBuggyGunItem); }
+
+void BuggyGunPulled() {
+    if (!BuggyGunAllowed() && Debounced("buggy_gun")) {
+        Notify("The mounted gun needs the Buggy Gun item.");
     }
 }
 

@@ -79,6 +79,7 @@ def test_pickups_and_gates(probe: Path) -> None:
     assert ask(probe, "key", "d1_canals_06") == ["scripts/vehicles/airboat.txt|Water Hazard Boat Keys"]
     assert ask(probe, "key", "d1_eli_01") == [""]
     assert ask(probe, "upgrade", "Airboat Gun") == ["d1_canals_11", "d1_canals_13"]
+    assert "d2_coast_09" in ask(probe, "upgrade", "Buggy Gun")
 
 
 def test_cold_load_kits(probe: Path) -> None:

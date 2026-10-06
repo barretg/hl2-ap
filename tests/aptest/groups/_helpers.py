@@ -15,14 +15,6 @@ def source_at(data, item: str, map_name: str):
     return next(s for s in data.sources if s.location == location and s.map == map_name)
 
 
-def spawn_setup(source) -> list[str]:
-    """Console setup that brings a templated copy into the world."""
-    if not source.spawner:
-        return []
-    target, _, action = source.spawner.partition(",")
-    return ["sv_cheats 1", f"ent_fire {target} {action}"]
-
-
 def charger(data, map_prefix: str, classname: str):
     """The first charger check of a class on a map whose name starts so."""
     return next(l for l in data.locations.values()

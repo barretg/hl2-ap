@@ -1,8 +1,11 @@
-"""Phase 6: the every-difficulty logic gates, checked in play.
+"""Phase 6: the logic gates, checked in play.
 
 Each scenario takes away what logic says a stretch needs and asks whether it
-can be crossed anyway. !pass means the gate is right (you could not go on);
-!fail <how> means logic over-asks and the gate should go.
+can be crossed anyway. For an every-difficulty gate, !pass means the gate is
+right (you could not go on) and !fail <how> means logic over-asks. For a
+strict-only gate (`optional`), !pass means it is right to drop it under loose
+logic (you got through) and !fail <where> means it is needed at every
+difficulty.
 """
 
 from __future__ import annotations
@@ -16,28 +19,31 @@ TAIL = """
 """
 
 
+OPTIONAL_TAIL = """
+    Logic asks for it under strict logic only. !pass if you got through
+    without it, !fail <where you got stuck> if you could not. Noclip is not
+    allowed; cheats only to save time.
+"""
+
+
 def claim(title: str, map_name: str, text: str, **kwargs) -> Scenario:
     return Scenario(title=title, map=map_name, steps=text + TAIL, **kwargs)
 
 
+def optional(title: str, map_name: str, text: str, **kwargs) -> Scenario:
+    return Scenario(title=title, map=map_name, steps=text + OPTIONAL_TAIL, **kwargs)
+
+
 def build(ctx) -> list[Scenario]:
     return [
-        claim("Black Mesa East needs no gravity gun", "d1_eli_01", """
-            Play Black Mesa East with no gravity gun at all. Can you reach the exit to
-            Ravenholm? Here !pass means you could NOT (logic must then gate it), and
-            !fail means it was fine without one (logic is right as it is).
-        """, counts={GUN: 0}),
-        claim("Ravenholm needs the gravity gun", "d1_town_01", """
-            Play Ravenholm with no gravity gun.
-        """, counts={GUN: 0}),
-        claim("Highway 17 needs the gravity gun", "d2_coast_01", """
+        optional("Highway 17 without the gravity gun", "d2_coast_01", """
             Play Highway 17 with no gravity gun (the flipped buggy, the crane and
             see-saw puzzles).
         """, counts={GUN: 0}),
-        claim("Highway 17 needs its keys past d2_coast_01", "d2_coast_01", """
-            Without Highway 17 Car Keys, can you get from d2_coast_01 into
-            d2_coast_03 on foot?
-        """, take=["Highway 17 Car Keys"]),
+        optional("Highway 17 on foot", "d2_coast_01", """
+            Without Highway 17 Buggy Keys, can you get from d2_coast_01 into
+            d2_coast_03 and on to d2_coast_07's exit on foot?
+        """, take=["Highway 17 Buggy Keys"]),
         claim("Odessa's gunship needs the RPG", "d2_coast_03", """
             Without the RPG, can you get past New Little Odessa's gunship to
             d2_coast_04?
@@ -45,26 +51,27 @@ def build(ctx) -> list[Scenario]:
         claim("Sandtraps needs the gravity gun", "d2_coast_09", """
             Play Sandtraps with no gravity gun (the plank bridges over the sand).
         """, counts={GUN: 0}),
-        claim("Sandtraps needs its keys past d2_coast_09", "d2_coast_09", """
-            Without Sandtraps Car Keys, can you get from d2_coast_09 into
-            d2_coast_10 on foot?
-        """, take=["Sandtraps Car Keys"]),
-        claim("Water Hazard needs the Airboat Gun from d1_canals_12", "d1_canals_11", """
-            Without the Airboat Gun, can you get through d1_canals_12 and d1_canals_13
-            to Black Mesa East (the hunter-chopper)?
-        """, take=["Airboat Gun"]),
-        claim("Nova Prospekt needs no bugbait", "d2_prison_02", """
-            Without bugbait, can you get through Nova Prospekt? Here !pass means you
-            could NOT, !fail means it was fine (logic is right as it is).
-        """, take=["Bugbait"]),
+        optional("Sandtraps on foot", "d2_coast_09", """
+            Without Sandtraps Buggy Keys, can you get from d2_coast_09 into
+            d2_coast_10 and on to the beach on foot?
+        """, take=["Sandtraps Buggy Keys"]),
+        claim("Water Hazard needs the Airboat Gun or the RPG in d1_canals_13", "d1_canals_13", """
+            Without the Airboat Gun or the RPG, can you get past the
+            hunter-chopper in d1_canals_13 to Black Mesa East?
+        """, take=["Airboat Gun", "RPG"]),
+        optional("Water Hazard chopper with the RPG only", "d1_canals_13", """
+            Without the Airboat Gun but with the RPG, can you bring down the
+            hunter-chopper in d1_canals_13 and go on to Black Mesa East?
+        """, take=["Airboat Gun"], give=["RPG"]),
         claim("Follow Freeman's striders need the RPG", "d3_c17_11", """
             Without the RPG, can you get from d3_c17_11 to the Citadel?
         """, take=["RPG"]),
-        claim("Our Benefactors needs stage 3 past the field", "d3_citadel_03", """
-            With gravity gun stage 2 only, can you get past the field into
-            d3_citadel_04 and on?
+        claim("Our Benefactors needs stage 3 past the first ball gate", "d3_citadel_03", """
+            With gravity gun stage 2 only, can you get past the first energy-ball
+            gate (around x 3500, the shield wall fed by an energy ball) to the
+            suit chargers beyond it and on into d3_citadel_04?
         """, counts={GUN: 2}),
     ]
 
 
-GROUP = Group("logic", "every-difficulty logic gates, checked in play", build)
+GROUP = Group("logic", "logic gates, checked in play", build)

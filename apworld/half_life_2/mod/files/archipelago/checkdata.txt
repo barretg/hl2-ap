@@ -26,7 +26,7 @@
 # A charger's position is its rounded origin. The game matches the unit a
 # player used by nearest same-class entity within a radius, never by rounding.
 V|1
-D|b409acdf1c3b
+D|544d29ded2a4
 B|temp_hub
 N|hl2|hl2|Half-Life 2|d3_breen_01
 C|0|d1_trainstation_01|1|Point Insertion|d1_trainstation_01,d1_trainstation_02,d1_trainstation_03,d1_trainstation_04|0|hl2|forward_exit|d1_trainstation_04>d1_trainstation_05
@@ -344,6 +344,7 @@ K|weapon_bugbait|Bugbait
 K|item_suit|HEV Suit
 H|d1_canals_01|scripts/vehicles/airboat.txt|Route Kanal Boat Keys
 H|d1_canals_06|scripts/vehicles/airboat.txt|Water Hazard Boat Keys
-H|d2_coast_01|scripts/vehicles/jeep_test.txt|Highway 17 Car Keys
-H|d2_coast_09|scripts/vehicles/jeep_test.txt|Sandtraps Car Keys
+H|d2_coast_01|scripts/vehicles/jeep_test.txt|Highway 17 Buggy Keys
+H|d2_coast_09|scripts/vehicles/jeep_test.txt|Sandtraps Buggy Keys
 U|Airboat Gun|d1_canals_11,d1_canals_13
+U|Buggy Gun|d2_coast_01,d2_coast_03,d2_coast_04,d2_coast_05,d2_coast_07,d2_coast_08,d2_coast_09,d2_coast_10

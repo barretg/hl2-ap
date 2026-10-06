@@ -29,15 +29,20 @@ class MissionsRequired(Range):
 
 
 class LogicDifficulty(Choice):
-    """How much firepower logic assumes you need to clear a chapter.
+    """How much help logic assumes you need to clear a chapter.
 
-    strict: a chapter is only expected of you once you own weapons suited to
-    it: a firearm from Route Kanal, and an SMG, Pulse Rifle or Shotgun from
-    Highway 17 on. The default.
-    loose: firepower requirements are dropped. What a chapter cannot be
-    crossed without still applies at any difficulty: its vehicle keys, the
-    gravity gun stages, the RPG where a gunship or strider bars the way, and
-    the Airboat Gun.
+    strict: a chapter is only expected of you once you own what makes it
+    reasonable: a firearm from Route Kanal, the Shotgun, .357 Magnum, Pulse
+    Rifle or Crossbow for Ravenholm, an SMG, Pulse Rifle or Shotgun from
+    Highway 17 on, the gravity gun for Ravenholm and Highway 17, bugbait for Nova
+    Prospekt, the buggy keys for driving
+    Highway 17 and Sandtraps, the Buggy Gun or the RPG for Sandtraps' battery,
+    and the Airboat Gun for the hunter-chopper. The default.
+    loose: those are dropped, and the buggy chapters may be expected on foot.
+    What a chapter cannot be crossed without still applies at any difficulty:
+    the boat keys, the gravity gun where the level needs it, the RPG where a
+    gunship or strider bars the way, a Grenade or the RPG to flip Highway 17's
+    buggy, and the Airboat Gun or the RPG for the hunter-chopper.
     """
 
     display_name = "Logic Difficulty"

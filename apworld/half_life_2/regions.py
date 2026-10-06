@@ -16,7 +16,7 @@ from BaseClasses import Region
 
 from .data import LOCATIONS, VICTORY, campaign_of, mission_complete_event
 from .locations import HalfLife2Location, item_sources, locations_by_map
-from .rules import chapter_entry_rule, complete_rule, map_entry_rule, source_rule
+from .rules import chapter_entry_rule, complete_rule, gate_rule, map_entry_rule, source_rule
 
 if TYPE_CHECKING:
     from . import HalfLife2World
@@ -49,6 +49,10 @@ def create_regions(world: "HalfLife2World") -> None:
                 location = HalfLife2Location(player, entry["name"], entry["id"], region)
                 if trigger == "chapter_complete" and finish is not None:
                     location.access_rule = finish
+                elif "gates" in entry:
+                    rule = gate_rule(world, entry["gates"])
+                    if rule is not None:
+                        location.access_rule = rule
                 region.locations.append(location)
             if previous is None:
                 hub.connect(region, f"Enter {chapter['name']}",

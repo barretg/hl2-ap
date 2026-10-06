@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from BaseClasses import CollectionState
+
 from ..data import CHAPTERS_BY_KEY
 from ..items import unlock_item_for_chapter
+from ..rules import gate_rule
 from . import HalfLife2TestBase
 
 GRAVITY_GUN = "Progressive Gravity Gun"
@@ -47,6 +50,16 @@ class TestDefaults(HalfLife2TestBase):
             self.collect(self.get_item_by_name(GRAVITY_GUN))
         self.assertTrue(self.can_reach_region("d3_citadel_04"))
         self.assertTrue(self.can_reach_location("Dark Energy: Complete"))
+
+    def test_citadel_chargers_past_the_ball_gate(self) -> None:
+        everything_but(self, GRAVITY_GUN)
+        for _ in range(2):
+            self.collect(self.get_item_by_name(GRAVITY_GUN))
+        self.assertTrue(self.can_reach_location("Our Benefactors: Suit Charger 1 (Part 3)"))
+        self.assertFalse(self.can_reach_location("Our Benefactors: Suit Charger 2 (Part 3)"))
+        self.assertFalse(self.can_reach_location("Our Benefactors: Suit Charger 3 (Part 3)"))
+        self.collect(self.get_item_by_name(GRAVITY_GUN))
+        self.assertTrue(self.can_reach_location("Our Benefactors: Suit Charger 2 (Part 3)"))
         self.assertBeatable(True)
 
     def test_super_gravity_gun_check_needs_stage_three(self) -> None:
@@ -57,8 +70,24 @@ class TestDefaults(HalfLife2TestBase):
         self.collect(self.get_item_by_name(GRAVITY_GUN))
         self.assertTrue(self.can_reach_location("First Super Gravity Gun"))
 
+    def test_gravity_gun_strict_from_ravenholm(self) -> None:
+        everything_but(self, GRAVITY_GUN)
+        self.assertTrue(self.can_reach_location("Black Mesa East: Complete"))
+        self.assertFalse(self.can_reach_region("d1_town_01"))
+        self.collect(self.get_item_by_name(GRAVITY_GUN))
+        self.assertTrue(self.can_reach_region("d1_town_01"))
+
+    def test_nova_prospekt_bugbait_strict(self) -> None:
+        everything_but(self, "Bugbait")
+        self.assertTrue(self.can_reach_region("d2_prison_01"))
+        self.assertFalse(self.can_reach_region("d2_prison_02"))
+
+    def test_highway_17_strict_gravity_gun(self) -> None:
+        everything_but(self, GRAVITY_GUN)
+        self.assertFalse(self.can_reach_region("d2_coast_01"))
+
     def test_vehicle_keys(self) -> None:
-        everything_but(self, "Water Hazard Boat Keys", "Highway 17 Car Keys",
+        everything_but(self, "Water Hazard Boat Keys", "Highway 17 Buggy Keys",
                        "Route Kanal Boat Keys")
         self.assertFalse(self.can_reach_region("d1_canals_06"))
         self.assertTrue(self.can_reach_region("d2_coast_01"))
@@ -66,16 +95,42 @@ class TestDefaults(HalfLife2TestBase):
         self.assertTrue(self.can_reach_region("d1_canals_05"))
         self.assertFalse(self.can_reach_location("Route Kanal: Complete"))
 
+    def test_car_keys_strict(self) -> None:
+        everything_but(self, "Sandtraps Buggy Keys")
+        self.assertFalse(self.can_reach_region("d2_coast_10"))
+
     def test_airboat_gun(self) -> None:
         everything_but(self, "Airboat Gun")
-        self.assertTrue(self.can_reach_region("d1_canals_11"))
-        self.assertFalse(self.can_reach_region("d1_canals_12"))
+        self.assertTrue(self.can_reach_region("d1_canals_12"))
+        self.assertFalse(self.can_reach_region("d1_canals_13"))
 
     def test_strict_firepower(self) -> None:
         firearms = ["Pistol", ".357 Magnum", "SMG", "Pulse Rifle", "Shotgun", "Crossbow"]
         everything_but(self, *firearms)
         self.assertFalse(self.can_reach_region("d1_canals_01"))
         self.assertTrue(self.can_reach_region("d1_eli_01"))
+
+    def test_sandtraps_battery(self) -> None:
+        everything_but(self, "Buggy Gun", "RPG")
+        self.assertTrue(self.can_reach_region("d2_coast_09"))
+        self.assertFalse(self.can_reach_region("d2_coast_10"))
+        self.collect_by_name("Buggy Gun")
+        self.assertTrue(self.can_reach_region("d2_coast_10"))
+
+    def test_buggy_gun_needs_its_buggy(self) -> None:
+        rule = gate_rule(self.world, {"any": ["sandtraps battery"]})
+        state = CollectionState(self.multiworld)
+        state.collect(self.get_item_by_name("Buggy Gun"), True)
+        self.assertFalse(rule(state))
+        state.collect(self.get_item_by_name("Sandtraps Buggy Keys"), True)
+        self.assertTrue(rule(state))
+
+    def test_ravenholm_firepower(self) -> None:
+        everything_but(self, "Shotgun", ".357 Magnum", "Pulse Rifle", "Crossbow")
+        self.assertTrue(self.can_reach_region("d1_eli_01"))
+        self.assertFalse(self.can_reach_region("d1_town_01"))
+        self.collect_by_name("Shotgun")
+        self.assertTrue(self.can_reach_region("d1_town_01"))
 
 
 class TestLoose(HalfLife2TestBase):
@@ -85,6 +140,38 @@ class TestLoose(HalfLife2TestBase):
         everything_but(self, "Pistol", ".357 Magnum", "SMG", "Pulse Rifle", "Shotgun",
                        "Crossbow")
         self.assertTrue(self.can_reach_region("d3_c17_02"))
+
+    def test_car_keys_dropped(self) -> None:
+        everything_but(self, "Highway 17 Buggy Keys", "Sandtraps Buggy Keys")
+        self.assertTrue(self.can_reach_region("d2_coast_03"))
+        self.assertTrue(self.can_reach_region("d2_coast_10"))
+
+    def test_highway_17_gravity_gun_dropped(self) -> None:
+        everything_but(self, GRAVITY_GUN)
+        self.assertTrue(self.can_reach_region("d2_coast_01"))
+        self.assertFalse(self.can_reach_region("d2_coast_09"))
+
+    def test_bugbait_dropped(self) -> None:
+        everything_but(self, "Bugbait")
+        self.assertTrue(self.can_reach_region("d2_prison_02"))
+
+    def test_highway_17_explosives(self) -> None:
+        everything_but(self, "Grenade", "RPG")
+        self.assertTrue(self.can_reach_region("d1_town_01"))
+        self.assertFalse(self.can_reach_region("d2_coast_01"))
+        self.collect_by_name("Grenade")
+        self.assertTrue(self.can_reach_region("d2_coast_01"))
+
+    def test_sandtraps_gunship(self) -> None:
+        everything_but(self, "RPG")
+        self.assertTrue(self.can_reach_region("d2_coast_10"))
+        self.assertFalse(self.can_reach_region("d2_coast_11"))
+
+    def test_chopper_airboat_gun_or_rpg(self) -> None:
+        everything_but(self, "Airboat Gun")
+        self.assertTrue(self.can_reach_region("d1_canals_13"))
+        self.remove(self.get_items_by_name("RPG"))
+        self.assertFalse(self.can_reach_region("d1_canals_13"))
 
 
 class TestEverythingShuffled(HalfLife2TestBase):

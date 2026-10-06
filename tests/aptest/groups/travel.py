@@ -130,8 +130,10 @@ def build(ctx) -> list[Scenario]:
             map="d3_breen_01", setup=["sv_cheats 1", "ent_fire logic_ending_credits Trigger"],
             expect=[data.complete("d3_breen_01")], expect_complete=["d3_breen_01"],
             steps="""
-                The setup fired the ending credits. Chat should congratulate you, and
-                the harness should report Dark Energy's Complete check and GOAL.
+                The setup fired the ending credits straight away, so they roll over
+                the map's opening scene; ignore the scene. Judge by chat (it should
+                congratulate you) and the harness (it should report Dark Energy's
+                Complete check and GOAL).
                 !pass or !fail <what happened>.
             """,
         ),

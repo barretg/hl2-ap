@@ -11,7 +11,7 @@ REPO = Path(__file__).resolve().parent.parent
 CAMPAIGN = json.loads((REPO / "apworld/half_life_2/data/campaign.json").read_text())
 SRC = REPO / "game" / "src"
 
-ITEM_CONSTANTS = {"kSuitItem", "kFlashlightItem", "kAirboatGunItem", "kGravityGunItem",
+ITEM_CONSTANTS = {"kSuitItem", "kFlashlightItem", "kAirboatGunItem", "kBuggyGunItem", "kGravityGunItem",
                   "kMeleeThrowItem"}
 
 

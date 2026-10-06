@@ -96,7 +96,7 @@ public:
         // The Crowbar is a starting item, so the gate always lets it back.
         if (player != nullptr && player->IsAlive() &&
             player->Weapon_OwnsThisType("weapon_crowbar") == nullptr) {
-            player->GiveNamedItem("weapon_crowbar");
+            ap::GrantWeapon(player, "weapon_crowbar");  // a return, not a find
         }
     }
 

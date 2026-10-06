@@ -75,6 +75,29 @@ index 21a6f9de..42b98892 100644
  		
  		if ( !bOK )
  		{
+diff --git a/src/game/server/basecombatcharacter.cpp b/src/game/server/basecombatcharacter.cpp
+index 9f6a8674..e092cd3e 100644
+--- a/src/game/server/basecombatcharacter.cpp
++++ b/src/game/server/basecombatcharacter.cpp
+@@ -54,6 +54,8 @@
+ 	#include "portal_shareddefs.h"
+ #endif
+ 
++#include "ap_game.h" // hl2ap
++
+ // memdbgon must be the last include file in a .cpp file!!!
+ #include "tier0/memdbgon.h"
+ 
+@@ -1646,7 +1648,8 @@ void CBaseCombatCharacter::Event_Killed( const CTakeDamageInfo &info )
+ 			}
+ 		}
+ #ifdef HL2_DLL
+-		else if ( PlayerHasMegaPhysCannon() )
++		// hl2ap: only when the gravity gun did the killing; received weapons work there.
++		else if ( PlayerHasMegaPhysCannon() && ap::GravityGunKill( info ) )
+ 		{
+ 			if ( pDroppedWeapon )
+ 			{
 diff --git a/src/game/server/client.cpp b/src/game/server/client.cpp
 index 357f0f22..fc871ab2 100644
 --- a/src/game/server/client.cpp
@@ -225,6 +248,44 @@ index 5441234f..7ac5c934 100644
  
  		if ( m_spawnflags & SF_SUIT_SHORTLOGON )
  			UTIL_EmitSoundSuit(pPlayer->edict(), "!HEV_A0");		// short version of suit logon,
+diff --git a/src/game/server/hl2/npc_BaseZombie.cpp b/src/game/server/hl2/npc_BaseZombie.cpp
+index e7e5c6fc..a367f063 100644
+--- a/src/game/server/hl2/npc_BaseZombie.cpp
++++ b/src/game/server/hl2/npc_BaseZombie.cpp
+@@ -897,7 +897,9 @@ int CNPC_BaseZombie::OnTakeDamage_Alive( const CTakeDamageInfo &inputInfo )
+ 
+ 		if( ShouldBecomeTorso( info, flDamageThreshold ) )
+ 		{
+-			bool bHitByCombineCannon = (inputInfo.GetAmmoType() == GetAmmoDef()->Index("CombineHeavyCannon"));
++			// hl2ap: the HL2 build has no such ammo, and its -1 matched every non-bullet hit.
++			int iCannonAmmo = GetAmmoDef()->Index("CombineHeavyCannon");
++			bool bHitByCombineCannon = (iCannonAmmo != -1 && inputInfo.GetAmmoType() == iCannonAmmo);
+ 
+ 			if ( CanBecomeLiveTorso() )
+ 			{
+diff --git a/src/game/server/hl2/npc_combine.cpp b/src/game/server/hl2/npc_combine.cpp
+index 09cae88a..cc4dd0b6 100644
+--- a/src/game/server/hl2/npc_combine.cpp
++++ b/src/game/server/hl2/npc_combine.cpp
+@@ -30,6 +30,8 @@
+ #include "SoundEmitterSystem/isoundemittersystembase.h"
+ #include "npc_headcrab.h"
+ 
++#include "ap_game.h" // hl2ap
++
+ // memdbgon must be the last include file in a .cpp file!!!
+ #include "tier0/memdbgon.h"
+ 
+@@ -1239,7 +1241,8 @@ void CNPC_Combine::Event_Killed( const CTakeDamageInfo &info )
+ 				}
+ 
+ 				// In the Citadel we need to dissolve this
+-				if ( PlayerHasMegaPhysCannon() )
++				// hl2ap: only when the gravity gun did the killing; received weapons work there.
++				if ( PlayerHasMegaPhysCannon() && ap::GravityGunKill( info ) )
+ 				{
+ 					CBaseCombatWeapon *pWeapon = static_cast<CBaseCombatWeapon *>(pItem);
+ 
 diff --git a/src/game/server/hl2/vehicle_airboat.cpp b/src/game/server/hl2/vehicle_airboat.cpp
 index c8a49ddb..34657b98 100644
 --- a/src/game/server/hl2/vehicle_airboat.cpp
@@ -257,6 +318,35 @@ index c8a49ddb..34657b98 100644
  	if ( ucmd->buttons & IN_ATTACK )
  	{
  		if ( m_nGunState == GUN_STATE_IDLE )
+diff --git a/src/game/server/hl2/vehicle_jeep.cpp b/src/game/server/hl2/vehicle_jeep.cpp
+index 80eb1368..079f7580 100644
+--- a/src/game/server/hl2/vehicle_jeep.cpp
++++ b/src/game/server/hl2/vehicle_jeep.cpp
+@@ -30,6 +30,8 @@
+ #include "rumble_shared.h"
+ // NVNT haptic utils
+ #include "haptics/haptic_utils.h"
++#include "ap_game.h" // hl2ap
++
+ // memdbgon must be the last include file in a .cpp file!!!
+ #include "tier0/memdbgon.h"
+ 
+@@ -1337,8 +1339,14 @@ void CPropJeep::DriveVehicle( float flFrameTime, CUserCmd *ucmd, int iButtonsDow
+ 		}
+ 	}*/
+ 		
++	// hl2ap: the cannon stays mounted but silent without the Buggy Gun item.
++	if ( m_bHasGun && !ap::BuggyGunAllowed() )
++	{
++		if ( iButtons & ( IN_ATTACK | IN_ATTACK2 ) )
++			ap::BuggyGunPulled();
++	}
+ 	// Only handle the cannon if the vehicle has one
+-	if ( m_bHasGun )
++	else if ( m_bHasGun )
+ 	{
+ 		// If we're holding down an attack button, update our state
+ 		if ( IsOverturned() == false )
 diff --git a/src/game/server/hl2/weapon_crowbar.h b/src/game/server/hl2/weapon_crowbar.h
 index 1890ef6e..576d8bba 100644
 --- a/src/game/server/hl2/weapon_crowbar.h

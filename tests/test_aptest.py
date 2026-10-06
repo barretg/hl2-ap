@@ -104,6 +104,7 @@ def test_counts_and_default_items_from_checkdata(ctx: Context) -> None:
     assert ctx.default_items["Progressive Gravity Gun"] == 4
     assert ctx.default_items["Water Hazard Boat Keys"] == 1
     assert ctx.default_items["Airboat Gun"] == 1
+    assert ctx.default_items["Buggy Gun"] == 1
     assert ctx.default_items["Flashlight"] == 1
     harness = aptest.Harness(ctx, group_registry.discover(), "foundation")
     harness.command("next", "")
@@ -188,8 +189,8 @@ def test_give_and_take_count(harness: aptest.Harness) -> None:
     harness.command("next", "")
     harness.command("take", "progressive gravity gun")
     assert harness.items["Progressive Gravity Gun"] == 3
-    harness.command("give", "Car Keys")
-    assert harness.items["Car Keys"] == 1
+    harness.command("give", "Buggy Keys")
+    assert harness.items["Buggy Keys"] == 1
 
 
 def test_item_and_trap_queue_events(harness: aptest.Harness) -> None:

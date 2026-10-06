@@ -33,7 +33,7 @@ LOCATIONS: list[dict[str, Any]] = CAMPAIGN["locations"]
 
 CAMPAIGNS_BY_KEY: dict[str, dict[str, Any]] = {c["key"]: c for c in CAMPAIGNS}
 CHAPTERS_BY_KEY: dict[str, dict[str, Any]] = {c["key"]: c for c in CHAPTERS}
-REQUIREMENT_GROUPS: dict[str, list[str]] = CAMPAIGN["requirement_groups"]
+REQUIREMENT_GROUPS: dict[str, list[str | list[str]]] = CAMPAIGN["requirement_groups"]
 
 # The base game. Later games (Phase 9) append to CAMPAIGNS.
 HALF_LIFE_2 = "hl2"

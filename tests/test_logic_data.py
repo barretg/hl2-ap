@@ -23,21 +23,27 @@ def gates_of(campaign: dict):
                 yield entry, source["gates"]
 
 
+def members(groups: dict, group: str) -> list[str]:
+    """Every item a group names, combinations flattened."""
+    return [n for o in groups[group] for n in (o if isinstance(o, list) else [o])]
+
+
 def test_gates_name_real_things() -> None:
     campaign = json.loads(DATA.read_text())
     items = {i["name"] for i in campaign["items"]}
     groups = campaign["requirement_groups"]
-    assert all(set(members) <= items for members in groups.values())
+    assert all(set(members(groups, g)) <= items for g in groups)
     seen = 0
     for _, gate in gates_of(campaign):
-        assert set(gate) <= {"strict", "items"}
-        assert set(gate.get("strict", [])) <= set(groups)
+        assert set(gate) <= {"strict", "any", "items"}
+        assert set(gate.get("strict", []) + gate.get("any", [])) <= set(groups)
         assert all(name in items and count >= 1 for name, count in gate.get("items", {}).items())
         seen += 1
     assert seen
 
 
 def test_every_vehicle_key_gates_its_chapter() -> None:
+    """Boat keys at every difficulty, car keys under strict logic."""
     campaign = json.loads(DATA.read_text())
     chapters = {c["key"]: c for c in campaign["chapters"]}
     for item in campaign["items"]:
@@ -46,7 +52,10 @@ def test_every_vehicle_key_gates_its_chapter() -> None:
         chapter = chapters[item["chapter"]]
         named = [g for key in ("gates", "complete_gates") for g in [chapter.get(key, {})]]
         named += list(chapter.get("map_gates", {}).values())
-        assert any(item["name"] in g.get("items", {}) for g in named), item["name"]
+        groups = campaign["requirement_groups"]
+        assert any(item["name"] in g.get("items", {}) or
+                   any(item["name"] in members(groups, group) for group in g.get("strict", []))
+                   for g in named), item["name"]
 
 
 def test_starting_items_are_items() -> None:

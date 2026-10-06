@@ -452,6 +452,13 @@ def airboat_gun_maps(order: list[str], maps: dict[str, MapData]) -> list[str]:
             if maps[m].logic.inputs_to({"prop_vehicle_airboat"}, "EnableGun")]
 
 
+def buggy_gun_maps(order: list[str], maps: dict[str, MapData]) -> list[str]:
+    """Maps with the buggy, whose tau cannon is always mounted."""
+    return [m for m in order
+            if any(e.get("vehiclescript").lower() == "scripts/vehicles/jeep_test.txt"
+                   for e in maps[m].entities)]
+
+
 @dataclass
 class Registry:
     items: dict[str, int]
@@ -607,6 +614,10 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
     if gun_maps:
         add_item(campaign.display("Airboat Gun"), "progression", "vehicle_upgrade",
                  maps=gun_maps)
+    gun_maps = buggy_gun_maps(order, maps)
+    if gun_maps:
+        add_item(campaign.display("Buggy Gun"), "progression", "vehicle_upgrade",
+                 maps=gun_maps)
 
     chapter_entries = [
         {"key": c.key, "number": c.number, "name": names[c.key], "maps": c.maps,
@@ -624,8 +635,10 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
             "starting_items": [campaign.display(n) for n in campaign.starting_items],
         },
         "chapters": chapter_entries,
-        "requirement_groups": {k: [campaign.display(n) for n in v]
-                               for k, v in campaign.requirement_groups.items()},
+        "requirement_groups": {
+            k: [[campaign.display(n) for n in o] if isinstance(o, list) else campaign.display(o)
+                for o in v]
+            for k, v in campaign.requirement_groups.items()},
         "items": items,
         "locations": locations,
     }
@@ -633,10 +646,10 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
 
 def check_gate(campaign: Campaign, gate: dict, item_names: set[str], where: str) -> dict:
     """A gate record, checked against the campaign's items and groups."""
-    unknown = set(gate) - {"strict", "items"}
+    unknown = set(gate) - {"strict", "any", "items"}
     if unknown:
         raise ScanError(f"{where}: unknown gate keys {sorted(unknown)}")
-    for group in gate.get("strict", []):
+    for group in gate.get("strict", []) + gate.get("any", []):
         if group not in campaign.requirement_groups:
             raise ScanError(f"{where}: no requirement group {group!r}")
     for name, count in gate.get("items", {}).items():
@@ -644,6 +657,7 @@ def check_gate(campaign: Campaign, gate: dict, item_names: set[str], where: str)
             raise ScanError(f"{where}: no item {name!r} (or a bad count)")
     return {k: v for k, v in (
         ("strict", list(gate.get("strict", []))),
+        ("any", list(gate.get("any", []))),
         ("items", {campaign.display(n): c for n, c in gate.get("items", {}).items()}),
     ) if v}
 
@@ -653,10 +667,13 @@ def apply_logic(campaign: Campaign, chapters: list[dict], items: list[dict],
     """Write the campaign's gates into its chapters and checks, failing on
     any chapter, map, item or group name the data does not have."""
     item_names = {i["name"] for i in items}
-    for group, members in campaign.requirement_groups.items():
-        for name in members:
-            if campaign.display(name) not in item_names:
-                raise ScanError(f"requirement group {group!r}: no item {name!r}")
+    for group, options in campaign.requirement_groups.items():
+        for option in options:
+            if isinstance(option, list) and len(option) < 2:
+                raise ScanError(f"requirement group {group!r}: a combination needs two items")
+            for name in option if isinstance(option, list) else [option]:
+                if campaign.display(name) not in item_names:
+                    raise ScanError(f"requirement group {group!r}: no item {name!r}")
     for name in campaign.starting_items:
         if campaign.display(name) not in item_names:
             raise ScanError(f"starting item {name!r} is not an item")
@@ -688,6 +705,12 @@ def apply_logic(campaign: Campaign, chapters: list[dict], items: list[dict],
         checked = check_gate(campaign, gate, item_names, f"First {name}")
         for source in entry["sources"]:
             source["gates"] = checked
+    plain = {l["name"]: l for l in locations if "sources" not in l}
+    for name, gate in campaign.check_gates.items():
+        entry = plain.get(campaign.display(name))
+        if entry is None:
+            raise ScanError(f"check gates for unknown check {name}")
+        entry["gates"] = check_gate(campaign, gate, item_names, name)
 
 
 def kit_names(data: MapData) -> list[str]:

@@ -12,6 +12,7 @@
 class CBaseEntity;
 class CBasePlayer;
 class CBaseCombatWeapon;
+class CTakeDamageInfo;
 
 namespace ap {
 
@@ -27,6 +28,9 @@ bool GameDispatch(const std::string& name, const std::string& rest);
 void GameHelp();
 void GameStatus();
 
+// GiveNamedItem as our own grant: past the gate, and never a check.
+CBaseEntity* GrantWeapon(CBasePlayer* player, const char* classname);
+
 // Is the seed gating anything? Not before a client has named a slot: a
 // player who never started a client plays retail Half-Life 2.
 bool Gating();
@@ -39,10 +43,16 @@ Touch WeaponTouch(CBasePlayer* player, CBaseCombatWeapon* weapon);
 
 // DefaultTouch again, once, when a refused weapon was one the level scripted
 // around (its pickup outputs just fired). Such weapons are spawned onto the
-// player, so this drops it to the floor in front of them to be seen.
+// player, so this swaps it for a copy on the floor in front of them.
 void ScriptedWeaponRefused(CBasePlayer* player, CBaseCombatWeapon* weapon);
 
-// player.cpp GiveNamedItem, first line. True refuses the give.
+// basecombatcharacter.cpp and hl2/npc_combine.cpp Event_Killed. In the Citadel
+// a dropped weapon dissolves only if this is true: the player's gravity gun
+// did the killing (a punt, a thrown prop, an energy ball).
+bool GravityGunKill(const CTakeDamageInfo& info);
+
+// player.cpp GiveNamedItem, first line. True refuses the give, and the weapon
+// is left on the floor in front of the player instead.
 bool RefuseGive(CBasePlayer* player, const char* classname);
 
 // hl2/item_suit.cpp MyTouch. Reports the suit check; the suit itself is
@@ -72,6 +82,9 @@ bool CanEnterVehicle(CBasePlayer* player, CBaseEntity* vehicle);
 // pull on a gun that does not (for the refusal notice).
 bool AirboatGunAllowed();
 void AirboatGunPulled();
+// hl2/vehicle_jeep.cpp. The same for the buggy's tau cannon.
+bool BuggyGunAllowed();
+void BuggyGunPulled();
 
 // hl2/weapon_physcannon.cpp. Stages held of Progressive Gravity Gun (4 when
 // not gating): 1 holds and drops, 2 punts, 3 lets the Citadel supercharge it

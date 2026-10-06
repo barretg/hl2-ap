@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from scenario import Group, Scenario
 
-from ._helpers import first, source_at, spawn_setup
+from ._helpers import first, source_at
 
 
 def build(ctx) -> list[Scenario]:
@@ -35,12 +35,14 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
-            title="A received weapon comes with half a magazine",
-            map="d1_canals_01", take=["Shotgun", "SMG", "RPG"],
+            title="A received weapon comes with half the ammo you can carry",
+            map="d1_canals_01", take=["Shotgun", "SMG", "RPG", "Pulse Rifle"],
             steps="""
-                Type !give Shotgun, !give SMG and !give RPG. The shotgun arrives
-                with 3 in the tube and 0 spare, the SMG with 22 in the magazine and
-                no spare bullets or grenades, the RPG with 1 rocket.
+                Type !give Shotgun, !give SMG and !give RPG. Each arrives with half
+                its ammo type's carry limit, rounded up, magazine first: the shotgun
+                6 loaded and 9 spare (of 30), the SMG 45 and 68 (of 225) plus 2
+                grenades, the RPG 2 rockets (of 3). !give Pulse Rifle too: 2 energy
+                balls.
                 !pass or !fail <what happened>.
             """,
         ),
@@ -51,23 +53,22 @@ def build(ctx) -> list[Scenario]:
             expect=[first(data, "Gravity Gun")],
             steps="""
                 The setup ran give weapon_physcannon while you hold no Progressive
-                Gravity Gun. You should not have the gravity gun, nothing should lie
-                at your feet, chat should say it comes when the item does, and the
-                harness should report First Gravity Gun.
+                Gravity Gun. You should not have the gravity gun, it should lie on
+                the floor in front of you, chat should say so, and the harness should
+                report First Gravity Gun. Walking over it leaves it there.
                 !pass or !fail <what happened>.
             """,
         ),
         Scenario(
             title="A scripted pickup is taken and its scene plays on",
             map="d2_coast_03", pos=rpg.position, take=["RPG"], expect=[first(data, "RPG")],
-            setup=spawn_setup(rpg),
             steps="""
-                Odessa's RPG was spawned onto you, as the level does when you reach
-                him, and you do not hold the RPG item. It should drop to the floor in
-                front of you, the level's pickup scene carries on (the train horn),
-                First RPG is reported, and you still have no RPG. In a real run the
-                same happens when Odessa hands it over: it falls to the floor rather
-                than vanishing. Then !give RPG: the RPG arrives, and walking over the
+                You are in Odessa's basement and do not hold the RPG item. Let his
+                scene play until he hands over the RPG and you take it from his
+                hands. It drops to the floor in front of you then (not before) and
+                stays there; Odessa holds no RPG afterwards. The level's pickup scene
+                carries on (the train horn, the klaxon), First RPG is reported, and
+                you have no RPG. Then !give RPG: the RPG arrives, and walking over the
                 one on the floor gives ammo without replaying the scene.
                 !pass or !fail <what happened>.
             """,
