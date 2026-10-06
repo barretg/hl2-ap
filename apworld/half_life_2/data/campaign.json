@@ -8,7 +8,6 @@
    "name": "Half-Life 2",
    "short": "hl2",
    "goal_chapter": "d3_breen_01",
-   "intro_chapter": "d1_trainstation_01",
    "starting_items": [
     "Crowbar"
    ]

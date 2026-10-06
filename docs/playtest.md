@@ -58,3 +58,7 @@ Check, in order:
 
 Anything odd: the client log and `archipelago/ap_out.txt` / `ap_in.txt` in
 the mod folder are the evidence; I can read them.
+
+If the game freezes during a harness run, leave it frozen for 15 seconds before
+killing it: the test build's watchdog then writes `archipelago/watchdog.txt`
+(where it hung) and `watchdog.dmp`.

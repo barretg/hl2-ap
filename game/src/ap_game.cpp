@@ -68,6 +68,8 @@ bool g_upgrade_sent = false;
 // come back every second.
 std::set<std::string> g_granted_here;
 bool g_goal_sent = false;
+// The hub's start was checked for the player being inside geometry.
+bool g_unstuck = false;
 // Refusal notices, by what was refused, so one held trigger is one line.
 std::map<std::string, double> g_last_notice;
 const double kNoticeRepeatSeconds = 10.0;
@@ -80,6 +82,9 @@ const double kFoundRepeatSeconds = 5.0;
 std::string g_last_slot;
 // Item names held at the last snapshot, for "Received" notices.
 std::set<std::string> g_last_items;
+// Why the hub was loaded, shown once it is up: said on the map being left,
+// it is gone before the screen draws.
+std::string g_hub_reason;
 std::map<std::string, int> g_last_counts;
 bool g_have_items = false;
 bool g_version_warned = false;
@@ -172,7 +177,8 @@ void Flush() {
 
 // A location was found. Sent now if this map is authorised, else held.
 void Found(long id) {
-    if (id == 0 || !Data().Loaded()) {
+    // Only a chapter's maps hold locations: the hub's touches never count.
+    if (id == 0 || !Data().Loaded() || CurrentChapter() == nullptr) {
         return;
     }
     if (State().checked.count(id) != 0 || g_owed.count(id) != 0 || g_sent.count(id) != 0 ||
@@ -192,9 +198,7 @@ void GoHub(const std::string& why) {
     if (Data().Hub().empty()) {
         return;
     }
-    if (!why.empty()) {
-        Notify(why);
-    }
+    g_hub_reason = why;
     RequestMap(Data().Hub());
 }
 
@@ -243,6 +247,36 @@ CBaseCombatWeapon* Owned(CBasePlayer* player, const std::string& classname) {
     return player->Weapon_OwnsThisType(classname.c_str());
 }
 
+bool InSolid(CBasePlayer* player, const Vector& at) {
+    trace_t tr;
+    UTIL_TraceHull(at, at, player->GetPlayerMins(), player->GetPlayerMaxs(), MASK_PLAYERSOLID,
+                   player, COLLISION_GROUP_PLAYER_MOVEMENT, &tr);
+    return tr.startsolid;
+}
+
+// Moves a player spawned inside geometry to the nearest open spot, searched
+// in rings outward and upward. The stand-in hub's start sits in a wall. At
+// most a few hundred hull traces, once per map.
+void Unstick(CBasePlayer* player) {
+    const Vector origin = player->GetAbsOrigin();
+    if (player->GetMoveType() == MOVETYPE_NOCLIP || !InSolid(player, origin)) {
+        return;
+    }
+    for (int ring = 1; ring <= 8; ++ring) {
+        const float reach = 24.0f * ring;
+        for (float up : {0.0f, 32.0f, 72.0f}) {
+            for (int step = 0; step < 16; ++step) {
+                const float angle = 2.0f * M_PI_F * step / 16;
+                const Vector at = origin + Vector(reach * cosf(angle), reach * sinf(angle), up);
+                if (!InSolid(player, at)) {
+                    player->Teleport(&at, nullptr, &vec3_origin);
+                    return;
+                }
+            }
+        }
+    }
+}
+
 // Exactly idempotent: runs on every spawn and every snapshot change.
 void ApplyLoadout() {
     CBasePlayer* player = Player();
@@ -273,10 +307,20 @@ void ApplyLoadout() {
             if (IsConsumable(classname) && g_granted_here.count(classname) != 0) {
                 continue;  // once per map; used up is used up
             }
-            g_granted_here.insert(classname);
+            if (InSolid(player, player->GetAbsOrigin())) {
+                continue;  // it could not be picked up; waits for open ground
+            }
             g_granting = true;
-            player->GiveNamedItem(classname.c_str());
+            CBaseEntity* given = player->GiveNamedItem(classname.c_str());
             g_granting = false;
+            if (Owned(player, classname) == nullptr) {
+                // Never left lying about, where a later touch would count.
+                if (given != nullptr) {
+                    UTIL_Remove(given);
+                }
+                continue;
+            }
+            g_granted_here.insert(classname);
         } else if (!held && owned != nullptr) {
             if (player->GetActiveWeapon() == owned) {
                 player->ClearActiveWeapon();
@@ -340,6 +384,10 @@ void Judge() {
         }
     }
     if (IsHub()) {
+        if (!g_hub_reason.empty()) {
+            Notify(g_hub_reason);
+            g_hub_reason.clear();
+        }
         Notify("Hub. !ap lists chapters; !warp <number or name> starts one.");
     }
     Flush();
@@ -524,6 +572,19 @@ bool NewGameKit(CBaseEntity* entity) {
     return Data().IsKit(CurrentMap(), STRING(entity->GetEntityName()));
 }
 
+// Received items replace the kit in a run, so it never stays spawned: left in,
+// it piles up beside the grants at the player's feet.
+class KitRemover : public IEntityListener {
+public:
+    void OnEntitySpawned(CBaseEntity* entity) override {
+        if (entity != nullptr && Gating() && NewGameKit(entity)) {
+            UTIL_Remove(entity);
+        }
+    }
+};
+KitRemover g_kit_remover;
+bool g_kit_listening = false;
+
 }  // namespace
 
 // --- public ------------------------------------------------------------------------
@@ -539,8 +600,20 @@ void GameLevelStart() {
     g_save_due = -1.0;
     g_upgrade_sent = false;
     g_goal_sent = false;
+    g_unstuck = false;
     g_last_notice.clear();
     g_granted_here.clear();
+    if (!g_kit_listening) {
+        gEntList.AddListenerEntity(&g_kit_remover);
+        g_kit_listening = true;
+    }
+    if (Gating()) {
+        for (CBaseEntity* e = gEntList.FirstEnt(); e != nullptr; e = gEntList.NextEnt(e)) {
+            if (NewGameKit(e)) {
+                UTIL_Remove(e);
+            }
+        }
+    }
     if (IsHub()) {
         TidyHub();
     }
@@ -597,6 +670,10 @@ void GameFrame() {
     CBasePlayer* player = Player();
     if (player == nullptr || !ClientReady()) {
         return;
+    }
+    if (IsHub() && !g_unstuck && player->IsAlive()) {
+        g_unstuck = true;
+        Unstick(player);
     }
     static int frame = 0;
     if (++frame % 30 == 0) {

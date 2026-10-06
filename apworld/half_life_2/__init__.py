@@ -145,10 +145,6 @@ class HalfLife2World(World):
             self.campaigns = list(passthrough.get("campaigns", self.campaigns))
 
         self.excluded_chapters = {c["key"] for c in CHAPTERS if campaign_of(c) not in self.campaigns}
-        if self.options.exclude_intro_missions:
-            self.excluded_chapters.update(
-                CAMPAIGNS_BY_KEY[key]["intro_chapter"] for key in self.campaigns
-            )
         if not self.options.chargesanity:
             self.excluded_triggers.add(CHARGER_TRIGGER)
         if passthrough:

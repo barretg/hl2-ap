@@ -204,8 +204,8 @@ def assign_chapters(campaign: Campaign, cfgs: list[tuple[str, str]], titles: dic
             raise ScanError(f"{name} is excluded but reachable from {assigned[name]}")
         if name not in assigned and name not in campaign.excluded_maps:
             raise ScanError(f"{name} is in no chapter; add it to excluded_maps or fix the graph")
-    if campaign.goal_chapter not in firsts or campaign.intro_chapter not in firsts:
-        raise ScanError("goal or intro chapter is not a chapter key")
+    if campaign.goal_chapter not in firsts:
+        raise ScanError("goal chapter is not a chapter key")
     return chapters
 
 
@@ -620,7 +620,7 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
     return {
         "campaign": {
             "key": campaign.key, "name": campaign.name, "short": campaign.short,
-            "goal_chapter": campaign.goal_chapter, "intro_chapter": campaign.intro_chapter,
+            "goal_chapter": campaign.goal_chapter,
             "starting_items": [campaign.display(n) for n in campaign.starting_items],
         },
         "chapters": chapter_entries,

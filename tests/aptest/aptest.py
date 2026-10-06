@@ -63,6 +63,9 @@ from scenario import Context, Group, Scenario, reflow  # noqa: E402
 # harness runs. The marker is a string only the test build carries.
 TEST_DLL = REPO / "build" / "game-test" / "server.dll"
 TEST_DLL_MARKER = b"ap_test"
+# Its client, swapped too when built: it feeds the freeze watchdog its frame
+# count (game/src/ap_watchdog.h).
+TEST_CLIENT_DLL_MARKER = b"HL2AP_ClientFrames"
 
 # Deliveries the harness accepts for `!item` / `!trap`. Placeholders until the
 # item table exists (plan Phase 3); the game ignores names it does not know.
@@ -137,9 +140,10 @@ class DllSwap:
     and is kept: it is the real one. A running game keeps the dll it loaded.
     """
 
-    def __init__(self, installed: Path, test_dll: Path) -> None:
+    def __init__(self, installed: Path, test_dll: Path, marker: bytes = TEST_DLL_MARKER) -> None:
         self.installed = installed
         self.test_dll = test_dll
+        self.marker = marker
         self.backup = installed.with_name(installed.name + ".aptest-original")
 
     def check(self) -> str | None:
@@ -147,7 +151,7 @@ class DllSwap:
         if not self.test_dll.is_file():
             return (f"{self.test_dll} not found; configure build/game-test with "
                     "-DHL2AP_TEST_BUILD=ON and build it")
-        if TEST_DLL_MARKER not in self.test_dll.read_bytes():
+        if self.marker not in self.test_dll.read_bytes():
             return f"{self.test_dll} is not a test build (HL2AP_TEST_BUILD off)"
         if not self.installed.is_file() and not self.backup.is_file():
             return f"{self.installed} not found; run tools/install_mod.py first"
@@ -250,6 +254,8 @@ class Harness:
         death_link = bool(options.pop("death_link", False))
         amnesty = int(options.pop("death_link_amnesty", 0))
         stages = data.stages if data is not None else {}
+        # As a server would: a check the game sent comes back as checked.
+        checked = set(s.checked if s is not None else ()) | self.seen
         self.bridge.write_snapshot(
             connected=self.connected,
             chapters=[c for c in chapters
@@ -260,11 +266,10 @@ class Harness:
             starting=STARTING,
             death_link=death_link,
             death_link_amnesty=amnesty,
-            checked=sorted(s.checked) if s is not None else [],
+            checked=sorted(checked),
             # Every other location is still to find: the game reads ids in
             # neither list as not in the seed.
-            missing=sorted(set(data.locations) - set(s.checked if s is not None else ()))
-            if data is not None else [],
+            missing=sorted(set(data.locations) - checked) if data is not None else [],
             options=options,
             data_version=self.ctx.data_version,
             slot="aptest:1",
@@ -486,7 +491,9 @@ class Harness:
                 self.tell(f"[aptest] Expected check arrived: {location_id}.")
         elif location_id not in self.seen:
             self.tell(f"[aptest] Other check: {location_id}")
-        self.seen.add(location_id)
+        if location_id not in self.seen:
+            self.seen.add(location_id)
+            self.publish()
 
     def judge_complete(self, kind: str, key: str) -> None:
         s = self.scenario()
@@ -632,11 +639,23 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(f"another harness is already running (pid {other}); stop it first")
     lock.write_text(str(os.getpid()), encoding="utf-8")
 
-    swap.swap_in()
+    swaps = [swap]
+    client_swap = DllSwap(mod_dir / mod.CLIENT_DLL_NAME, args.test_dll.with_name("client.dll"),
+                          TEST_CLIENT_DLL_MARKER)
+    client_problem = client_swap.check()
+    if client_problem:
+        print(f"Not swapping the client: {client_problem}. The watchdog falls back to "
+              "server frames, so a paused game can read as frozen.")
+    else:
+        swaps.append(client_swap)
+
     try:
+        for each in swaps:
+            each.swap_in()
         return run(ctx, groups, name)
     finally:
-        swap.restore()
+        for each in swaps:
+            each.restore()
         lock.unlink(missing_ok=True)
 
 

@@ -19,8 +19,9 @@ def build(ctx) -> list[Scenario]:
             map="d1_canals_01", expect=[data.reached("d1_canals_01")],
             steps="""
                 Chat should say Found: Route Kanal: Part 1 Reached, and the harness
-                should report it as the expected check. Reload with !redo: it is not
-                sent again.
+                should report it as the expected check. Type reload in the console
+                (not !redo, which starts the scenario afresh): the map loads again and
+                the check is not sent again.
                 !pass or !fail <what happened>.
             """,
         ),

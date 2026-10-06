@@ -23,11 +23,10 @@ class TestDefaults(HalfLife2TestBase):
         names = [i.name for i in self.multiworld.itempool]
         self.assertEqual(names.count(GRAVITY_GUN), 4)
 
-    def test_point_insertion_excluded(self) -> None:
-        self.assertIn("d1_trainstation_01", self.world.excluded_chapters)
-        self.assertNotIn("Point Insertion Unlock", [i.name for i in self.multiworld.itempool])
+    def test_point_insertion_included(self) -> None:
+        self.assertNotIn("d1_trainstation_01", self.world.excluded_chapters)
         names = {l.name for l in self.multiworld.get_locations(self.player)}
-        self.assertFalse(any(n.startswith("Point Insertion:") for n in names))
+        self.assertTrue(any(n.startswith("Point Insertion:") for n in names))
 
     def test_starting_items_precollected(self) -> None:
         held = {i.name for i in self.multiworld.precollected_items[self.player]}
@@ -89,8 +88,7 @@ class TestLoose(HalfLife2TestBase):
 
 
 class TestEverythingShuffled(HalfLife2TestBase):
-    options = {"shuffle_hev_suit": True, "shuffle_flashlight": True, "melee_throw": True,
-               "exclude_intro_missions": False}
+    options = {"shuffle_hev_suit": True, "shuffle_flashlight": True, "melee_throw": True}
 
     def test_items_in_pool(self) -> None:
         pool = {i.name for i in self.multiworld.itempool}

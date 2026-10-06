@@ -53,9 +53,10 @@ def build(ctx) -> list[Scenario]:
             setup=spawn_setup(rpg),
             steps="""
                 Odessa's RPG was spawned here and you do not hold the RPG item. Walk
-                over it: it should vanish (taken), the level's pickup scene should
-                carry on (Odessa's next lines, the train horn), First RPG is reported,
-                and you still have no RPG. Then !give RPG: the RPG arrives.
+                over it: it stays on the ground, the level's pickup scene carries on
+                (Odessa's next lines, the train horn), First RPG is reported, and you
+                still have no RPG. Then !give RPG: the RPG arrives, and walking over the
+                one on the ground gives ammo without replaying the scene.
                 !pass or !fail <what happened>.
             """,
         ),

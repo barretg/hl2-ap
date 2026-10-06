@@ -25,6 +25,7 @@ HOOK_FILES = [
     "src/game/client/clientmode_shared.cpp",
     "src/game/client/hud_basechat.cpp",
     "src/game/server/EnvMessage.cpp",
+    "src/game/server/ai_networkmanager.cpp",
     "src/game/server/client.cpp",
     "src/game/server/hl2/func_recharge.cpp",
     "src/game/server/hl2/hl2_player.cpp",

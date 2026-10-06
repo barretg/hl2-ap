@@ -34,8 +34,6 @@ class Campaign:
     non_chapters: frozenset[str]
     # The finale, by chapter key (its first map). Never unlocked by an item.
     goal_chapter: str
-    # The scene-setting chapter `exclude_intro_missions` drops.
-    intro_chapter: str
     # Maps in `maps/` deliberately in no chapter, so the scan fails on any map
     # nobody decided about.
     excluded_maps: frozenset[str]

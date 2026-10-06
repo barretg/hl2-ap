@@ -45,8 +45,13 @@ Destination g_destination;
 // the file is there yet, or the first scenario a fresh harness starts would be
 // mistaken for an old one.
 bool g_looked = false;
-// Set when a scenario's map is requested, cleared once the player is placed.
+// Set when a scenario's map is requested, cleared once the player is placed,
+// or once another map loads in its place (a locked chapter sends the run to
+// the hub, and the scenario's steps would otherwise be held forever).
 bool g_arriving = false;
+// Maps loaded since the dll did, and the count when the scenario's was asked for.
+int g_levels = 0;
+int g_levels_at_load = 0;
 // When the player was first seen alive on the destination map, real seconds.
 double g_alive_since = -1.0;
 double g_next_poll = 0.0;
@@ -128,6 +133,7 @@ void ShowSaid() {
 void Load() {
     g_arriving = true;
     g_alive_since = -1.0;
+    g_levels_at_load = g_levels;
     RequestMap(g_destination.map);
 }
 
@@ -220,6 +226,7 @@ class CShowTriggersSystem : public CAutoGameSystem {
 public:
     CShowTriggersSystem() : CAutoGameSystem("CShowTriggersSystem") {}
     void LevelInitPreEntity() override {
+        ++g_levels;
         static ConVarRef showtriggers("showtriggers");
         if (showtriggers.IsValid()) {
             showtriggers.SetValue(1);
@@ -273,6 +280,12 @@ void RunTestHarness() {
         }
     }
 
+    if (g_arriving && CurrentMap() != g_destination.map &&
+        g_levels > g_levels_at_load + 1) {
+        // The scenario's map loaded and sent the run elsewhere.
+        g_arriving = false;
+        ShowSaid();
+    }
     if (!g_arriving || CurrentMap() != g_destination.map) {
         return;
     }

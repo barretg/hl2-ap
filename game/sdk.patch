@@ -60,6 +60,21 @@ index a22dfc11..6b6776d4 100644
  	sv_unlockedchapters.SetValue( "15" );
  	
  	CBasePlayer *pPlayer = UTIL_GetLocalPlayer();
+diff --git a/src/game/server/ai_networkmanager.cpp b/src/game/server/ai_networkmanager.cpp
+index 21a6f9de..42b98892 100644
+--- a/src/game/server/ai_networkmanager.cpp
++++ b/src/game/server/ai_networkmanager.cpp
+@@ -578,6 +578,10 @@ void CAI_NetworkManager::LoadNetworkGraph( void )
+ 		{
+ 			bOK = true;
+ 		}
++
++		// hl2ap: plays only those shipped maps from a sourcemod folder, so the
++		// same allowance holds; without it a save loads with no graph and no AI.
++		bOK = true;
+ 		
+ 		if ( !bOK )
+ 		{
 diff --git a/src/game/server/client.cpp b/src/game/server/client.cpp
 index 357f0f22..fc871ab2 100644
 --- a/src/game/server/client.cpp
@@ -430,7 +445,7 @@ index 295e826a..9f5ec7c0 100644
  
  	CBaseEntity *pPlayer = (pActivator && pActivator->IsPlayer()) ? pActivator : UTIL_GetLocalPlayer();
 diff --git a/src/game/shared/basecombatweapon_shared.cpp b/src/game/shared/basecombatweapon_shared.cpp
-index 754919d3..814f8939 100644
+index 754919d3..cb37e7c8 100644
 --- a/src/game/shared/basecombatweapon_shared.cpp
 +++ b/src/game/shared/basecombatweapon_shared.cpp
 @@ -38,6 +38,10 @@
@@ -444,18 +459,23 @@ index 754919d3..814f8939 100644
  // memdbgon must be the last include file in a .cpp file!!!
  #include "tier0/memdbgon.h"
  
-@@ -837,6 +841,19 @@ void CBaseCombatWeapon::DefaultTouch( CBaseEntity *pOther )
+@@ -837,6 +841,24 @@ void CBaseCombatWeapon::DefaultTouch( CBaseEntity *pOther )
  	if( HasSpawnFlags(SF_WEAPON_NO_PLAYER_PICKUP) )
  		return;
  
-+	// hl2ap: a weapon whose item has not arrived stays put; one the level
-+	// scripted around is taken (its outputs fire) and arrives with the item.
++	// hl2ap: a weapon whose item has not arrived stays put. One the level
++	// scripted around fires its outputs once so the scene goes on, and stays
++	// to be picked up when the item arrives.
 +	ap::Touch apTouch = ap::WeaponTouch( pPlayer, this );
 +	if ( apTouch != ap::Touch::kAllow )
 +	{
-+		if ( apTouch == ap::Touch::kConsume || m_OnPlayerPickup.NumberOfElements() > 0 )
++		if ( m_OnPlayerPickup.NumberOfElements() > 0 )
 +		{
 +			m_OnPlayerPickup.FireOutput( pOther, this );
++			m_OnPlayerPickup.DeleteAllElements();
++		}
++		if ( apTouch == ap::Touch::kConsume )
++		{
 +			UTIL_Remove( this );
 +		}
 +		return;

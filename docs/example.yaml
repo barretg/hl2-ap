@@ -5,7 +5,6 @@ game: Half-Life 2
 Half-Life 2:
   missions_required: 12
   logic_difficulty: strict
-  exclude_intro_missions: true
   chargesanity: true
   shuffle_hev_suit: false
   shuffle_flashlight: false

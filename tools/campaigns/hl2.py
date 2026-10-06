@@ -18,7 +18,6 @@ HL2 = Campaign(
     # `chapter14.cfg` loads `credits`, a menu shortcut to the credits roll.
     non_chapters=frozenset({"14"}),
     goal_chapter="d3_breen_01",
-    intro_chapter="d1_trainstation_01",
     excluded_maps=frozenset({
         # Menu backgrounds, the credits roll and the intro cinematic.
         "background01", "background02", "background03", "background04",

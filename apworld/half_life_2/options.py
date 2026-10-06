@@ -46,15 +46,6 @@ class LogicDifficulty(Choice):
     default = 0
 
 
-class ExcludeIntroMissions(DefaultOnToggle):
-    """Leave Point Insertion out of the seed: the train station and the walk
-    through City 17, with nothing to fight. Turned on it goes entirely (no
-    regions, no checks, no unlock item) and stops counting toward the
-    chapters required."""
-
-    display_name = "Exclude Point Insertion"
-
-
 class Chargesanity(DefaultOnToggle):
     """Every health charger and suit charger is a check, sent the moment you
     use one (an empty charger counts). Off, the seed is the map, chapter and
@@ -112,7 +103,6 @@ class DeathLinkAmnesty(Range):
 class HalfLife2Options(PerGameCommonOptions):
     missions_required: MissionsRequired
     logic_difficulty: LogicDifficulty
-    exclude_intro_missions: ExcludeIntroMissions
     chargesanity: Chargesanity
     shuffle_hev_suit: ShuffleHevSuit
     shuffle_flashlight: ShuffleFlashlight

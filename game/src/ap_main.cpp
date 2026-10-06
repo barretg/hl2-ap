@@ -22,6 +22,7 @@
 #include "ap_melee.h"
 #include "ap_state.h"
 #include "ap_text.h"
+#include "ap_watchdog.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -192,6 +193,7 @@ void Help() {
 
 // Every `!x`. The harness's first in a test build, where it is the client.
 bool Dispatch(const std::string& name, const std::string& rest) {
+    WatchdogStage("Dispatch (chat or console command)");
     if (TestDispatch(name, rest)) {
         return true;
     }
@@ -210,9 +212,15 @@ class CArchipelagoSystem : public CAutoGameSystemPerFrame {
 public:
     CArchipelagoSystem() : CAutoGameSystemPerFrame("CArchipelagoSystem") {}
 
-    void LevelInitPreEntity() override { MeleePrecache(); }
+    void LevelInitPreEntity() override {
+        WatchdogStage("LevelInitPreEntity");
+        MeleePrecache();
+        WatchdogStage("engine");
+    }
 
     void LevelInitPostEntity() override {
+        WatchdogStart(StoreDir().c_str());
+        WatchdogStage("LevelInitPostEntity");
         g_bridge.Open(StoreDir());
         GameLevelStart();
         g_started = true;
@@ -224,22 +232,30 @@ public:
         // The client answers a HELLO with a forced snapshot, so this is what
         // gets our state back after any map load.
         g_bridge.Send("HELLO", CurrentMap());
+        WatchdogStage("engine");
     }
 
     void LevelShutdownPreEntity() override { g_started = false; }
 
     void FrameUpdatePostEntityThink() override {
+        WatchdogBeat();
         if (!g_started) {
             return;
         }
         if (g_frames_this_map < 1000) {
             ++g_frames_this_map;  // capped: only the first few are interesting
         }
+        WatchdogStage("FlushNotices");
         FlushNotices();
+        WatchdogStage("RunRequests");
         RunRequests();
+        WatchdogStage("RunTestHarness");
         RunTestHarness();
+        WatchdogStage("Poll");
         Poll();
+        WatchdogStage("GameFrame");
         GameFrame();
+        WatchdogStage("engine");
     }
 };
 
