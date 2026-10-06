@@ -35,6 +35,16 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
+            title="A received weapon comes with half a magazine",
+            map="d1_canals_01", take=["Shotgun", "SMG", "RPG"],
+            steps="""
+                Type !give Shotgun, !give SMG and !give RPG. The shotgun arrives
+                with 3 in the tube and 0 spare, the SMG with 22 in the magazine and
+                no spare bullets or grenades, the RPG with 1 rocket.
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
             title="A give without the item is refused",
             map="d1_canals_01", counts={"Progressive Gravity Gun": 0},
             setup=["sv_cheats 1", "give weapon_physcannon"],

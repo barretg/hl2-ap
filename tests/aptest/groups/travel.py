@@ -110,7 +110,8 @@ def build(ctx) -> list[Scenario]:
                 Walk somewhere distinctive and type !setwarp: chat says the warp point
                 for Route Kanal part 3 is set. !hub, then !warp 3 3: you arrive where
                 you typed it. Walk elsewhere, !setwarp bridge, !hub, then !warps lists
-                bridge, and !warp bridge brings you there. !setwarp in the hub refuses.
+                bridge, and !warp bridge brings you there. In the hub, !setwarp alone
+                refuses, but !setwarp spot works and !warp spot returns there.
                 !pass or !fail <what happened>.
             """,
         ),

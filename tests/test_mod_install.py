@@ -202,6 +202,28 @@ def test_install_makes_the_chat_panel_visible(tmp_path: Path) -> None:
     assert not (target / "scripts").exists()
 
 
+def test_install_copies_the_hub_map(tmp_path: Path) -> None:
+    """The stand-in hub is the player's own background map under a name the
+    engine will save on; see HUB_MAP_SOURCE."""
+    hl2 = _fake_hl2(tmp_path / "Half-Life 2")
+    source = hl2 / mod.HUB_MAP_SOURCE
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_bytes(b"VBSP fake")
+    target = tmp_path / "hl2ap"
+    mod.install(target, hl2_dir=hl2)
+    assert (target / mod.HUB_MAP_TARGET).read_bytes() == b"VBSP fake"
+    mod.uninstall(target)
+    assert not (target / "maps").exists()
+
+
+def test_hub_map_names_agree() -> None:
+    """The install and the campaign data name the same hub."""
+    from campaigns import HUB_MAP, HUB_SOURCE_MAP
+    assert mod.HUB_MAP_TARGET == f"maps/{HUB_MAP}.bsp"
+    assert mod.HUB_MAP_SOURCE == f"hl2/maps/{HUB_SOURCE_MAP}.bsp"
+    assert not HUB_MAP.startswith("background")
+
+
 def test_no_hudlayout_without_a_chat_block(tmp_path: Path) -> None:
     hl2 = _fake_hl2(tmp_path / "Half-Life 2")
     layout = hl2 / "hl2" / "scripts" / "hudlayout.res"

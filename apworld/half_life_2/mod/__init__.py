@@ -161,6 +161,14 @@ def localization_files(hl2_dir: Path) -> list[tuple[Path, str]]:
     return found
 
 
+# The hub, until the project ships its own: a menu background from the
+# player's install, copied in under a name of its own. The engine refuses to
+# save on a map named background*, and hub warp points are saves. Matches
+# `HUB_MAP`/`HUB_SOURCE_MAP` in tools/campaigns.
+HUB_MAP_SOURCE = "hl2/maps/background05.bsp"
+HUB_MAP_TARGET = "maps/temp_hub.bsp"
+
+
 # Half-Life 2's Steam app id: the library that holds it is the drive Proton
 # starts hl2.exe on.
 HL2_APP_ID = "220"
@@ -345,6 +353,10 @@ def install(target_root: Path, dll: bytes | None = None,
         for source_path, relative in localization_files(hl2_dir):
             _write(target_root / relative, localization_text(source_path))
             written += 1
+        hub = Path(hl2_dir) / HUB_MAP_SOURCE
+        if hub.is_file():
+            _write(target_root / HUB_MAP_TARGET, hub.read_bytes())
+            written += 1
         hudlayout = hudlayout_text(hl2_dir)
         if hudlayout is not None:
             _write(target_root / HUDLAYOUT_TARGET, hudlayout)
@@ -385,7 +397,8 @@ def sweep(directory: Path) -> int:
     if not directory.is_dir():
         return 0
 
-    owned = {relative for _, relative in MOD_FILES} | {DLL_NAME, CLIENT_DLL_NAME, HUDLAYOUT_TARGET}
+    owned = {relative for _, relative in MOD_FILES} | {DLL_NAME, CLIENT_DLL_NAME, HUDLAYOUT_TARGET,
+                                                       HUB_MAP_TARGET}
     removed = 0
     for relative in sorted(owned):
         path = directory / relative

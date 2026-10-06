@@ -244,6 +244,12 @@ struct NamedWarp {
     std::string map;
 };
 
+std::string SaveDir() {
+    char dir[MAX_PATH] = {0};
+    engine->GetGameDir(dir, sizeof(dir));
+    return std::string(dir) + "/save/";
+}
+
 std::string WarpLabel(const std::string& text) {
     std::string out;
     for (char c : Lower(text)) {
@@ -337,6 +343,25 @@ void Unstick(CBasePlayer* player) {
     }
 }
 
+// As in the first game, a weapon handed over comes with half a magazine and
+// nothing spare, not the full default load a pickup carries. Weapons without a
+// magazine get half their default load as reserve. `reserve` holds the ammo
+// counts from before the grant.
+void KitAmmo(CBasePlayer* player, CBaseCombatWeapon* weapon, const int* reserve) {
+    for (int i = 0; i < MAX_AMMO_SLOTS; ++i) {
+        player->SetAmmoCount(reserve[i], i);
+    }
+    const int primary = weapon->GetPrimaryAmmoType();
+    if (primary < 0) {
+        return;
+    }
+    if (weapon->UsesClipsForAmmo1()) {
+        weapon->m_iClip1 = Max(weapon->GetMaxClip1() / 2, 1);
+    } else {
+        player->GiveAmmo(Max(weapon->GetDefaultClip1() / 2, 1), primary, true);
+    }
+}
+
 // Exactly idempotent: runs on every spawn and every snapshot change.
 void ApplyLoadout() {
     CBasePlayer* player = Player();
@@ -370,16 +395,22 @@ void ApplyLoadout() {
             if (InSolid(player, player->GetAbsOrigin())) {
                 continue;  // it could not be picked up; waits for open ground
             }
+            int reserve[MAX_AMMO_SLOTS];
+            for (int i = 0; i < MAX_AMMO_SLOTS; ++i) {
+                reserve[i] = player->GetAmmoCount(i);
+            }
             g_granting = true;
             CBaseEntity* given = player->GiveNamedItem(classname.c_str());
             g_granting = false;
-            if (Owned(player, classname) == nullptr) {
+            CBaseCombatWeapon* granted = Owned(player, classname);
+            if (granted == nullptr) {
                 // Never left lying about, where a later touch would count.
                 if (given != nullptr) {
                     UTIL_Remove(given);
                 }
                 continue;
             }
+            KitAmmo(player, granted, reserve);
             g_granted_here.insert(classname);
         } else if (!held && owned != nullptr) {
             if (player->GetActiveWeapon() == owned) {
@@ -562,14 +593,16 @@ void ListChapters() {
 void WarpToNamed(const NamedWarp& warp) {
     const Chapter* chapter = Data().ChapterOfMap(warp.map);
     if (chapter == nullptr) {
-        Notify("Warp point " + warp.label + " is outside any chapter.");
-        return;
-    }
-    if (Gating() && !ChapterAvailable(*chapter)) {
+        // The hub is always open; anywhere else outside a chapter never is.
+        if (warp.map != Data().Hub()) {
+            Notify("Warp point " + warp.label + " is outside any chapter.");
+            return;
+        }
+    } else if (Gating() && !ChapterAvailable(*chapter)) {
         Notify(chapter->name + " is " + ChapterStatus(*chapter) + ".");
         return;
     }
-    if (Gating() && warp.map != chapter->maps.front() &&
+    if (chapter != nullptr && Gating() && warp.map != chapter->maps.front() &&
         State().checked.count(Data().MapReached(warp.map)) == 0) {
         Notify("Warp point " + warp.label + " is in a part this run has not reached.");
         return;
@@ -586,9 +619,8 @@ void SetWarp(const std::string& rest) {
     }
     const std::string map = CurrentMap();
     const Chapter* chapter = Data().ChapterOfMap(map);
-    if (chapter == nullptr) {
-        Notify(IsHub() ? "This is the hub; !hub already comes back here."
-                       : "Warp points can only be set inside a chapter.");
+    if (chapter == nullptr && !IsHub()) {
+        Notify("Warp points can only be set inside a chapter or the hub.");
         return;
     }
     CBasePlayer* player = UTIL_GetLocalPlayer();
@@ -597,6 +629,10 @@ void SetWarp(const std::string& rest) {
         return;
     }
     if (Trim(rest).empty()) {
+        if (chapter == nullptr) {
+            Notify("The hub has no part warp point; !setwarp <name> makes one here.");
+            return;
+        }
         engine->ServerCommand(("save " + WarpSaveName(map) + "\n").c_str());
         const auto at = std::find(chapter->maps.begin(), chapter->maps.end(), map);
         const int part = static_cast<int>(at - chapter->maps.begin()) + 1;
@@ -613,9 +649,7 @@ void SetWarp(const std::string& rest) {
     const std::vector<NamedWarp> warps = NamedWarps();
     const NamedWarp* existing = FindNamedWarp(warps, label);
     if (existing != nullptr && existing->map != map) {
-        char dir[MAX_PATH] = {0};
-        engine->GetGameDir(dir, sizeof(dir));
-        std::remove((std::string(dir) + "/save/" + existing->save + ".sav").c_str());
+        std::remove((SaveDir() + existing->save + ".sav").c_str());
     }
     engine->ServerCommand(("save apw_" + key + "_u" + label + "_" + map + "\n").c_str());
     Notify("Warp point " + label + " set. Come back with !warp " + label + ".");
@@ -629,7 +663,7 @@ void ListWarps() {
     }
     for (const NamedWarp& warp : warps) {
         const Chapter* chapter = Data().ChapterOfMap(warp.map);
-        Say("!warp " + warp.label + "    " + (chapter ? chapter->name : std::string("?")) +
+        Say("!warp " + warp.label + "    " + (chapter ? chapter->name : std::string("Hub")) +
             " (" + warp.map + ")");
     }
     Say("Parts you have reached: !warp <chapter> <part>.");
