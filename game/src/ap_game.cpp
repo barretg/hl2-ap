@@ -521,9 +521,9 @@ void ReportDeath(const std::string& cause) {
         ++g_forgiven;
         forgiven = true;
         const long left = allowance - g_forgiven;
-        Notify(left > 0 ? "DeathLink amnesty: this death is forgiven; " + std::to_string(left) +
+        Notify(left > 0 ? "Death forgiven; " + std::to_string(left) +
                               " more before one is sent."
-                        : std::string("DeathLink amnesty: this death is forgiven; the next "
+                        : std::string("Death forgiven; the next "
                                       "one will be sent."));
     } else {
         g_forgiven = 0;
