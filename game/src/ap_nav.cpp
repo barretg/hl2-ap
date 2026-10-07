@@ -612,16 +612,14 @@ enum class Page {
     kNone, kMain, kChapters, kParts, kWarpPoints,
     kTracker,          // the tracked chapter: its parts, weapons, other chapters
     kTrackChapters,    // every chapter in the seed, to track another
-    kTrackChecks,      // one part's checks, the weapons, or a filter's matches
+    kTrackChecks,      // one part's checks, or the weapons
 };
 
 Page g_page = Page::kNone;
 int g_first = 0;               // index of the first entry shown
 const Chapter* g_parts_of = nullptr;
-// What kTrackChecks lists: a part of g_tracked (1-based), 0 for the weapons,
-// -1 for g_tracker_filter's matches anywhere.
+// What kTrackChecks lists: a part of g_tracked (1-based), or 0 for the weapons.
 int g_track_part = 0;
-std::string g_tracker_filter;
 int g_selected = 0;            // a pick waiting for the next frame
 
 void Open(Page page, int first = 0);
@@ -840,16 +838,9 @@ void Build(Page page) {
             if (g_track_part > 0 && chapter != nullptr) {
                 checks = PartChecks(*chapter, g_track_part);
                 g_header = chapter->name + ", part " + std::to_string(g_track_part);
-            } else if (g_track_part == 0) {
+            } else {
                 checks = WeaponChecks();
                 g_header = "Weapons";
-            } else {
-                for (const Location& location : Data().Locations()) {
-                    if (State().InSeed(location.id) && Matches(location, g_tracker_filter)) {
-                        checks.push_back(&location);
-                    }
-                }
-                g_header = "Checks matching \"" + g_tracker_filter + "\"";
             }
             g_header += ": " + Count(checks) + " found";
             // Unfound first; each picked says where it is (and traces it here).
@@ -986,18 +977,13 @@ bool NavDispatch(const std::string& name, const std::string& rest) {
     return true;
 }
 
+// `!tracker` is the console listing only; the menu opens from `!menu` alone.
+// A chapter named still becomes the one the menu's tracker page follows.
 void NavTracker(const std::string& filter) {
     const std::string text = Trim(filter);
     ConsoleTracker(text);
-    if (text.empty()) {
-        Open(Page::kTracker);
-    } else if (const Chapter* chapter = Data().FindChapter(text)) {
-        g_tracked = chapter->key;  // `!tracker kanal`: track that chapter
-        Open(Page::kTracker);
-    } else {
-        g_tracker_filter = text;  // anything else: matching checks, anywhere
-        g_track_part = -1;
-        Open(Page::kTrackChecks);
+    if (const Chapter* chapter = text.empty() ? nullptr : Data().FindChapter(text)) {
+        g_tracked = chapter->key;
     }
 }
 

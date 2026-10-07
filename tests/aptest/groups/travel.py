@@ -140,6 +140,18 @@ def build(ctx) -> list[Scenario]:
                 !pass or !fail <what happened>.
             """,
         ),
+        Scenario(
+            title="Commands still work after walking back to an earlier map",
+            map="d2_coast_08",
+            steps="""
+                Play here a minute or two, then walk back through the transition into
+                d2_coast_07 (behind you at the start). There, straight away, type
+                !status: it answers. !trace and !pass reach the game too (the SDK's
+                chat flood check used to compare against the later map's clock and
+                drop every line until the earlier one caught up).
+                !pass or !fail <what happened>.
+            """,
+        ),
     ]
 
 

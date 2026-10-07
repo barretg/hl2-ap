@@ -486,7 +486,7 @@ index 7e49b7f4..f5f38461 100644
  		return true;
  
 diff --git a/src/game/server/player.cpp b/src/game/server/player.cpp
-index 0538f90a..d125a16b 100644
+index 0538f90a..35b5fef6 100644
 --- a/src/game/server/player.cpp
 +++ b/src/game/server/player.cpp
 @@ -97,6 +97,8 @@ ConVar sv_bonus_challenge( "sv_bonus_challenge", "0", FCVAR_REPLICATED, "Set to
@@ -498,6 +498,15 @@ index 0538f90a..d125a16b 100644
  // memdbgon must be the last include file in a .cpp file!!!
  #include "tier0/memdbgon.h"
  
+@@ -406,7 +408,7 @@ BEGIN_DATADESC( CBasePlayer )
+ 
+ 	DEFINE_FIELD( m_bitsDamageType, FIELD_INTEGER ),
+ 	DEFINE_AUTO_ARRAY( m_rgbTimeBasedDamage, FIELD_CHARACTER ),
+-	DEFINE_FIELD( m_fLastPlayerTalkTime, FIELD_FLOAT ),
++	DEFINE_FIELD( m_fLastPlayerTalkTime, FIELD_TIME ), // hl2ap: rebased per level, or a walk back to an earlier map blocks `say` (and every ! command) until that map's clock catches up
+ 	DEFINE_FIELD( m_hLastWeapon, FIELD_EHANDLE ),
+ 
+ #if !defined( NO_ENTITY_PREDICTION )
 @@ -1068,6 +1070,7 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
  	float flHealthPrev = m_iHealth;
  

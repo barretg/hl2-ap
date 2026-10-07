@@ -195,7 +195,7 @@ void Help() {
         Say("Test build: !pass !fail !note !next !prev !redo !go !info !list "
             "!groups !group !tp and more; !info in a scenario");
     }
-    Say("Names ignore case and punctuation: 'kanal', 'Route Kanal', 'd1_canals_05'.");
+    Say("Names ignore case and punctuation, and may be cut short: 'route', 'Route Kanal', '3'.");
 }
 
 // One reply per command, wherever it came from: `BeginReply` holds what it

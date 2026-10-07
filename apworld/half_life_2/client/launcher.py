@@ -52,8 +52,11 @@ IN_GAME_COMMANDS = (
     ("!ap", "every chapter and its status"),
     ("!warp <number or name>", "start an unlocked chapter"),
     ("!warp <chapter> <part>", "back to a part you have reached"),
+    ("!setwarp [name]", "make a warp point where you stand; !warps lists them"),
     ("!hub", "return to the hub"),
-    ("!tracker", "checks found and missing on this map"),
+    ("!tracker [filter]", "every location in the seed, found and not"),
+    ("!find [text]", "point at the nearest unfound check; !trace draws a path"),
+    ("!menu", "warps, the tracker, find and trace as a menu (the - key)"),
     ("!status", "where the client and this map stand"),
     ("!help", "these commands, in game"),
 )

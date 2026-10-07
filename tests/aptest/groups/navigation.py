@@ -78,7 +78,7 @@ def build(ctx) -> list[Scenario]:
             title="Tracker: the console listing, as in HL1",
             map="d2_coast_08",
             steps="""
-                Type !tracker, close the menu (0) and open the console (~). Chat said
+                Type !tracker: no menu opens. Open the console (~). Chat said
                 "[AP] !tracker: N lines in the console (~)." The console has
                 "=== Archipelago: location tracker ===", then a heading per part such as
                 "Sandtraps, part 2 -- d2_coast_08  (0/3)" with a "[x]"/"[ ]" line per
@@ -89,10 +89,10 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
-            title="Tracker: chapters, parts and checks",
+            title="Tracker menu: chapters, parts and checks, from !menu only",
             map="d2_coast_08",
             steps="""
-                Menu 3 (or !tracker): it shows the chapter you are in, with its status,
+                !menu, then 3: it shows the chapter you are in, with its status,
                 weapons and keys held, and one line per part with found/total ("(here)"
                 on this one), then Weapons, then "Track another chapter". Pick a part:
                 its checks, unfound first, then [done] ones. Pick an unfound one here:
@@ -100,8 +100,8 @@ def build(ctx) -> list[Scenario]:
                 part and the !warp there (or says it is locked or not reached). Pick a
                 weapon: chat names the earliest open part that has one. "Track another
                 chapter" lists every chapter in the seed with found/total; pick one and
-                the tracker follows it, also after a map change. !tracker kanal tracks
-                Route Kanal; !tracker charger lists every charger in the seed. 8 always
+                the tracker follows it, also after a map change. !tracker kanal (no menu
+                opens) makes menu 3 follow Route Kanal. 8 always
                 goes back a page.
                 !pass or !fail <what happened>.
             """,

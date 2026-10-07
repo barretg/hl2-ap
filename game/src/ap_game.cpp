@@ -673,10 +673,15 @@ void Warp(const std::string& rest) {
         Notify("Usage: !warp <chapter number or name> [part]");
         return;
     }
-    // A trailing number is a part when the rest names a chapter.
+    // A trailing number is a part when the rest names a chapter, unless the
+    // whole text is a chapter's own name: `!warp Highway 17` is not part 17.
     std::string name = Trim(rest);
     int part = 0;
-    if (words.size() >= 2) {
+    bool whole_name = false;
+    for (const Chapter& c : Data().Chapters()) {
+        whole_name = whole_name || Simplify(c.name) == Simplify(name);
+    }
+    if (words.size() >= 2 && !whole_name) {
         std::string last = Lower(words.back());
         if (StartsWith(last, "p")) {
             last = last.substr(1);

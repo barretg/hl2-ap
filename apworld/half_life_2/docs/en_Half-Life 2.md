@@ -1,32 +1,70 @@
 # Half-Life 2
 
+Half-Life 2 on retail Steam, as an Archipelago world.
+
+## Quick links
+
+- [Setup guide](../tutorial/Half-Life%202/setup/en)
+
 ## What does randomization do to this game?
 
-Half-Life 2's chapters are locked behind Archipelago items, and so are its
-weapons: a weapon you have not received stays where it lies. You start in a hub
-with one chapter open and warp into chapters from there; finishing one returns
-you to the hub. Dark Energy, the finale, opens once enough other chapters are
-done, and finishing it wins.
+Half-Life 2's campaign is cut into its own 14 chapters, from Point Insertion to
+Dark Energy. Instead of playing straight through, you travel to a chapter from a
+hub, and a chapter is locked until the multiworld sends its unlock item.
+Finishing a chapter returns you to the hub.
 
-## What is randomized?
+Weapons are locked too. Every weapon but the crowbar has to be received before
+you can pick one up: walking over a shotgun you have not been sent leaves it
+where it is. The check for finding it still fires.
 
-- One unlock item per chapter (Dark Energy has none).
-- Every weapon but the crowbar, which you always have.
-- The gravity gun as four Progressive Gravity Guns: hold and drop, then punt,
-  then the Citadel's supercharge (organics refused), then the full super
-  gravity gun.
-- Keys for the airboat and the buggy, one per chapter that drives one, and the
-  airboat's mounted gun.
-- Optionally the HEV suit (armour and sprint) and the flashlight.
-- Optionally Melee Throw: secondary fire throws the crowbar.
+Dark Energy has no unlock item. It opens once you have finished a configurable
+number of other chapters.
 
-## What counts as a location?
+## What items and locations get shuffled?
 
-Reaching each part of a chapter, finishing each chapter, the first pickup of
-each weapon (and the HEV suit and the super gravity gun), and, with
-Chargesanity, every health and suit charger.
+**Items:** one unlock per chapter, one per weapon, the gravity gun as four
+Progressive Gravity Guns, keys for the airboat and the buggy in each chapter
+that drives one, the Airboat and Buggy Guns, optionally the HEV suit, the
+flashlight, Progressive Aux Power and an added melee throw (very fun, highly recommend), 
+plus filler (ammo, medkits, batteries) and traps.
 
-## Commands
+**Locations:** 169.
 
-In game, in chat (press Y) or the console as `ap <name>`: `!ap`, `!warp`,
-`!hub`, `!tracker`, `!status`, `!help`.
+- reaching each part of a chapter, and finishing the chapter
+- pressing use on each of the 41 health chargers and 33 suit chargers, empty or
+  not; these can be switched off with `chargesanity`
+- the first pickup of each weapon, of the HEV suit, and of the super gravity gun
+
+## What does another world's item look like in Half-Life 2?
+
+There is no world model for it: locations are places and things that were
+already in Half-Life 2. Making a check prints a line in the game naming what you
+found.
+
+## When the player receives an item, what happens?
+
+It is announced in chat, and takes effect immediately: a chapter becomes
+enterable, a weapon becomes collectable and is put in your hands, filler is
+granted where you stand. A trap springs a few seconds after it arrives, once the
+level has settled.
+
+## What is the goal?
+
+Finish Dark Energy: it opens after `missions_required` other chapters, and its
+closing credits goal the slot.
+
+## Unique local commands
+
+Typed in chat (`Y`) with a `!` in front, or in the game console (`~`) as
+`ap <command>`:
+
+- `!ap`: every chapter and its unlock status
+- `!warp <number or name>`: travel to an unlocked chapter
+- `!warp <chapter> <part>`: travel to a part of a chapter you have reached
+- `!setwarp [name]`, `!warps`: make and list warp points of your own
+- `!hub`: return to the hub
+- `!tracker [filter]`: locations found and still out there
+- `!find [text]`: point at the nearest unfound check
+- `!trace [text]`: draw a path to it
+- `!menu`: warps, the tracker, find and trace as a menu (the `-` key)
+- `!status`, `!help`
