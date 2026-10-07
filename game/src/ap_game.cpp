@@ -759,7 +759,11 @@ bool g_kit_listening = false;
 
 // --- public ------------------------------------------------------------------------
 
-bool Gating() { return !State().slot.empty() && Data().Loaded(); }
+// Never on the main menu's background map, which the snapshot outlives into.
+bool Gating() {
+    return !State().slot.empty() && Data().Loaded() &&
+           gpGlobals->eLoadType != MapLoad_Background;
+}
 
 std::string ChapterStatusText(const Chapter& chapter) { return ChapterStatus(chapter); }
 

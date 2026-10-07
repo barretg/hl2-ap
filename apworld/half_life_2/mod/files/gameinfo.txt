@@ -41,10 +41,11 @@
 			gamebin				|gameinfo_path|bin
 			gamebin				hl2/bin
 
-			// Retail hl2's loose files. A mod path as well as game, because
-			// for retail HL2 this folder is the mod: GameUI reads its menu
-			// files and cfg/chapter*.cfg (the New Game list) from MOD.
-			game+mod			|all_source_engine_paths|hl2
+			// Retail hl2's loose files, as game only. GameUI lists New Game's
+			// chapters from MOD (cfg/chapter*.cfg), so as a mod path all
+			// fifteen retail chapters showed, locked, beside the hub. Menu
+			// files and configs fall back to GAME.
+			game				|all_source_engine_paths|hl2
 			platform			|all_source_engine_paths|platform
 		}
 	}

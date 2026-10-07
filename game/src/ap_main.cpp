@@ -281,6 +281,13 @@ public:
     void LevelInitPostEntity() override {
         WatchdogStart(StoreDir().c_str());
         WatchdogStage("LevelInitPostEntity");
+        // The main menu's background map is no part of a run: no bridge, no
+        // loadout (equipping the suit drew the HUD over the menu), and no
+        // items or traps taken off the client to land on it.
+        if (gpGlobals->eLoadType == MapLoad_Background) {
+            WatchdogStage("engine");
+            return;
+        }
         g_bridge.Open(StoreDir());
         // NPC classes only once the AI system has built this level's schedule
         // tables (its own LevelInitPreEntity may run after ours, and rebuilding

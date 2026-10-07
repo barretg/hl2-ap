@@ -24,10 +24,11 @@ def test_mod_folder_name() -> None:
     assert mod.MOD_DIR == "hl2ap"
 
 
-def test_gameinfo_mounts_retail_hl2_as_a_mod_path() -> None:
-    """GameUI reads its menus and cfg/chapter*.cfg from MOD."""
+def test_gameinfo_keeps_retail_chapters_off_the_mod_path() -> None:
+    """New Game lists cfg/chapter*.cfg from MOD: only the mod's hub may be there."""
     lines = [l.split() for l in mod.gameinfo_text().decode().splitlines()]
-    assert ["game+mod", "|all_source_engine_paths|hl2"] in lines
+    assert ["game", "|all_source_engine_paths|hl2"] in lines
+    assert ["game+mod", "|all_source_engine_paths|hl2"] not in lines
 
 
 def test_gameinfo_mounts_hl2_content_only() -> None:

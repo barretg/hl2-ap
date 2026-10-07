@@ -141,12 +141,22 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
-            title="New Game lists only the hub",
+            title="The main menu: no HUD over it",
+            map=hub,
+            steps="""
+                Esc, then Quit to the main menu (or restart the game). No
+                health, aux power or weapon pickup icons show over the background,
+                and no item or trap arrives while you sit there.
+                !pass or !fail <what showed>.
+            """,
+        ),
+        Scenario(
+            title="New Game lists only the hub, no locked chapters",
             map=hub,
             steps="""
                 Press Esc, then New Game. The only entry is HUB, pictured with the
-                Archipelago logo (not Point Insertion's train), in the classic menu and
-                in GamepadUI. Pick it: the hub loads. Run !warp to any chapter and back
+                Archipelago logo (not Point Insertion's train); no greyed-out retail
+                chapters beside it. Pick it: the hub loads. Run !warp to any chapter and back
                 with !hub first if you like; the list stays at one entry.
                 !pass or !fail <what was listed>.
             """,
