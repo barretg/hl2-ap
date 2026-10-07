@@ -161,12 +161,11 @@ def localization_files(hl2_dir: Path) -> list[tuple[Path, str]]:
     return found
 
 
-# The hub, until the project ships its own: a menu background from the
-# player's install, copied in under a name of its own. The engine refuses to
-# save on a map named background*, and hub warp points are saves. Matches
-# `HUB_MAP`/`HUB_SOURCE_MAP` in tools/campaigns.
-HUB_MAP_SOURCE = "hl2/maps/background05.bsp"
-HUB_MAP_TARGET = "maps/temp_hub.bsp"
+# The hub map, compiled from the repo's `maps/alpha_hub.vmf`. Like the dlls it
+# is a build artifact: tools/build_apworld.py bundles it at HUB_MAP_PACKAGED,
+# and a dev install passes its bytes in. Matches `HUB_MAP` in tools/campaigns.
+HUB_MAP_TARGET = "maps/alpha_hub.bsp"
+HUB_MAP_PACKAGED = f"files/{HUB_MAP_TARGET}"
 
 
 # Half-Life 2's Steam app id: the library that holds it is the drive Proton
@@ -283,7 +282,8 @@ def proton_game_dir(steam_dir: Path, library: Path | None = None) -> Path:
 def install_sourcemod(steam_dir: Path, dll: bytes | None = None,
                       client_dll: bytes | None = None,
                       library: Path | None = None,
-                      hl2_dir: Path | None = None) -> tuple[Path, int, bool]:
+                      hl2_dir: Path | None = None,
+                      hub_map: bytes | None = None) -> tuple[Path, int, bool]:
     """Install as a Steam sourcemod. Returns (game folder, files written, has dll)."""
     steam_dir = Path(steam_dir)
     game_dir = proton_game_dir(steam_dir, library)
@@ -291,7 +291,7 @@ def install_sourcemod(steam_dir: Path, dll: bytes | None = None,
         game_dir.unlink()  # left by an earlier install that used a link
     proton = game_dir != steam_dir
     written, has_dll = install(game_dir, dll=dll, client_dll=client_dll, absolute_paths=proton,
-                               hl2_dir=hl2_dir or hl2_install_dir(library))
+                               hl2_dir=hl2_dir or hl2_install_dir(library), hub_map=hub_map)
     if proton:
         # The stub Steam lists. Only gameinfo.txt: anything else here would be
         # a second copy the engine never reads.
@@ -348,10 +348,12 @@ def gameinfo_text(absolute_root: str | None = None) -> bytes:
 def install(target_root: Path, dll: bytes | None = None,
             client_dll: bytes | None = None,
             absolute_paths: bool = False,
-            hl2_dir: Path | None = None) -> tuple[int, bool]:
+            hl2_dir: Path | None = None,
+            hub_map: bytes | None = None) -> tuple[int, bool]:
     """Create the mod folder `target_root` and fill it in.
 
-    `dll`/`client_dll` override what the package bundles (a development build).
+    `dll`/`client_dll`/`hub_map` override what the package bundles (a
+    development build).
     Returns (files written, whether a server dll was among them). False is not
     a failure: it means no dll was available, and the caller should say where
     one comes from.
@@ -375,14 +377,16 @@ def install(target_root: Path, dll: bytes | None = None,
         for source_path, relative in localization_files(hl2_dir):
             _write(target_root / relative, localization_text(source_path))
             written += 1
-        hub = Path(hl2_dir) / HUB_MAP_SOURCE
-        if hub.is_file():
-            _write(target_root / HUB_MAP_TARGET, hub.read_bytes())
-            written += 1
         hudlayout = hudlayout_text(hl2_dir)
         if hudlayout is not None:
             _write(target_root / HUDLAYOUT_TARGET, hudlayout)
             written += 1
+
+    if hub_map is None:
+        hub_map = read_mod_file(HUB_MAP_PACKAGED)
+    if hub_map is not None:
+        _write(target_root / HUB_MAP_TARGET, hub_map)
+        written += 1
 
     if dll is None:
         dll = read_mod_file(f"files/{DLL_NAME}")

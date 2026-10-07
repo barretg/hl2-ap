@@ -49,6 +49,7 @@ HEADER = """\
 #     is 1 for a copy confirmed reachable in play that the maps cannot prove
 #   K|<classname>|<item name>        a pickup refused until the item arrives
 #   P|<item name>|<stages>|<classname>   a progressive item and its stage count
+#                                          (classname empty for a non-weapon)
 #   H|<chapter key>|<vehiclescript>|<item name>   the key a chapter's vehicle needs
 #   U|<item name>|<map,map,...>      a vehicle upgrade and the maps that enable it
 #   X|<map>|<targetname,...>         a cold-load kit's pickups: never checks
@@ -96,11 +97,14 @@ def render(data: dict) -> str:
                 confirmed=1 if source.get("confirmed") else 0))
     for item in data["items"]:
         group = item["group"]
+        # Every item that comes in copies, weapon or not (Progressive Aux Power
+        # has no classname): the harness sends copy counts only for these.
+        if "count" in item:
+            classnames = item.get("classnames") or [""]
+            lines.append(f"P|{item['name']}|{item['count']}|{classnames[0]}")
         if group in ("weapon", "equipment"):
             for classname in item["classnames"]:
                 lines.append(f"K|{classname}|{item['name']}")
-            if "count" in item:
-                lines.append(f"P|{item['name']}|{item['count']}|{item['classnames'][0]}")
         elif group == "vehicle_key":
             lines.append(f"H|{item['chapter']}|{item['vehiclescript']}|{item['name']}")
         elif group == "vehicle_upgrade":

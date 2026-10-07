@@ -25,7 +25,7 @@ def build(ctx) -> list[Scenario]:
             title="The hub: free to move, nothing to find",
             map=hub,
             steps=f"""
-                This is the stand-in hub ({hub}). Your view is your own (not a fixed
+                This is the hub ({hub}). Your view is your own (not a fixed
                 camera), you can walk, nothing hurts you, no weapon lies around, and
                 chat says !ap lists chapters. Walk about for a few seconds: no Found
                 messages.

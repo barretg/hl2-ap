@@ -81,7 +81,6 @@ bool g_upgrade_sent = false;
 std::set<std::string> g_granted_here;
 bool g_goal_sent = false;
 // The hub's start was checked for the player being inside geometry.
-bool g_unstuck = false;
 // Refusal notices, by what was refused, so one held trigger is one line.
 std::map<std::string, double> g_last_notice;
 const double kNoticeRepeatSeconds = 10.0;
@@ -330,29 +329,6 @@ bool InSolid(CBasePlayer* player, const Vector& at) {
     return tr.startsolid;
 }
 
-// Moves a player spawned inside geometry to the nearest open spot, searched
-// in rings outward and upward. The stand-in hub's start sits in a wall. At
-// most a few hundred hull traces, once per map.
-void Unstick(CBasePlayer* player) {
-    const Vector origin = player->GetAbsOrigin();
-    if (player->GetMoveType() == MOVETYPE_NOCLIP || !InSolid(player, origin)) {
-        return;
-    }
-    for (int ring = 1; ring <= 8; ++ring) {
-        const float reach = 24.0f * ring;
-        for (float up : {0.0f, 32.0f, 72.0f}) {
-            for (int step = 0; step < 16; ++step) {
-                const float angle = 2.0f * M_PI_F * step / 16;
-                const Vector at = origin + Vector(reach * cosf(angle), reach * sinf(angle), up);
-                if (!InSolid(player, at)) {
-                    player->Teleport(&at, nullptr, &vec3_origin);
-                    return;
-                }
-            }
-        }
-    }
-}
-
 // As in the first game, a weapon handed over comes with half the ammo its
 // type can be carried at (rounded up), magazine first, not the default load a
 // pickup carries; what the player already had of that type stays if it is
@@ -441,23 +417,6 @@ void ApplyLoadout() {
     }
     if (player->GetActiveWeapon() == nullptr) {
         player->SwitchToNextBestWeapon(nullptr);
-    }
-}
-
-// --- hub -----------------------------------------------------------------------
-
-// The stand-in hub is a menu background: its camera, zoom and scripted
-// relays would hold the player's view, so they go before they can fire.
-void TidyHub() {
-    static const char* const kHubStrip[] = {
-        "logic_auto", "point_viewcontrol", "env_zoom", "trigger_multiple",
-        "logic_autosave", "func_monitor",
-    };
-    for (const char* classname : kHubStrip) {
-        CBaseEntity* entity = nullptr;
-        while ((entity = gEntList.FindEntityByClassname(entity, classname)) != nullptr) {
-            UTIL_Remove(entity);
-        }
     }
 }
 
@@ -826,7 +785,6 @@ void GameLevelStart() {
     g_save_due = -1.0;
     g_upgrade_sent = false;
     g_goal_sent = false;
-    g_unstuck = false;
     g_last_notice.clear();
     g_granted_here.clear();
     TrapsLevelStart();
@@ -841,9 +799,6 @@ void GameLevelStart() {
                 UTIL_Remove(e);
             }
         }
-    }
-    if (IsHub()) {
-        TidyHub();
     }
 }
 
@@ -898,10 +853,6 @@ void GameFrame() {
     CBasePlayer* player = Player();
     if (player == nullptr || !ClientReady()) {
         return;
-    }
-    if (IsHub() && !g_unstuck && player->IsAlive()) {
-        g_unstuck = true;
-        Unstick(player);
     }
     TrapsFrame();
     NavFrame();

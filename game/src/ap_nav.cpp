@@ -393,6 +393,140 @@ void Trace(const std::string& filter, long only_id = 0) {
            ". !trace again to stop.");
 }
 
+// --- tracker ---------------------------------------------------------------------
+
+// The key of the chapter the tracker shows; empty follows wherever the player
+// is. A key, not a pointer: the check data is reloaded with every map.
+std::string g_tracked;
+
+bool IsWeaponCheck(const Location& location) {
+    return location.type == "weapon_pickup" || location.type == "item_pickup" ||
+           location.type == "weapon_upgrade";
+}
+
+// A part's own checks: everything on its map but the weapons, which can be
+// had wherever that weapon is and are listed apart.
+std::vector<const Location*> PartChecks(const Chapter& chapter, int part) {
+    std::vector<const Location*> checks;
+    for (const Location& location : Data().Locations()) {
+        if (location.map == chapter.maps[part - 1] && !IsWeaponCheck(location) &&
+            State().InSeed(location.id)) {
+            checks.push_back(&location);
+        }
+    }
+    return checks;
+}
+
+std::vector<const Location*> WeaponChecks() {
+    std::vector<const Location*> checks;
+    for (const Location& location : Data().Locations()) {
+        if (IsWeaponCheck(location) && State().InSeed(location.id)) {
+            checks.push_back(&location);
+        }
+    }
+    return checks;
+}
+
+std::string Count(const std::vector<const Location*>& checks) {
+    int found = 0;
+    for (const Location* location : checks) {
+        found += State().checked.count(location->id) != 0 ? 1 : 0;
+    }
+    return std::to_string(found) + "/" + std::to_string(checks.size());
+}
+
+std::string ItemsLine() {
+    int weapons = 0;
+    int weapons_held = 0;
+    for (const auto& gate : Data().Gates()) {
+        if (gate.first.compare(0, 7, "weapon_") == 0) {
+            ++weapons;
+            weapons_held += HeldItem(gate.second) ? 1 : 0;
+        }
+    }
+    int keys = 0;
+    int keys_held = 0;
+    for (const Chapter& c : Data().Chapters()) {
+        const VehicleKey* key = Data().KeyFor(c.key);
+        if (key != nullptr && !State().ChapterExcluded(c.key)) {
+            ++keys;
+            keys_held += HeldItem(key->item) ? 1 : 0;
+        }
+    }
+    return "Weapons held " + std::to_string(weapons_held) + "/" + std::to_string(weapons) +
+           ", keys " + std::to_string(keys_held) + "/" + std::to_string(keys);
+}
+
+const Chapter* TrackedChapter() {
+    const Chapter* tracked = g_tracked.empty() ? nullptr : Data().ChapterByKey(g_tracked);
+    return tracked != nullptr ? tracked : Data().ChapterOfMap(CurrentMap());
+}
+
+// The chapter and part (1-based) a map is, or null.
+const Chapter* PartOf(const std::string& map, int& part) {
+    const Chapter* chapter = Data().ChapterOfMap(map);
+    if (chapter != nullptr) {
+        const auto at = std::find(chapter->maps.begin(), chapter->maps.end(), map);
+        part = static_cast<int>(at - chapter->maps.begin()) + 1;
+    }
+    return chapter;
+}
+
+// How to get to a part from here, as a warp or the reason there is none.
+std::string WayTo(const std::string& map) {
+    int part = 0;
+    const Chapter* chapter = PartOf(map, part);
+    if (chapter == nullptr) {
+        return "outside any chapter";
+    }
+    const std::string where = chapter->name + " part " + std::to_string(part);
+    if (!WarpOpen(*chapter)) {
+        return where + " (" + ChapterStatusText(*chapter) + ")";
+    }
+    if (!PartOpen(*chapter, part)) {
+        return where + " (not reached yet: !warp " + chapter->number + ")";
+    }
+    return where + ": !warp " + chapter->number + (part > 1 ? " " + std::to_string(part) : "");
+}
+
+// A check picked in the tracker: found already, traced if it is on this map,
+// else which part it is in and the warp there.
+void Describe(long id) {
+    const Location* location = Data().LocationById(id);
+    if (location == nullptr) {
+        return;
+    }
+    const std::string name = ShortName(location->name);
+    if (State().checked.count(id) != 0) {
+        Notify(name + ": already found.");
+        return;
+    }
+    for (const Target& target : TargetsHere("")) {
+        if (target.id == id) {
+            Trace("", id);
+            return;
+        }
+    }
+    if (!IsWeaponCheck(*location)) {
+        Notify(name + ": " + WayTo(location->map) + ".");
+        return;
+    }
+    // A weapon: the earliest open part with one, in chapter order.
+    for (const Chapter& chapter : Data().Chapters()) {
+        for (const std::string& map : chapter.maps) {
+            for (const Source& source : Data().Sources()) {
+                int part = 0;
+                if (source.location == id && source.map == map && PartOf(map, part) &&
+                    WarpOpen(chapter) && PartOpen(chapter, part)) {
+                    Notify(name + ": " + WayTo(map) + ".");
+                    return;
+                }
+            }
+        }
+    }
+    Notify(name + ": first in " + WayTo(location->map) + "; nowhere open has one yet.");
+}
+
 // --- menu ------------------------------------------------------------------------
 
 struct Entry {
@@ -400,11 +534,19 @@ struct Entry {
     std::function<void()> act;
 };
 
-enum class Page { kNone, kMain, kChapters, kParts, kWarpPoints, kTracker };
+enum class Page {
+    kNone, kMain, kChapters, kParts, kWarpPoints,
+    kTracker,          // the tracked chapter: its parts, weapons, other chapters
+    kTrackChapters,    // every chapter in the seed, to track another
+    kTrackChecks,      // one part's checks, the weapons, or a filter's matches
+};
 
 Page g_page = Page::kNone;
 int g_first = 0;               // index of the first entry shown
 const Chapter* g_parts_of = nullptr;
+// What kTrackChecks lists: a part of g_tracked (1-based), 0 for the weapons,
+// -1 for g_tracker_filter's matches anywhere.
+int g_track_part = 0;
 std::string g_tracker_filter;
 int g_selected = 0;            // a pick waiting for the next frame
 
@@ -493,7 +635,6 @@ void Build(Page page) {
             g_entries.push_back({"Warp to a chapter", [] { Open(Page::kChapters); }});
             g_entries.push_back({"Warp points", [] { Open(Page::kWarpPoints); }});
             g_entries.push_back({"Tracker", [] {
-                                     g_tracker_filter.clear();
                                      Open(Page::kTracker);
                                  }});
             g_entries.push_back({"Find the nearest check", [] { Find(""); }});
@@ -563,58 +704,94 @@ void Build(Page page) {
             }
             break;
         case Page::kTracker: {
-            const std::string map = CurrentMap();
-            const Chapter* chapter = Data().ChapterOfMap(map);
-            g_header = "Tracker";
-            if (chapter != nullptr) {
-                const auto at = std::find(chapter->maps.begin(), chapter->maps.end(), map);
-                const int here = static_cast<int>(at - chapter->maps.begin()) + 1;
-                g_header += ": " + chapter->name + ", part " + std::to_string(here) + "\nFound:";
-                for (size_t p = 1; p <= chapter->maps.size(); ++p) {
-                    g_header += " " + std::to_string(p) + ":" +
-                                PartLabel(*chapter, static_cast<int>(p));
-                }
+            const Chapter* chapter = TrackedChapter();
+            if (chapter == nullptr) {
+                Open(Page::kTrackChapters);  // the hub: nothing to follow yet
+                return;
             }
-            // Weapons and keys: held of those this seed gates.
-            int weapons = 0;
-            int weapons_held = 0;
-            for (const auto& gate : Data().Gates()) {
-                if (gate.first.compare(0, 7, "weapon_") == 0) {
-                    ++weapons;
-                    weapons_held += HeldItem(gate.second) ? 1 : 0;
-                }
+            const std::string here = CurrentMap();
+            g_header = "Tracker: " + chapter->name + " [" + ChapterStatusText(*chapter) + "]\n" +
+                       ItemsLine();
+            if (const VehicleKey* key = Data().KeyFor(chapter->key)) {
+                g_header += std::string("\n") + key->item + ": " +
+                            (HeldItem(key->item) ? "held" : "not yet");
             }
-            int keys = 0;
-            int keys_held = 0;
-            for (const Chapter& c : Data().Chapters()) {
-                if (const VehicleKey* key = Data().KeyFor(c.key)) {
-                    if (!State().ChapterExcluded(c.key)) {
-                        ++keys;
-                        keys_held += HeldItem(key->item) ? 1 : 0;
-                    }
-                }
-            }
-            g_header += "\nWeapons " + std::to_string(weapons_held) + "/" +
-                        std::to_string(weapons) + ", keys " + std::to_string(keys_held) + "/" +
-                        std::to_string(keys);
-            if (chapter != nullptr) {
-                if (const VehicleKey* key = Data().KeyFor(chapter->key)) {
-                    g_header += std::string("\n") + key->item + ": " +
-                                (HeldItem(key->item) ? "held" : "not yet");
-                }
-            }
-            // Unfound checks here, each a trace.
-            std::vector<long> listed;
-            for (const Target& target : TargetsHere(g_tracker_filter)) {
-                if (std::find(listed.begin(), listed.end(), target.id) != listed.end()) {
+            for (size_t p = 1; p <= chapter->maps.size(); ++p) {
+                const int part = static_cast<int>(p);
+                std::vector<const Location*> checks = PartChecks(*chapter, part);
+                if (checks.empty()) {
                     continue;
                 }
-                listed.push_back(target.id);
-                const long id = target.id;
-                g_entries.push_back({ShortName(target.name), [id] { Trace("", id); }});
+                g_entries.push_back({"Part " + std::to_string(part) + ": " + Count(checks) +
+                                         (chapter->maps[p - 1] == here ? " (here)" : ""),
+                                     [part] {
+                                         g_track_part = part;
+                                         Open(Page::kTrackChecks);
+                                     }});
             }
-            if (g_entries.empty()) {
-                g_header += "\n\nNothing left to find here.";
+            const std::vector<const Location*> weapons = WeaponChecks();
+            if (!weapons.empty()) {
+                g_entries.push_back({"Weapons: " + Count(weapons), [] {
+                                         g_track_part = 0;
+                                         Open(Page::kTrackChecks);
+                                     }});
+            }
+            g_entries.push_back({"Track another chapter", [] { Open(Page::kTrackChapters); }});
+            break;
+        }
+        case Page::kTrackChapters:
+            g_header = "Track a chapter";
+            for (const Chapter& chapter : Data().Chapters()) {
+                if (State().ChapterExcluded(chapter.key)) {
+                    continue;
+                }
+                std::vector<const Location*> checks;
+                for (size_t p = 1; p <= chapter.maps.size(); ++p) {
+                    for (const Location* l : PartChecks(chapter, static_cast<int>(p))) {
+                        checks.push_back(l);
+                    }
+                }
+                const Chapter* c = &chapter;
+                g_entries.push_back({chapter.name + ": " + Count(checks) +
+                                         (c == Data().ChapterOfMap(CurrentMap()) ? " (here)" : ""),
+                                     [c] {
+                                         g_tracked = c->key;
+                                         Open(Page::kTracker);
+                                     }});
+            }
+            break;
+        case Page::kTrackChecks: {
+            std::vector<const Location*> checks;
+            const Chapter* chapter = TrackedChapter();
+            if (g_track_part > 0 && chapter != nullptr) {
+                checks = PartChecks(*chapter, g_track_part);
+                g_header = chapter->name + ", part " + std::to_string(g_track_part);
+            } else if (g_track_part == 0) {
+                checks = WeaponChecks();
+                g_header = "Weapons";
+            } else {
+                for (const Location& location : Data().Locations()) {
+                    if (State().InSeed(location.id) && Matches(location, g_tracker_filter)) {
+                        checks.push_back(&location);
+                    }
+                }
+                g_header = "Checks matching \"" + g_tracker_filter + "\"";
+            }
+            g_header += ": " + Count(checks) + " found";
+            // Unfound first; each picked says where it is (and traces it here).
+            for (int pass = 0; pass < 2; ++pass) {
+                for (const Location* location : checks) {
+                    const bool done = State().checked.count(location->id) != 0;
+                    if (done != (pass == 1)) {
+                        continue;
+                    }
+                    const long id = location->id;
+                    g_entries.push_back({(done ? "[done] " : "") + ShortName(location->name),
+                                         [id] { Describe(id); }});
+                }
+            }
+            if (checks.empty()) {
+                g_header += "\n(nothing)";
             }
             break;
         }
@@ -638,6 +815,14 @@ void Back() {
     switch (g_page) {
         case Page::kParts:
             Open(Page::kChapters);
+            break;
+        case Page::kTrackChapters:
+        case Page::kTrackChecks:
+            if (TrackedChapter() != nullptr) {
+                Open(Page::kTracker);
+            } else {
+                Open(Page::kMain);
+            }
             break;
         case Page::kMain:
         case Page::kNone:
@@ -724,8 +909,17 @@ bool NavDispatch(const std::string& name, const std::string& rest) {
 }
 
 void NavTracker(const std::string& filter) {
-    g_tracker_filter = Trim(filter);
-    Open(Page::kTracker);
+    const std::string text = Trim(filter);
+    if (text.empty()) {
+        Open(Page::kTracker);
+    } else if (const Chapter* chapter = Data().FindChapter(text)) {
+        g_tracked = chapter->key;  // `!tracker kanal`: track that chapter
+        Open(Page::kTracker);
+    } else {
+        g_tracker_filter = text;  // anything else: matching checks, anywhere
+        g_track_part = -1;
+        Open(Page::kTrackChecks);
+    }
 }
 
 void NavMenuSelect(int key) { g_selected = key; }

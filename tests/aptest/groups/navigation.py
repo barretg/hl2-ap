@@ -74,13 +74,20 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
-            title="Tracker menu view",
+            title="Tracker: chapters, parts and checks",
             map="d2_coast_08",
             steps="""
-                Menu 3 (or !tracker): the header shows the chapter and part, found/total
-                per part, weapons and keys held. Unfound checks on this map are listed;
-                picking one traces to it. !tracker charger lists only chargers. The
-                console still gets the full listing.
+                Menu 3 (or !tracker): it shows the chapter you are in, with its status,
+                weapons and keys held, and one line per part with found/total ("(here)"
+                on this one), then Weapons, then "Track another chapter". Pick a part:
+                its checks, unfound first, then [done] ones. Pick an unfound one here:
+                it traces to it. Pick one in another part: chat names the chapter and
+                part and the !warp there (or says it is locked or not reached). Pick a
+                weapon: chat names the earliest open part that has one. "Track another
+                chapter" lists every chapter in the seed with found/total; pick one and
+                the tracker follows it, also after a map change. !tracker kanal tracks
+                Route Kanal; !tracker charger lists every charger in the seed. 8 always
+                goes back a page.
                 !pass or !fail <what happened>.
             """,
         ),

@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 import pytest
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "apworld" / "half_life_2"))
 
@@ -221,15 +222,10 @@ def test_install_gives_the_menu_hl2_fonts(tmp_path: Path) -> None:
     mod.uninstall(target)
 
 
-def test_install_copies_the_hub_map(tmp_path: Path) -> None:
-    """The stand-in hub is the player's own background map under a name the
-    engine will save on; see HUB_MAP_SOURCE."""
-    hl2 = _fake_hl2(tmp_path / "Half-Life 2")
-    source = hl2 / mod.HUB_MAP_SOURCE
-    source.parent.mkdir(parents=True, exist_ok=True)
-    source.write_bytes(b"VBSP fake")
+def test_install_writes_the_hub_map(tmp_path: Path) -> None:
+    """The hub is our own map, passed in on a dev install; see HUB_MAP_TARGET."""
     target = tmp_path / "hl2ap"
-    mod.install(target, hl2_dir=hl2)
+    mod.install(target, hub_map=b"VBSP fake")
     assert (target / mod.HUB_MAP_TARGET).read_bytes() == b"VBSP fake"
     mod.uninstall(target)
     assert not (target / "maps").exists()
@@ -237,10 +233,11 @@ def test_install_copies_the_hub_map(tmp_path: Path) -> None:
 
 def test_hub_map_names_agree() -> None:
     """The install and the campaign data name the same hub."""
-    from campaigns import HUB_MAP, HUB_SOURCE_MAP
+    sys.path.insert(0, str(REPO_ROOT / "tools"))
+    from campaigns import HUB_MAP
     assert mod.HUB_MAP_TARGET == f"maps/{HUB_MAP}.bsp"
-    assert mod.HUB_MAP_SOURCE == f"hl2/maps/{HUB_SOURCE_MAP}.bsp"
     assert not HUB_MAP.startswith("background")
+    assert (REPO_ROOT / "maps" / f"{HUB_MAP}.vmf").is_file()
 
 
 def test_no_hudlayout_without_a_chat_block(tmp_path: Path) -> None:

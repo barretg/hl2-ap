@@ -1,8 +1,11 @@
-// Default key binds for the Archipelago commands, set once per game launch.
+// Key binds for the Archipelago commands, set once per game launch.
 //
-// Only where the player has not already chosen: a key bound to anything is
-// left alone, and a command bound to any key is not bound again. So a player
-// who moves the menu to another key keeps it there.
+// The menu's bind is a default: set only where the player has not already
+// chosen, so a player who moves the menu to another key keeps it there.
+//
+// 0 is forced to slot10, because the numbered menu's exit is item 10 and
+// only reaches the menu through slot10; the anniversary update binds 0 to
+// vr_toggle. That moves to backslash when backslash is free.
 
 #include "cbase.h"
 #include "igamesystem.h"
@@ -18,9 +21,20 @@ struct DefaultBind {
     const char* command;
 };
 
-const DefaultBind kBinds[] = {
+const DefaultBind kDefaults[] = {
     {KEY_MINUS, "-", "ap menu"},
 };
+
+void Bind(const char* key_name, const char* command) {
+    char line[128];
+    Q_snprintf(line, sizeof(line), "bind \"%s\" \"%s\"\n", key_name, command);
+    engine->ClientCmd_Unrestricted(line);
+}
+
+bool Unbound(ButtonCode_t key) {
+    const char* current = engine->Key_BindingForKey(key);
+    return current == nullptr || *current == '\0';
+}
 
 class CBindsSystem : public CAutoGameSystem {
 public:
@@ -31,15 +45,17 @@ public:
             return;
         }
         done_ = true;
-        for (const DefaultBind& bind : kBinds) {
-            const char* current = engine->Key_BindingForKey(bind.key);
-            if (engine->Key_LookupBinding(bind.command) != nullptr ||
-                (current != nullptr && *current != '\0')) {
-                continue;
+        for (const DefaultBind& bind : kDefaults) {
+            if (engine->Key_LookupBinding(bind.command) == nullptr && Unbound(bind.key)) {
+                Bind(bind.key_name, bind.command);
             }
-            char line[128];
-            Q_snprintf(line, sizeof(line), "bind \"%s\" \"%s\"\n", bind.key_name, bind.command);
-            engine->ClientCmd_Unrestricted(line);
+        }
+        const char* zero = engine->Key_BindingForKey(KEY_0);
+        if (zero == nullptr || Q_stricmp(zero, "slot10") != 0) {
+            if (zero != nullptr && Q_stricmp(zero, "vr_toggle") == 0 && Unbound(KEY_BACKSLASH)) {
+                Bind("\\", "vr_toggle");
+            }
+            Bind("0", "slot10");
         }
     }
 

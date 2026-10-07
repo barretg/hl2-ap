@@ -31,6 +31,7 @@ import mod  # noqa: E402
 
 DEFAULT_DLL = REPO_ROOT / "build" / "game" / "server.dll"
 DEFAULT_CLIENT_DLL = REPO_ROOT / "build" / "game" / "client.dll"
+DEFAULT_HUB_MAP = REPO_ROOT / mod.HUB_MAP_TARGET
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -64,9 +65,14 @@ def main(argv: list[str] | None = None) -> int:
         if client_path is None and mod.read_mod_file(f"files/{mod.CLIENT_DLL_NAME}") is None:
             client_path = DEFAULT_CLIENT_DLL if DEFAULT_CLIENT_DLL.is_file() else None
         client = client_path.read_bytes() if client_path else None
+        hub_map = None
+        if mod.read_mod_file(mod.HUB_MAP_PACKAGED) is None:
+            if not DEFAULT_HUB_MAP.is_file():
+                raise SystemExit(f"{DEFAULT_HUB_MAP} is missing; compile maps/alpha_hub.vmf")
+            hub_map = DEFAULT_HUB_MAP.read_bytes()
         hl2_dir = args.hl2 or mod.hl2_install_dir()
         game_dir, written, has_dll = mod.install_sourcemod(target, dll=dll, client_dll=client,
-                                                           hl2_dir=hl2_dir)
+                                                           hl2_dir=hl2_dir, hub_map=hub_map)
     except (OSError, ValueError) as exc:
         raise SystemExit(str(exc))
 

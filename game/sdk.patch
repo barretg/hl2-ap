@@ -38,25 +38,6 @@ index 69d67862..84de0c5d 100644
  ConVar cl_showtextmsg( "cl_showtextmsg", "1", 0, "Enable/disable text messages printing on the screen." );
  ConVar cl_chatfilters( "cl_chatfilters", "63", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Stores the chat filter settings " );
  ConVar cl_chatfilter_version( "cl_chatfilter_version", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE | FCVAR_HIDDEN, "Stores the chat filter version" );
-diff --git a/src/game/client/weapon_selection.cpp b/src/game/client/weapon_selection.cpp
-index 66666b59..62054ce1 100644
---- a/src/game/client/weapon_selection.cpp
-+++ b/src/game/client/weapon_selection.cpp
-@@ -255,6 +255,14 @@ int	CBaseHudWeaponSelection::KeyInput( int down, ButtonCode_t keynum, const char
- 			return 0;
- 	}
- 
-+	// hl2ap: 0 is the menu's tenth item (exit) whatever it is bound to; only
-+	// a slot10 binding reached it, and HL2 binds 0 to vr_toggle.
-+	if ( down >= 1 && keynum == KEY_0 )
-+	{
-+		if ( HandleHudMenuInput( 10 ) )
-+			return 0;
-+	}
-+
- 	// let someone else handle it
- 	return 1;
- }
 diff --git a/src/game/server/EnvMessage.cpp b/src/game/server/EnvMessage.cpp
 index a22dfc11..6b6776d4 100644
 --- a/src/game/server/EnvMessage.cpp

@@ -34,7 +34,7 @@ sys.path.insert(0, str(REPO_ROOT / "apworld" / "half_life_2"))
 
 from bsp_entities import (  # noqa: E402
     BspError, Entity, brush_model_bounds, load_map, world_position)
-from campaigns import CAMPAIGNS, HUB_MAP, HUB_SOURCE_MAP, Campaign  # noqa: E402
+from campaigns import CAMPAIGNS, HUB_MAP, Campaign  # noqa: E402
 from map_logic import MapLogic  # noqa: E402
 
 DATA_DIR = REPO_ROOT / "apworld" / "half_life_2" / "data"
@@ -219,6 +219,8 @@ def assign_chapters(campaign: Campaign, cfgs: list[tuple[str, str]], titles: dic
                 if destination not in assigned and destination not in firsts:
                     stack.append(destination)
     for name in maps:
+        if name == HUB_MAP:
+            continue  # ours; Hammer may compile a copy into the game's maps folder
         if name in assigned and name in campaign.excluded_maps:
             raise ScanError(f"{name} is excluded but reachable from {assigned[name]}")
         if name not in assigned and name not in campaign.excluded_maps:
@@ -780,10 +782,8 @@ def build(game_root: Path, registry: Registry) -> dict:
     for name, weight in TRAPS:
         items.append({"id": registry.item(name), "name": name,
                       "classification": "trap", "group": "trap", "weight": weight})
-    if not any(HUB_SOURCE_MAP in c.excluded_maps for c in CAMPAIGNS):
-        raise ScanError(f"hub source map {HUB_SOURCE_MAP} is in no campaign's excluded_maps")
-    if not (game_root / CAMPAIGNS[0].game_dir / "maps" / f"{HUB_SOURCE_MAP}.bsp").is_file():
-        raise ScanError(f"hub source map {HUB_SOURCE_MAP} is not in the install")
+    if not (REPO_ROOT / "maps" / f"{HUB_MAP}.bsp").is_file():
+        raise ScanError(f"hub map maps/{HUB_MAP}.bsp is missing; compile maps/{HUB_MAP}.vmf")
     return {"format": FORMAT_VERSION, "data_version": data_version(items, locations),
             "hub_map": HUB_MAP, "campaigns": campaigns, "chapters": chapters,
             "requirement_groups": groups, "items": items, "locations": locations}

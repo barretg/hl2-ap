@@ -40,8 +40,11 @@ sys.path.insert(0, str(WORLD_DIR))
 
 import mod  # noqa: E402
 
-# `{path inside the world package: built file}`.
-DLLS: dict[str, Path] = {
+# `{path inside the world package: built file}`: the dlls, and the hub map
+# compiled from `maps/alpha_hub.vmf`.
+HUB_MAP_BUILT = REPO_ROOT / mod.HUB_MAP_TARGET
+BUILT: dict[str, Path] = {
+    f"mod/{mod.HUB_MAP_PACKAGED}": HUB_MAP_BUILT,
     f"mod/files/{mod.DLL_NAME}": DLL_BUILD_DIR / Path(mod.DLL_NAME).name,
     f"mod/files/{mod.CLIENT_DLL_NAME}": DLL_BUILD_DIR / Path(mod.CLIENT_DLL_NAME).name,
 }
@@ -70,7 +73,7 @@ def packaged_manifest() -> str:
 
 
 def missing_dlls() -> list[Path]:
-    return [built for built in DLLS.values() if not built.is_file()]
+    return [built for built in BUILT.values() if not built.is_file()]
 
 
 def build(out_dir: Path, allow_no_dll: bool = False) -> Path:
@@ -88,14 +91,14 @@ def build(out_dir: Path, allow_no_dll: bool = False) -> Path:
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
         for path in iter_files(WORLD_DIR):
             relative = path.relative_to(WORLD_DIR).as_posix()
-            if relative in DLLS:
+            if relative in BUILT:
                 continue  # a stale copy in the tree never wins over the build
             arcname = f"{WORLD_DIR.name}/{relative}"
             if relative == "archipelago.json":
                 archive.writestr(arcname, packaged_manifest())
             else:
                 archive.write(path, arcname)
-        for relative, built in DLLS.items():
+        for relative, built in BUILT.items():
             if built.is_file():
                 archive.write(built, f"{WORLD_DIR.name}/{relative}")
     return target

@@ -108,7 +108,11 @@ def test_counts_and_default_items_from_checkdata(ctx: Context) -> None:
     assert ctx.default_items["Flashlight"] == 1
     harness = aptest.Harness(ctx, group_registry.discover(), "foundation")
     harness.command("next", "")
-    assert "counts=Progressive Gravity Gun:4" in harness.bridge.in_path.read_text()
+    assert ctx.default_items["Progressive Aux Power"] == 4
+    snap = harness.bridge.in_path.read_text()
+    counts = next(line for line in snap.splitlines() if line.startswith("counts="))
+    assert "Progressive Gravity Gun:4" in counts
+    assert "Progressive Aux Power:4" in counts  # not a weapon, still counted
 
 
 def test_redo_moves_the_sequence(harness: aptest.Harness) -> None:

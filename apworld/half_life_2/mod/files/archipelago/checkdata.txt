@@ -20,6 +20,7 @@
 #     is 1 for a copy confirmed reachable in play that the maps cannot prove
 #   K|<classname>|<item name>        a pickup refused until the item arrives
 #   P|<item name>|<stages>|<classname>   a progressive item and its stage count
+#                                          (classname empty for a non-weapon)
 #   H|<chapter key>|<vehiclescript>|<item name>   the key a chapter's vehicle needs
 #   U|<item name>|<map,map,...>      a vehicle upgrade and the maps that enable it
 #   X|<map>|<targetname,...>         a cold-load kit's pickups: never checks
@@ -27,7 +28,7 @@
 # player used by nearest same-class entity within a radius, never by rounding.
 V|1
 D|c70d426c3f5d
-B|temp_hub
+B|alpha_hub
 N|hl2|hl2|Half-Life 2|d3_breen_01
 C|0|d1_trainstation_01|1|Point Insertion|d1_trainstation_01,d1_trainstation_02,d1_trainstation_03,d1_trainstation_04|0|hl2|forward_exit|d1_trainstation_04>d1_trainstation_05
 C|1|d1_trainstation_05|2|A Red Letter Day|d1_trainstation_05,d1_trainstation_06|0|hl2|forward_exit|d1_trainstation_06>d1_canals_01
@@ -330,8 +331,8 @@ L|8830168|d3_citadel_03|weapon_upgrade|weapon_physcannon|First Super Gravity Gun
 F|8830168|d3_citadel_03|7725 -1321 2209|upgrade||0
 F|8830168|d3_breen_01|-968 -36 1350|placed|spawner_physgun,ForceSpawn|1
 K|weapon_crowbar|Crowbar
-K|weapon_physcannon|Progressive Gravity Gun
 P|Progressive Gravity Gun|4|weapon_physcannon
+K|weapon_physcannon|Progressive Gravity Gun
 K|weapon_pistol|Pistol
 K|weapon_357|.357 Magnum
 K|weapon_smg1|SMG
@@ -348,3 +349,4 @@ H|d2_coast_01|scripts/vehicles/jeep_test.txt|Highway 17 Buggy Keys
 H|d2_coast_09|scripts/vehicles/jeep_test.txt|Sandtraps Buggy Keys
 U|Airboat Gun|d1_canals_11,d1_canals_13
 U|Buggy Gun|d2_coast_01,d2_coast_03,d2_coast_04,d2_coast_05,d2_coast_07,d2_coast_08,d2_coast_09,d2_coast_10
+P|Progressive Aux Power|4|
