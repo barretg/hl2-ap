@@ -521,6 +521,11 @@ void RunWithheld(CBasePlayer* player) {
     if (g_withheld.empty()) {
         return;
     }
+    auto* dropped = dynamic_cast<CBaseCombatWeapon*>(g_drop.Get());
+    if (dropped != nullptr && dropped->GetOwner() == player) {
+        ClearWithheld();  // picked back up: it is in the player's hands again
+        return;
+    }
     const bool reissue = State().OptionBool("butterfingers_reissue", true);
     const bool lost = g_drop == nullptr;  // fell out of the world, or dissolved
     const bool due = reissue && gpGlobals->curtime - g_dropped_at >= kButterfingersReturnSeconds;
@@ -705,7 +710,10 @@ TrapDrop TrapDropTouched(CBaseEntity* weapon) {
     if (gpGlobals->curtime - g_dropped_at < kButterfingersPickupDelay) {
         return TrapDrop::kTooSoon;
     }
-    ClearWithheld();
+    // Not forgotten yet: a touch is not a pickup (the pickup can still fail,
+    // say on its visibility check), and forgetting here let the loadout hand
+    // a fresh copy over while this one lay there as a weapon to be "found".
+    // RunWithheld lets go once the player really holds it.
     return TrapDrop::kTaken;
 }
 
