@@ -311,7 +311,7 @@ const NamedWarp* FindNamedWarp(const std::vector<NamedWarp>& warps, const std::s
 // --- loadout -------------------------------------------------------------------
 
 bool Confiscated() {
-    // From the Citadel's field on, only the gravity gun is carried.
+    // From the Citadel's field on (weapon drops dissolve on gravity gun kills).
     return GlobalEntity_GetState("super_phys_gun") == GLOBAL_ON;
 }
 
@@ -377,7 +377,11 @@ void ApplyLoadout() {
         const bool held = ClassnameHeld(classname);
         CBaseCombatWeapon* owned = Owned(player, classname);
         if (held && owned == nullptr) {
-            if (g_stripped || (Confiscated() && classname != kPhyscannon)) {
+            // The Citadel's field drops every weapon and blocks pickups while
+            // the player stands in it; the loadout comes back once past it.
+            // The gravity gun is handled as before (the field charges it).
+            if (g_stripped ||
+                (!player->IsAllowedToPickupWeapons() && classname != kPhyscannon)) {
                 continue;
             }
             if (classname == "weapon_crowbar" && CrowbarThrown()) {

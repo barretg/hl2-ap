@@ -152,6 +152,17 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
+            title="Butterfingers Trap: a fumbled weapon is never a check after a death",
+            map="d2_coast_01",
+            steps=f"""
+                Hold the crowbar and type !trap butterfingers. {WAIT} it flies. Type
+                save fumble, then kill. Once the save reloads you hold the crowbar
+                again; walk over the one on the floor: it vanishes and First Crowbar
+                is not sent.
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
             title="Butterfingers Trap: waits while driving",
             map="d1_canals_05", setup=["sv_cheats 1", "ch_createairboat"],
             steps=f"""

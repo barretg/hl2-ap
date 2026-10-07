@@ -31,6 +31,8 @@ namespace ap {
 namespace {
 
 const char* const kTrapName = "ap_trap";
+// Named so a fumbled weapon is still known as one after a save is loaded.
+const char* const kFumbledName = "ap_fumbled";
 const char* const kJunkName = "ap_junk";
 
 // --- what traps spawn ---------------------------------------------------------
@@ -497,6 +499,7 @@ void SpringButterfingers(CBasePlayer* player) {
         phys->AddVelocity(nullptr, &spin);
     }
     weapon->Lock(1.0e6f, player);  // the player's to pick up; never an NPC's
+    weapon->SetName(AllocPooledString(kFumbledName));
     g_drops.push_back({classname, weapon, gpGlobals->curtime});
     if (player->GetActiveWeapon() == nullptr) {
         player->SwitchToNextBestWeapon(nullptr);
@@ -874,6 +877,12 @@ bool Withheld(const std::string& classname) {
 TrapDrop TrapDropTouched(CBaseEntity* weapon) {
     const Drop* drop = DropOf(weapon);
     if (drop == nullptr) {
+        if (weapon != nullptr && weapon->NameMatches(kFumbledName)) {
+            // Left over from before a death or load: tracking was reset and the
+            // loadout has handed the weapon back, so this copy is only a leftover.
+            UTIL_Remove(weapon);
+            return TrapDrop::kTooSoon;
+        }
         return TrapDrop::kNotTrap;
     }
     if (gpGlobals->curtime - drop->dropped_at < kButterfingersPickupDelay) {

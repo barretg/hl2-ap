@@ -54,8 +54,19 @@ def build(ctx) -> list[Scenario]:
             steps="""
                 Walk through the confiscation field. Your other weapons dissolve; the
                 gravity gun stays the normal orange one (not supercharged), and First
-                Super Gravity Gun is not sent. Afterwards your other weapons come back,
-                since an orange gun alone cannot get you through the Citadel.
+                Super Gravity Gun is not sent. Once past the field your other weapons
+                come back, as at every stage.
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
+            title="The Citadel: your loadout comes back past the field",
+            map=field.map, pos=field.position, counts={GUN: 4},
+            steps="""
+                give weapon_shotgun and weapon_smg1, then walk through the field: both
+                dissolve with everything else. Once you are past it they come back,
+                along with the rest of your received weapons, and stay with you
+                through the Citadel.
                 !pass or !fail <what happened>.
             """,
         ),
