@@ -40,6 +40,8 @@ namespace {
 
 Bridge g_bridge;
 bool g_started = false;
+// On the main menu's background map: the bridge and harness only.
+bool g_background = false;
 double g_next_poll = 0.0;
 
 // Frames run since this map's LevelInitPostEntity. See `ClientReady`.
@@ -281,19 +283,20 @@ public:
     void LevelInitPostEntity() override {
         WatchdogStart(StoreDir().c_str());
         WatchdogStage("LevelInitPostEntity");
-        // The main menu's background map is no part of a run: no bridge, no
-        // loadout (equipping the suit drew the HUD over the menu), and no
-        // items or traps taken off the client to land on it.
-        if (gpGlobals->eLoadType == MapLoad_Background) {
-            WatchdogStage("engine");
-            return;
-        }
         g_bridge.Open(StoreDir());
-        // NPC classes only once the AI system has built this level's schedule
-        // tables (its own LevelInitPreEntity may run after ours, and rebuilding
-        // them under an NPC class already loaded breaks every NPC's schedules).
-        TrapsPrecache();
-        GameLevelStart();
+        // The main menu's background map is no part of a run: no loadout
+        // (equipping the suit drew the HUD over the menu), and no items or
+        // traps taken off the client to land on it. The bridge stays open, so
+        // the harness can still be driven from the menu (`ap_test go`).
+        g_background = gpGlobals->eLoadType == MapLoad_Background;
+        if (!g_background) {
+            // NPC classes only once the AI system has built this level's
+            // schedule tables (its own LevelInitPreEntity may run after ours,
+            // and rebuilding them under an NPC class already loaded breaks
+            // every NPC's schedules).
+            TrapsPrecache();
+            GameLevelStart();
+        }
         g_started = true;
         g_next_poll = 0.0;
         g_frames_this_map = 0;
@@ -322,10 +325,12 @@ public:
         RunRequests();
         WatchdogStage("RunTestHarness");
         RunTestHarness();
-        WatchdogStage("Poll");
-        Poll();
-        WatchdogStage("GameFrame");
-        GameFrame();
+        if (!g_background) {
+            WatchdogStage("Poll");
+            Poll();
+            WatchdogStage("GameFrame");
+            GameFrame();
+        }
         WatchdogStage("engine");
     }
 };
