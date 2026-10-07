@@ -65,16 +65,19 @@ void Queue(const std::string& text) {
             c = ' ';
         }
     }
+    size_t indent = 0;
     while (!rest.empty()) {
         std::string piece;
         if (rest.size() > kChatWidth) {
+            // Never cut inside the indent: that re-adds it forever.
             size_t cut = rest.rfind(' ', kChatWidth);
-            if (cut == std::string::npos || cut == 0) {
+            if (cut == std::string::npos || cut <= indent) {
                 cut = kChatWidth;
             }
             piece = rest.substr(0, cut);
             rest.erase(0, rest[cut] == ' ' ? cut + 1 : cut);
             rest.insert(0, "  ");  // continuation lines indented
+            indent = 2;
         } else {
             piece.swap(rest);
         }

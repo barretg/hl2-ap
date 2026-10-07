@@ -56,14 +56,26 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
-            title="Melee: crowbar halves a zombie without fire",
+            title="Melee: crowbar kills a zombie whole, without fire",
             map="d1_town_01",
             steps="""
                 Find a zombie (or aim at the floor and run sv_cheats 1; ent_create
-                npc_zombie). Beat it with crowbar swings until it splits, then do the
-                same to another with thrown crowbars. Each time the torso crawls at
-                you without catching fire.
+                npc_zombie). Kill it with crowbar swings, then kill another with
+                thrown crowbars. Each time it dies whole, as in vanilla: it never
+                splits into a crawling torso and never catches fire.
                 !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
+            title="Melee Throw: Murder-style physics feel",
+            map="d1_town_01",
+            steps="""
+                Throw the crowbar (alt-fire) at walls, the floor and a few zombies
+                with ap_crowbar_throw_style 1 (Murder knife physics, the default),
+                then again with ap_crowbar_throw_style 0 (the old scripted throw).
+                It should spin end over end, hit once, tumble, and come back when
+                you walk over it or after 10 seconds.
+                !pass if style 1 should stay, !fail with what feels wrong.
             """,
         ),
     ]

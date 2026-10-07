@@ -257,10 +257,21 @@ index 5441234f..7ac5c934 100644
  		if ( m_spawnflags & SF_SUIT_SHORTLOGON )
  			UTIL_EmitSoundSuit(pPlayer->edict(), "!HEV_A0");		// short version of suit logon,
 diff --git a/src/game/server/hl2/npc_BaseZombie.cpp b/src/game/server/hl2/npc_BaseZombie.cpp
-index e7e5c6fc..a367f063 100644
+index e7e5c6fc..bd6e3e23 100644
 --- a/src/game/server/hl2/npc_BaseZombie.cpp
 +++ b/src/game/server/hl2/npc_BaseZombie.cpp
-@@ -897,7 +897,9 @@ int CNPC_BaseZombie::OnTakeDamage_Alive( const CTakeDamageInfo &inputInfo )
+@@ -737,7 +737,9 @@ bool CNPC_BaseZombie::ShouldBecomeTorso( const CTakeDamageInfo &info, float flDa
+ 	if ( hl2_episodic.GetBool() )
+ 	{
+ 		// Always split after a cannon hit
+-		if ( info.GetAmmoType() == GetAmmoDef()->Index("CombineHeavyCannon") )
++		// hl2ap: the HL2 build has no such ammo, and its -1 matched every non-bullet hit.
++		int iCannonAmmo = GetAmmoDef()->Index("CombineHeavyCannon");
++		if ( iCannonAmmo != -1 && info.GetAmmoType() == iCannonAmmo )
+ 			return true;
+ 	}
+ 
+@@ -897,7 +899,9 @@ int CNPC_BaseZombie::OnTakeDamage_Alive( const CTakeDamageInfo &inputInfo )
  
  		if( ShouldBecomeTorso( info, flDamageThreshold ) )
  		{
