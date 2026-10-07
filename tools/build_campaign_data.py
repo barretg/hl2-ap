@@ -64,6 +64,10 @@ WORLD_ITEMS: list[tuple[str, str, str]] = [
     ("Battery", "filler", "filler"),
 ]
 
+# Shuffled by `randomize_aux_power`; `starting_aux_power` of its copies start held.
+AUX_POWER = "Progressive Aux Power"
+AUX_POWER_STAGES = 4
+
 # Traps replace a share of the filler, set by `trap_percentage`; each has a
 # weight among the traps. The game springs them by name (game/src/ap_traps.cpp).
 TRAPS: list[tuple[str, int]] = [
@@ -770,6 +774,9 @@ def build(game_root: Path, registry: Registry) -> dict:
     for name, classification, group in WORLD_ITEMS:
         items.append({"id": registry.item(name), "name": name,
                       "classification": classification, "group": group})
+    # Progressive Aux Power: each copy lets the aux meter fill another quarter.
+    items.append({"id": registry.item(AUX_POWER), "name": AUX_POWER, "classification": "useful",
+                  "group": "ability", "count": AUX_POWER_STAGES})
     for name, weight in TRAPS:
         items.append({"id": registry.item(name), "name": name,
                       "classification": "trap", "group": "trap", "weight": weight})

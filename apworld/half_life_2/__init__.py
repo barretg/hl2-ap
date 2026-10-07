@@ -21,6 +21,7 @@ from worlds.LauncherComponents import Component, Type, components, launch_subpro
 
 from .data import (
     ABILITY_ITEM_NAMES,
+    AUX_POWER,
     CAMPAIGNS,
     CAMPAIGNS_BY_KEY,
     CHAPTERS,
@@ -48,8 +49,10 @@ from .locations import location_name_groups, location_name_to_id
 from .options import (
     ButterfingersReissue,
     HalfLife2Options,
+    RandomizeAuxPower,
     ShuffleFlashlight,
     ShuffleHevSuit,
+    StartingAuxPower,
     TrapPercentage,
 )
 from .regions import create_regions
@@ -88,7 +91,8 @@ class HalfLife2Web(WebWorld):
         )
     ]
     option_groups = [
-        OptionGroup("Equipment", [ShuffleHevSuit, ShuffleFlashlight]),
+        OptionGroup("Equipment", [ShuffleHevSuit, ShuffleFlashlight, RandomizeAuxPower,
+                                  StartingAuxPower]),
         OptionGroup("Traps", [TrapPercentage, ButterfingersReissue]),
     ]
 
@@ -181,6 +185,8 @@ class HalfLife2World(World):
                 self.starting_items.append(name)
         pool.update(name for name, option in ABILITY_ITEM_NAMES.items()
                     if getattr(self.options, option))
+        if self.aux_power_in_pool():
+            pool.add(AUX_POWER)
         for entry in ITEMS:
             group = entry.get("group")
             if group == "chapter" and entry["chapter"] in included:
@@ -216,6 +222,9 @@ class HalfLife2World(World):
 
         for name in self.starting_items:
             self.multiworld.push_precollected(self.create_item(name))
+        if self.options.randomize_aux_power:
+            for _ in range(self.options.starting_aux_power.value):
+                self.multiworld.push_precollected(self.create_item(AUX_POWER))
         self.multiworld.push_precollected(
             self.create_item(unlock_item_for_chapter[self.starting_chapter])
         )
@@ -232,12 +241,20 @@ class HalfLife2World(World):
         for name in sorted(self.pool_item_names):
             if name == starting_unlock:
                 continue
-            pool += [self.create_item(name) for _ in range(copies(name))]
+            count = copies(name)
+            if name == AUX_POWER:
+                count -= self.options.starting_aux_power.value
+            pool += [self.create_item(name) for _ in range(count)]
         remaining = len(self.multiworld.get_unfilled_locations(self.player)) - len(pool)
         if remaining < 0:
             raise AssertionError(f"{self.game}: {-remaining} more items than locations")
         pool += [self.create_item(name) for name in self.get_filler_names(remaining)]
         self.multiworld.itempool += pool
+
+    def aux_power_in_pool(self) -> bool:
+        """Whether any Progressive Aux Power is left to find after the starting copies."""
+        return bool(self.options.randomize_aux_power) and (
+            self.options.starting_aux_power.value < copies(AUX_POWER))
 
     def get_filler_names(self, count: int) -> list[str]:
         """Fill the leftover locations, with `trap_percentage` of them traps."""
@@ -276,6 +293,8 @@ class HalfLife2World(World):
             "shuffle_flashlight": bool(self.options.shuffle_flashlight),
             "melee_throw": bool(self.options.melee_throw),
             "butterfingers_reissue": bool(self.options.butterfingers_reissue),
+            "randomize_aux_power": bool(self.options.randomize_aux_power),
+            "starting_aux_power": self.options.starting_aux_power.value,
             "death_link": bool(self.options.death_link),
             "death_link_amnesty": self.options.death_link_amnesty.value,
         }

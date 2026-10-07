@@ -43,6 +43,8 @@ namespace {
 // is an item in campaign.json, so a rename cannot silently ungate one.
 const char* const kSuitItem = "HEV Suit";
 const char* const kFlashlightItem = "Flashlight";
+const char* const kAuxPowerItem = "Progressive Aux Power";
+const int kAuxPowerStages = 4;
 const char* const kAirboatGunItem = "Airboat Gun";
 const char* const kBuggyGunItem = "Buggy Gun";
 const char* const kGravityGunItem = "Progressive Gravity Gun";
@@ -962,6 +964,7 @@ void GameStatus() {
     Say(chapter ? "Chapter " + chapter->name + " [" + ChapterStatus(*chapter) + "]"
                 : std::string(IsHub() ? "In the hub" : "Not in a chapter"));
     if (Gating()) {
+        Say("Aux power cap " + std::to_string(static_cast<int>(AuxPowerCap())) + "%");
         Say("Gravity gun stage " + std::to_string(GravityGunStage()) + ", suit " +
             (Holds(kSuitItem) ? "on" : "off") + ", flashlight " +
             (Holds(kFlashlightItem) ? "on" : "off"));
@@ -1240,6 +1243,14 @@ bool SuitPowerAllowed() {
         Notify("No aux power until the HEV Suit item arrives.");
     }
     return false;
+}
+
+float AuxPowerCap() {
+    if (!Gating() || !State().OptionBool("randomize_aux_power", false)) {
+        return 100.0f;
+    }
+    const int stages = (std::min)(State().Count(kAuxPowerItem), kAuxPowerStages);
+    return 100.0f * stages / kAuxPowerStages;
 }
 
 bool FlashlightAllowed() {

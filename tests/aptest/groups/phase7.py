@@ -5,5 +5,5 @@ from __future__ import annotations
 from scenario import Group
 
 
-GROUP = Group("phase7", "Phase 7: Melee Throw, filler, traps, navigation", lambda ctx: [],
-              includes=("melee", "filler", "traps", "navigation"))
+GROUP = Group("phase7", "Phase 7: Melee Throw, filler, traps, navigation, aux power",
+              lambda ctx: [], includes=("melee", "filler", "traps", "navigation", "aux_power"))

@@ -159,7 +159,7 @@ index 37c42637..f08cfb82 100644
  	if ( !pActivator || !pActivator->IsPlayer() )
  		return;
 diff --git a/src/game/server/hl2/hl2_player.cpp b/src/game/server/hl2/hl2_player.cpp
-index e7583f5a..9245a84e 100644
+index e7583f5a..fb36aabd 100644
 --- a/src/game/server/hl2/hl2_player.cpp
 +++ b/src/game/server/hl2/hl2_player.cpp
 @@ -55,6 +55,8 @@
@@ -191,7 +191,24 @@ index e7583f5a..9245a84e 100644
  	if( m_HL2Local.m_flSuitPower < 10 )
  	{
  		// Don't sprint unless there's a reasonable
-@@ -2025,6 +2031,9 @@ int CHL2_Player::FlashlightIsOn( void )
+@@ -1784,6 +1790,8 @@ void CHL2_Player::SetupVisibility( CBaseEntity *pViewEntity, unsigned char *pvs,
+ //-----------------------------------------------------------------------------
+ void CHL2_Player::SuitPower_Update( void )
+ {
++	// hl2ap: a spawn fills the meter to 100; the seed may allow less.
++	m_HL2Local.m_flSuitPower = MIN( m_HL2Local.m_flSuitPower, ap::AuxPowerCap() );
+ 	if( SuitPower_ShouldRecharge() )
+ 	{
+ 		SuitPower_Charge( SUITPOWER_CHARGE_RATE * gpGlobals->frametime );
+@@ -1889,6 +1897,7 @@ bool CHL2_Player::SuitPower_Drain( float flPower )
+ void CHL2_Player::SuitPower_Charge( float flPower )
+ {
+ 	m_HL2Local.m_flSuitPower += flPower;
++	m_HL2Local.m_flSuitPower = MIN( m_HL2Local.m_flSuitPower, ap::AuxPowerCap() ); // hl2ap
+ 
+ 	if( m_HL2Local.m_flSuitPower > 100.0 )
+ 	{
+@@ -2025,6 +2034,9 @@ int CHL2_Player::FlashlightIsOn( void )
  //-----------------------------------------------------------------------------
  void CHL2_Player::FlashlightTurnOn( void )
  {

@@ -11,21 +11,24 @@ WAIT = "Close the console; about five seconds later"
 def build(ctx) -> list[Scenario]:
     return [
         Scenario(
-            title="NPC Trap: story characters with minds of their own",
-            map="d1_canals_01",
+            title="NPC Trap: story characters with minds and voices of their own",
+            map="d2_coast_01",
             steps=f"""
                 Type !trap npc. {WAIT} chat says company has arrived and four characters
                 stand around you: story faces (the G-Man, Kleiner, Eli, Breen, Alyx,
-                Barney, Mossman, the monk, Odessa), not four copies of one. Watch them for
-                half a minute: some follow you, some wander about, some run away from
-                you; they talk and react, none attacks you, and none is stuck in a wall
-                or the floor. Send it twice more to see other mixes. No crash.
+                Barney, Mossman, the monk, Odessa), not four copies of one. Some follow
+                you, some wander about, some run away from you; none attacks you, and
+                none is stuck in a wall or the floor. Look at one and press use: it says a
+                line that character has in the game, in their own voice (the G-Man's
+                include his "rise and shine" opening). Now and then one nearby speaks
+                unprompted. None of them chatters in a citizen's voice. Shoot or crowbar
+                one: it dies, whoever it is. Send it twice more for other mixes.
                 !pass or !fail <what happened>.
             """,
         ),
         Scenario(
             title="Headcrab Trap: four headcrabs",
-            map="d1_canals_01",
+            map="d2_coast_01",
             steps=f"""
                 Type !trap headcrab. {WAIT} four headcrabs appear around you, spread out,
                 on the floor and not in walls, and come for you.
@@ -34,7 +37,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Manhack Swarm Trap: four manhacks",
-            map="d1_canals_01",
+            map="d2_coast_01",
             steps=f"""
                 Type !trap manhack. {WAIT} four manhacks appear around you at head height
                 and attack.
@@ -43,7 +46,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Rollermine Trap: three rollermines",
-            map="d1_canals_01",
+            map="d2_coast_01",
             steps=f"""
                 Type !trap rollermine. {WAIT} three rollermines appear on the ground
                 around you, spread out and not in walls, and roll at you. The gravity
@@ -53,7 +56,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Crow Trap: a dozen crows",
-            map="d1_canals_01",
+            map="d2_coast_01",
             steps=f"""
                 Type !trap crow. {WAIT} about twelve crows land around you, on the
                 ground. Walk at them: they hop and fly off.
@@ -62,7 +65,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Junk Trap: props rain down and barely hurt",
-            map="d1_canals_01",
+            map="d2_coast_01",
             steps=f"""
                 Note your health, then type !trap junk. {WAIT} chat says look up and
                 about eight props fall on you from overhead: a mix of this map's loose
@@ -75,7 +78,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Butterfingers Trap: the weapon flies, and comes back",
-            map="d1_canals_01",
+            map="d2_coast_01",
             steps=f"""
                 Hold the SMG and type !trap butterfingers. {WAIT} chat says you fumbled
                 your SMG and it flies off ahead of you, tumbling, as a physics object
@@ -89,7 +92,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Butterfingers Trap: no reissue when the option is off",
-            map="d1_canals_01", snapshot={"butterfingers_reissue": False},
+            map="d2_coast_01", snapshot={"butterfingers_reissue": False},
             steps=f"""
                 Hold the SMG and type !trap butterfingers. {WAIT} the SMG flies. Wait a
                 minute without picking it up: it is not handed back. Pick it up: yours
@@ -108,7 +111,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Bunny Hop Trap: fifteen seconds of hopping",
-            map="d1_canals_01",
+            map="d2_coast_01",
             steps=f"""
                 Type !trap bunny. {WAIT} you jump every time you land, for fifteen
                 seconds, then stop. Your own jump key still works normally after.
@@ -117,7 +120,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Sticky Key Trap: one key held, named, then let go",
-            map="d1_canals_01",
+            map="d2_coast_01",
             steps=f"""
                 Type !trap sticky. {WAIT} chat names a key (forward, back, strafe left or
                 strafe right) and you move that way on your own for fifteen seconds, then
@@ -128,7 +131,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Reload Trap: reloads from empty, no ammo lost",
-            map="d1_canals_01",
+            map="d2_coast_01",
             steps=f"""
                 Hold the SMG with a full magazine and note the reserve. Type !trap
                 reload. {WAIT} the SMG reloads from empty; afterwards the magazine is
@@ -139,7 +142,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Traps wait for a level to settle",
-            map="d1_canals_01",
+            map="d2_coast_01",
             steps="""
                 Type !trap headcrab, then at once !redo (the map reloads). The headcrabs
                 arrive about five seconds after the new load, not during it, and the game

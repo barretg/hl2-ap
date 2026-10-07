@@ -121,6 +121,9 @@ void GravityGunRefused(const char* what);
 // hl2/hl2_player.cpp. Aux power (sprint) needs the HEV Suit item; the
 // flashlight needs the Flashlight item.
 bool SuitPowerAllowed();
+// SuitPower_Update and SuitPower_Charge: the meter's ceiling, a quarter per
+// Progressive Aux Power held when the seed randomizes it (else 100).
+float AuxPowerCap();
 bool FlashlightAllowed();
 
 }  // namespace ap

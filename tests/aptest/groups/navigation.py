@@ -9,7 +9,7 @@ def build(ctx) -> list[Scenario]:
     return [
         Scenario(
             title="Menu: the - key opens it, 0 closes it",
-            map="d1_canals_01",
+            map="d2_coast_08",
             steps="""
                 Press the - key (minus): a numbered Archipelago menu opens (warp, warp
                 points, tracker, find, trace, hub, set warp point). Press 0: it closes.
@@ -20,7 +20,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Menu: a key already bound is left alone",
-            map="d1_canals_01",
+            map="d2_coast_08",
             steps="""
                 In the console: `unbind -`, `bind = "ap menu"`, then quit and restart the
                 game. `bind -` shows nothing: the menu stays on =, not bound twice. Then
@@ -30,7 +30,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Menu: warp to a chapter and a part",
-            map="d1_canals_01", closed=["d1_town_01"],
+            map="d2_coast_08", closed=["d1_town_01"],
             steps="""
                 Menu 1 (Warp to a chapter): only open chapters are listed, with their
                 status; Ravenholm is not. 9 shows more when there are over seven, 8 goes
@@ -42,7 +42,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Menu: warp points page",
-            map="d1_canals_01",
+            map="d2_coast_08",
             steps="""
                 Type !setwarp menutest. Menu 2 (Warp points) lists menutest with its
                 chapter; picking it warps there.
@@ -51,7 +51,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Find: nearest unfound check, with a bearing",
-            map="d1_canals_01",
+            map="d2_coast_08",
             steps="""
                 Type !find: chat names the nearest unfound check on this map with a
                 distance in metres and a direction relative to where you look (ahead,
@@ -64,7 +64,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Trace: a drawn path, off when found or asked",
-            map="d1_canals_01",
+            map="d2_coast_08",
             steps="""
                 Type !trace: an orange line runs from your feet along walkable ground to
                 the nearest unfound check, redrawn as you move. Follow it and collect the
@@ -75,7 +75,7 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Tracker menu view",
-            map="d1_canals_01",
+            map="d2_coast_08",
             steps="""
                 Menu 3 (or !tracker): the header shows the chapter and part, found/total
                 per part, weapons and keys held. Unfound checks on this map are listed;

@@ -3,6 +3,9 @@
 #include "basecombatweapon_shared.h"
 #include "ai_basenpc.h"
 #include "props.h"
+#include "recipientfilter.h"
+#include "in_buttons.h"
+#include "engine/IEngineSound.h"
 #include "weapon_physcannon.h"
 
 #include <algorithm>
@@ -28,6 +31,7 @@ const char* const kJunkName = "ap_junk";
 
 // NPC Trap: a body and a mind, rolled separately. Every model is a human on
 // the shared animation sets, so any of these minds can drive any of them.
+// Each in the voice table's order (tools/gen_voice_lines.py).
 const char* const kStoryModels[] = {
     "models/gman.mdl",  "models/kleiner.mdl", "models/eli.mdl",
     "models/breen.mdl", "models/mossman.mdl", "models/alyx.mdl",
@@ -43,6 +47,15 @@ const Mind kMinds[] = {
     {"npc_mossman", false}, {"npc_gman", false},
 };
 enum class Behaviour { kFollow, kWander, kFlee };
+
+// The lines each character has in the game, generated from the voice VPK.
+struct VoiceLines {
+    const char* const* lines;
+    int count;
+};
+#include "ap_voice_lines.inc"
+static_assert(ARRAYSIZE(kVoiceLines) == ARRAYSIZE(kStoryModels),
+              "one voice block per story model");
 
 const char* const kOtherClasses[] = {"npc_headcrab", "npc_manhack", "npc_rollermine",
                                      "npc_crow"};
@@ -83,6 +96,11 @@ const float kJunkFadeSeconds = 60.0f;   // so a pile never blocks a doorway for 
 const float kJunkMaxDamage = 5.0f;
 const float kButterfingersPickupDelay = 1.0f;  // not caught on the way out
 const float kWanderEverySeconds = 3.0f;
+const int kLinesPerCharacter = 14;        // precached per map, at random
+const float kUseReach = 128.0f;
+const float kAmbientMin = 25.0f;           // seconds between unprompted lines
+const float kAmbientMax = 50.0f;
+const float kAmbientRange = 600.0f;
 
 // --- placement ----------------------------------------------------------------
 //
@@ -199,7 +217,17 @@ struct Queued {
 };
 std::vector<Queued> g_queue;
 
-std::vector<EHANDLE> g_wanderers;
+// What the NPC Trap made: who wears which character, and what it does.
+struct TrapNpc {
+    EHANDLE npc;
+    int character;
+    bool wanders;
+    float next_line;
+    float busy_until;
+};
+std::vector<TrapNpc> g_npcs;
+// This map's precached share of each character's lines.
+std::vector<std::vector<const char*>> g_lines;
 float g_next_wander = 0.0f;
 
 // Butterfingers.
@@ -241,9 +269,12 @@ void ClearWithheld() {
 // --- the traps -----------------------------------------------------------------
 
 void SpringNpcs(CBasePlayer* player) {
-    std::vector<const char*> models(std::begin(kStoryModels), std::end(kStoryModels));
-    for (size_t i = models.size(); i > 1; --i) {
-        std::swap(models[i - 1], models[RandomInt(0, static_cast<int>(i) - 1)]);
+    std::vector<int> characters;
+    for (int i = 0; i < ARRAYSIZE(kStoryModels); ++i) {
+        characters.push_back(i);
+    }
+    for (size_t i = characters.size(); i > 1; --i) {
+        std::swap(characters[i - 1], characters[RandomInt(0, static_cast<int>(i) - 1)]);
     }
     std::vector<Vector> placed;
     int made = 0;
@@ -253,7 +284,8 @@ void SpringNpcs(CBasePlayer* player) {
             continue;
         }
         const Mind& mind = kMinds[RandomInt(0, ARRAYSIZE(kMinds) - 1)];
-        const char* model = models[i % models.size()];
+        const int character = characters[i % characters.size()];
+        const char* model = kStoryModels[character];
         // A unique citizen wears the model it is given; the others are reskinned
         // once they have spawned in their own.
         CBaseEntity* entity = SpawnAt(mind.classname, at, Facing(player, at),
@@ -267,15 +299,32 @@ void SpringNpcs(CBasePlayer* player) {
             npc->ResetSequenceInfo();
         }
         ++made;
+        static int serial = 0;
+        const std::string actor = std::string(kTrapName) + "_" + std::to_string(++serial);
+        npc->SetName(AllocPooledString(actor.c_str()));
+        // Killable, in case one spawns in the way: allies are immune to the
+        // player by a capability, the story ones by default.
+        npc->CapabilitiesRemove(bits_CAP_FRIENDLY_DMG_IMMUNE);
+        npc->m_takedamage = DAMAGE_YES;
+        if (npc->GetHealth() <= 0) {
+            npc->SetHealth(40);
+        }
+        // Its own AI's chatter would be in the wrong voice; ours speaks instead.
+        if (CBaseEntity* filter = CreateEntityByName("ai_speechfilter")) {
+            filter->KeyValue("subject", actor.c_str());
+            filter->KeyValue("IdleModifier", "0");
+            filter->KeyValue("NeverSayHello", "1");
+            DispatchSpawn(filter);
+            filter->Activate();
+        }
         Behaviour behaviour = static_cast<Behaviour>(RandomInt(0, 2));
         if (behaviour == Behaviour::kFollow && !mind.can_follow) {
             behaviour = Behaviour::kWander;
         }
+        g_npcs.push_back({npc, character, behaviour == Behaviour::kWander,
+                          gpGlobals->curtime + RandomFloat(2.0f, 6.0f), 0.0f});
         if (behaviour == Behaviour::kFollow) {
             // The level designers' way to make a companion follow: a goal entity.
-            static int serial = 0;
-            const std::string actor = std::string(kTrapName) + "_" + std::to_string(++serial);
-            npc->SetName(AllocPooledString(actor.c_str()));
             CBaseEntity* goal = CreateEntityByName("ai_goal_follow");
             if (goal != nullptr) {
                 goal->KeyValue("actor", actor.c_str());
@@ -288,8 +337,6 @@ void SpringNpcs(CBasePlayer* player) {
             }
         } else if (behaviour == Behaviour::kFlee) {
             npc->AddEntityRelationship(player, D_FR, 99);
-        } else {
-            g_wanderers.push_back(npc);
         }
     }
     Notify(made > 0 ? "NPC Trap: company has arrived." : "NPC Trap: no room for company here.");
@@ -514,19 +561,58 @@ void RunKeys(CBasePlayer* player) {
     }
 }
 
-void RunWanderers() {
-    if (gpGlobals->curtime < g_next_wander) {
+void Speak(TrapNpc& who, CAI_BaseNPC* npc) {
+    if (gpGlobals->curtime < who.busy_until || who.character >= static_cast<int>(g_lines.size()) ||
+        g_lines[who.character].empty()) {
         return;
     }
-    g_next_wander = gpGlobals->curtime + kWanderEverySeconds;
-    for (size_t i = 0; i < g_wanderers.size();) {
-        CAI_BaseNPC* npc = g_wanderers[i] ? g_wanderers[i]->MyNPCPointer() : nullptr;
+    const auto& lines = g_lines[who.character];
+    const char* line = lines[RandomInt(0, static_cast<int>(lines.size()) - 1)];
+    CPASAttenuationFilter filter(npc);
+    EmitSound_t sound;
+    sound.m_nChannel = CHAN_VOICE;  // the mouth follows the voice channel
+    sound.m_pSoundName = line;
+    sound.m_flVolume = 1.0f;
+    sound.m_SoundLevel = SNDLVL_TALKING;
+    CBaseEntity::EmitSound(filter, npc->entindex(), sound);
+    who.busy_until = gpGlobals->curtime + enginesound->GetSoundDuration(line) + 0.5f;
+    who.next_line = who.busy_until + RandomFloat(kAmbientMin, kAmbientMax);
+}
+
+// Wanderers keep moving; anyone the player uses, or now and then anyone
+// nearby, says one of their lines.
+void RunNpcs(CBasePlayer* player) {
+    CBaseEntity* used = nullptr;
+    if (player->m_afButtonPressed & IN_USE) {
+        Vector forward;
+        player->EyeVectors(&forward);
+        trace_t tr;
+        UTIL_TraceLine(player->EyePosition(), player->EyePosition() + forward * kUseReach,
+                       MASK_SHOT, player, COLLISION_GROUP_NONE, &tr);
+        used = tr.m_pEnt;
+    }
+    const bool wander_now = gpGlobals->curtime >= g_next_wander;
+    if (wander_now) {
+        g_next_wander = gpGlobals->curtime + kWanderEverySeconds;
+    }
+    for (size_t i = 0; i < g_npcs.size();) {
+        TrapNpc& who = g_npcs[i];
+        CAI_BaseNPC* npc = who.npc ? who.npc->MyNPCPointer() : nullptr;
         if (npc == nullptr || !npc->IsAlive()) {
-            g_wanderers.erase(g_wanderers.begin() + i);
+            g_npcs.erase(g_npcs.begin() + i);
             continue;
         }
-        if (!npc->IsMoving() && npc->GetState() != NPC_STATE_SCRIPT &&
-            npc->GetState() != NPC_STATE_COMBAT) {
+        if (used != nullptr && used == npc) {
+            Speak(who, npc);
+        } else if (gpGlobals->curtime >= who.next_line) {
+            if ((npc->GetAbsOrigin() - player->GetAbsOrigin()).Length() < kAmbientRange) {
+                Speak(who, npc);
+            } else {
+                who.next_line = gpGlobals->curtime + RandomFloat(kAmbientMin, kAmbientMax);
+            }
+        }
+        if (wander_now && who.wanders && !npc->IsMoving() &&
+            npc->GetState() != NPC_STATE_SCRIPT && npc->GetState() != NPC_STATE_COMBAT) {
             npc->SetSchedule(SCHED_IDLE_WANDER);
         }
         ++i;
@@ -545,6 +631,21 @@ void TrapsPrecache() {
     for (const Mind& mind : kMinds) {
         UTIL_PrecacheOther(mind.classname);
     }
+    // A share of each character's lines, different every map; all of the
+    // G-Man's few (his opening among them).
+    g_lines.assign(ARRAYSIZE(kVoiceLines), {});
+    for (int c = 0; c < ARRAYSIZE(kVoiceLines); ++c) {
+        std::vector<const char*> all(kVoiceLines[c].lines,
+                                     kVoiceLines[c].lines + kVoiceLines[c].count);
+        for (size_t i = all.size(); i > 1; --i) {
+            std::swap(all[i - 1], all[RandomInt(0, static_cast<int>(i) - 1)]);
+        }
+        all.resize((std::min)(all.size(), static_cast<size_t>(kLinesPerCharacter)));
+        for (const char* line : all) {
+            enginesound->PrecacheSound(line, true);
+        }
+        g_lines[c] = all;
+    }
     for (const char* classname : kOtherClasses) {
         UTIL_PrecacheOther(classname);
     }
@@ -552,7 +653,7 @@ void TrapsPrecache() {
 
 void TrapsLevelStart() {
     ClearWithheld();
-    g_wanderers.clear();
+    g_npcs.clear();
     g_next_wander = 0.0f;
     g_release_due = g_hop_until > 0.0f || g_jump_down || g_stuck_key != nullptr || g_release_due;
     g_hop_until = 0.0f;
@@ -576,7 +677,7 @@ void TrapsFrame() {
         return;
     }
     RunWithheld(player);
-    RunWanderers();
+    RunNpcs(player);
     for (size_t i = 0; i < g_queue.size();) {
         g_queue[i].wait -= gpGlobals->frametime;
         if (g_queue[i].wait > 0.0f) {

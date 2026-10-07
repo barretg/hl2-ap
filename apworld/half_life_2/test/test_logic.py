@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from BaseClasses import CollectionState, ItemClassification
 
-from ..data import CHAPTERS_BY_KEY
+from ..data import AUX_POWER, CHAPTERS_BY_KEY
 from ..items import filler_items, trap_items, unlock_item_for_chapter
 from ..rules import gate_rule
 from . import HalfLife2TestBase
@@ -215,3 +215,26 @@ class TestAllTraps(HalfLife2TestBase):
         self.assertEqual(filler, [])
         self.assertGreater(len(traps), 0)
         self.assertEqual(len(set(trap_items)), 10)
+
+
+class TestAuxPowerOff(HalfLife2TestBase):
+    def test_not_in_pool(self) -> None:
+        self.assertNotIn(AUX_POWER, {i.name for i in self.multiworld.itempool})
+
+
+class TestAuxPowerRandomized(HalfLife2TestBase):
+    options = {"randomize_aux_power": True, "starting_aux_power": 1}
+
+    def test_stages_split(self) -> None:
+        pooled = [i for i in self.multiworld.itempool if i.name == AUX_POWER]
+        started = [i for i in self.multiworld.precollected_items[self.player]
+                   if i.name == AUX_POWER]
+        self.assertEqual((len(pooled), len(started)), (3, 1))
+        self.assertFalse(pooled[0].advancement)
+
+
+class TestAuxPowerAllStarting(HalfLife2TestBase):
+    options = {"randomize_aux_power": True, "starting_aux_power": 4}
+
+    def test_none_in_pool(self) -> None:
+        self.assertNotIn(AUX_POWER, {i.name for i in self.multiworld.itempool})

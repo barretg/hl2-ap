@@ -1,6 +1,6 @@
 {
  "format": 1,
- "data_version": "3c5198d9da4b",
+ "data_version": "c70d426c3f5d",
  "hub_map": "temp_hub",
  "campaigns": [
   {
@@ -1252,6 +1252,13 @@
    "name": "Battery",
    "classification": "filler",
    "group": "filler"
+  },
+  {
+   "id": 8820046,
+   "name": "Progressive Aux Power",
+   "classification": "useful",
+   "group": "ability",
+   "count": 4
   },
   {
    "id": 8820036,

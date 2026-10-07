@@ -63,6 +63,9 @@ OPTIONAL_ITEM_NAMES: dict[str, str] = {
 # Abilities that exist only when their toggle is on.
 ABILITY_ITEM_NAMES: dict[str, str] = {"Melee Throw": "melee_throw"}
 
+# Each copy lets the aux meter fill another quarter (game/src/ap_game.cpp).
+AUX_POWER = "Progressive Aux Power"
+
 # Trigger type of the charger checks, switched off by `chargesanity`.
 CHARGER_TRIGGER = "charger"
 

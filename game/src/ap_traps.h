@@ -29,7 +29,8 @@ class CBasePlayer;
 
 namespace ap {
 
-// LevelInitPreEntity.
+// LevelInitPostEntity, before anything spawns a trap. Not PreEntity: see
+// ap_main.cpp.
 void TrapsPrecache();
 
 // LevelInitPostEntity: forget the previous map's trap state, and let go of

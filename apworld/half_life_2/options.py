@@ -79,6 +79,28 @@ class ShuffleFlashlight(Toggle):
     display_name = "Shuffle Flashlight"
 
 
+class RandomizeAuxPower(Toggle):
+    """Shuffle four Progressive Aux Power items into the pool.
+
+    The aux meter (sprint, flashlight, extra air underwater) can only fill to
+    a quarter per Progressive Aux Power held: none means no aux power at all,
+    four is the full meter. When off, aux power works as in the base game.
+    Never required by logic.
+    """
+
+    display_name = "Randomize Aux Power"
+
+
+class StartingAuxPower(Range):
+    """How many Progressive Aux Power items you start with when Randomize Aux
+    Power is on. The rest are in the pool."""
+
+    display_name = "Starting Aux Power"
+    range_start = 0
+    range_end = 4
+    default = 0
+
+
 class MeleeThrow(Toggle):
     """Add Melee Throw to the item pool.
 
@@ -153,6 +175,8 @@ class HalfLife2Options(PerGameCommonOptions):
     chargesanity: Chargesanity
     shuffle_hev_suit: ShuffleHevSuit
     shuffle_flashlight: ShuffleFlashlight
+    randomize_aux_power: RandomizeAuxPower
+    starting_aux_power: StartingAuxPower
     melee_throw: MeleeThrow
     trap_percentage: TrapPercentage
     butterfingers_reissue: ButterfingersReissue

@@ -220,7 +220,6 @@ public:
     void LevelInitPreEntity() override {
         WatchdogStage("LevelInitPreEntity");
         MeleePrecache();
-        TrapsPrecache();
         NavPrecache();
         WatchdogStage("engine");
     }
@@ -229,6 +228,10 @@ public:
         WatchdogStart(StoreDir().c_str());
         WatchdogStage("LevelInitPostEntity");
         g_bridge.Open(StoreDir());
+        // NPC classes only once the AI system has built this level's schedule
+        // tables (its own LevelInitPreEntity may run after ours, and rebuilding
+        // them under an NPC class already loaded breaks every NPC's schedules).
+        TrapsPrecache();
         GameLevelStart();
         g_started = true;
         g_next_poll = 0.0;
