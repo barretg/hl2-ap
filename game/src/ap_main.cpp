@@ -30,6 +30,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+extern ConVar sv_unlockedchapters;  // game/server/gameinterface.cpp
+
 namespace ap {
 
 const char* const kStoreSubdir = "archipelago";
@@ -247,9 +249,27 @@ bool Dispatch(const std::string& name, const std::string& rest, const std::strin
     return true;
 }
 
+// New Game lists `cfg/chapter<N>.cfg` up to `sv_unlockedchapters`, and the
+// mod's own chapter1.cfg is the hub (see `mod.HUB_CHAPTER_CFG`). Held at 1, so
+// the hub is the only entry: the engine raises it on every map with a chapter
+// title, the finale's credits set it to 15, and the player's config.cfg
+// carries whatever it last was.
+void HoldUnlockedChapters(IConVar* var, const char*, float) {
+    ConVar* cvar = static_cast<ConVar*>(var);
+    if (cvar->GetInt() != 1) {
+        cvar->SetValue(1);  // calls back once more, with 1
+    }
+}
+
 class CArchipelagoSystem : public CAutoGameSystemPerFrame {
 public:
     CArchipelagoSystem() : CAutoGameSystemPerFrame("CArchipelagoSystem") {}
+
+    bool Init() override {
+        sv_unlockedchapters.InstallChangeCallback(HoldUnlockedChapters);
+        sv_unlockedchapters.SetValue(1);
+        return true;
+    }
 
     void LevelInitPreEntity() override {
         WatchdogStage("LevelInitPreEntity");

@@ -49,7 +49,7 @@ def test_wine_path() -> None:
 def test_plain_install_and_sweep(tmp_path: Path) -> None:
     target = tmp_path / "hl2ap"
     written, has_dll = mod.install(target, dll=b"dll")
-    assert has_dll and written == len(mod.MOD_FILES) + 1
+    assert has_dll and written == len(mod.MOD_FILES) + 2  # the dll, New Game's chapter1.cfg
     assert (target / "bin" / "server.dll").read_bytes() == b"dll"
     assert (target / "archipelago" / "checkdata.txt").is_file()
     assert mod.is_installed(target)
@@ -177,7 +177,7 @@ def test_localization_repeats_chapter_titles_under_the_mod_name(tmp_path: Path) 
                        '\t"HL2_Crowbar"\t"CROWBAR"\r\n}\r\n'.encode("utf-16"))
     text = mod.localization_text(source).decode("utf-16")
     assert '\t"HL2_Chapter1_Title"\t\t"POINT INSERTION"\r\n' in text
-    assert '\t"hl2ap_Chapter1_Title"\t\t"POINT INSERTION"\r\n' in text
+    assert '\t"hl2ap_Chapter1_Title"\t\t"HUB"\r\n' in text
     assert "hl2ap_Crowbar" not in text
 
 
@@ -229,6 +229,17 @@ def test_install_writes_the_hub_map(tmp_path: Path) -> None:
     assert (target / mod.HUB_MAP_TARGET).read_bytes() == b"VBSP fake"
     mod.uninstall(target)
     assert not (target / "maps").exists()
+
+
+def test_new_game_is_the_hub(tmp_path: Path) -> None:
+    """New Game's one entry loads the hub; see HUB_CHAPTER_CFG."""
+    target = tmp_path / "hl2ap"
+    mod.install(target)
+    assert (target / mod.HUB_CHAPTER_CFG).read_text() == "map alpha_hub\n"
+    (target / "cfg" / "config.cfg").write_text("bind x y\n")  # the player's
+    mod.uninstall(target)
+    assert not (target / mod.HUB_CHAPTER_CFG).exists()
+    assert (target / "cfg" / "config.cfg").exists()
 
 
 def test_hub_map_names_agree() -> None:

@@ -121,6 +121,14 @@ LOCALIZATION_TARGET = "resource/" + MOD_DIR + "_{}.txt"
 # with <mod> our folder name, so each `HL2_Chapter...` key is repeated under it.
 CHAPTER_KEY = re.compile(r'^([ \t]*)"HL2_(Chapter\w+)"([^\r\n]*)', re.IGNORECASE | re.MULTILINE)
 
+# New Game's only entry. The dialog lists `cfg/chapter<N>.cfg` up to
+# `sv_unlockedchapters`, which the server dll holds at 1, so the mod's own
+# chapter1.cfg (found before retail's) is the whole list: it loads the hub, and
+# its title is ours. The worldspawn chapter titles use the `HL2_` keys, so
+# Point Insertion is still called that in game.
+HUB_CHAPTER_CFG = "cfg/chapter1.cfg"
+HUB_CHAPTER_TITLE = "HUB"
+
 
 def localization_text(source: Path) -> bytes:
     """A retail `hl2_<language>.txt` with chapter keys added under our mod name.
@@ -134,8 +142,13 @@ def localization_text(source: Path) -> bytes:
         text = raw.decode("utf-16")
     except UnicodeDecodeError:
         return raw
-    added = CHAPTER_KEY.sub(lambda m: f'{m.group(0)}\r\n{m.group(1)}"{MOD_DIR}_{m.group(2)}"'
-                            f'{m.group(3)}', text)
+    def repeat(m: re.Match) -> str:
+        value = m.group(3)
+        if m.group(2).lower() == "chapter1_title":
+            value = re.sub(r'"[^"]*"', f'"{HUB_CHAPTER_TITLE}"', value, count=1)
+        return f'{m.group(0)}\r\n{m.group(1)}"{MOD_DIR}_{m.group(2)}"{value}'
+
+    added = CHAPTER_KEY.sub(repeat, text)
     return added.encode("utf-16")
 
 
@@ -387,6 +400,8 @@ def install(target_root: Path, dll: bytes | None = None,
     if hub_map is not None:
         _write(target_root / HUB_MAP_TARGET, hub_map)
         written += 1
+    _write(target_root / HUB_CHAPTER_CFG, f"map {Path(HUB_MAP_TARGET).stem}\n".encode())
+    written += 1
 
     if dll is None:
         dll = read_mod_file(f"files/{DLL_NAME}")
@@ -424,7 +439,7 @@ def sweep(directory: Path) -> int:
         return 0
 
     owned = {relative for _, relative in MOD_FILES} | {DLL_NAME, CLIENT_DLL_NAME, HUDLAYOUT_TARGET,
-                                                       HUB_MAP_TARGET}
+                                                       HUB_MAP_TARGET, HUB_CHAPTER_CFG}
     removed = 0
     for relative in sorted(owned):
         path = directory / relative
