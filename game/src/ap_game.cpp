@@ -559,12 +559,27 @@ std::string ChapterStatus(const Chapter& chapter) {
     return chapter.is_goal ? "sealed" : "locked";
 }
 
+// As HL1's mission list: a chapter the seed left out is not listed at all,
+// and the numbers are the chapters' own, so skipping one renumbers nothing.
 void ListChapters() {
-    BeginReply("!ap");
-    for (const Chapter& chapter : Data().Chapters()) {
-        Say(chapter.number + ". " + chapter.name + " [" + ChapterStatus(chapter) + "]");
+    if (!Data().Loaded()) {
+        Say("No checkdata.txt. This is running as ordinary Half-Life 2.");
+        return;
     }
-    EndReply();
+    if (!State().connected) {
+        Say("The Archipelago client is not connected yet.");
+    }
+    for (const Chapter& chapter : Data().Chapters()) {
+        if (State().ChapterExcluded(chapter.key)) {
+            continue;
+        }
+        char line[192];
+        Q_snprintf(line, sizeof(line), "  %3s. %-26s [%s]", chapter.number.c_str(),
+                   chapter.name.c_str(), ChapterStatus(chapter).c_str());
+        Say(line);
+    }
+    Say("!warp <number or name> to go, plus a part number to return to somewhere you "
+        "have been. !hub to come back. !help for the rest.");
 }
 
 // A named warp point. The save says where; the seed still says whether.
@@ -585,7 +600,7 @@ void WarpToNamed(const NamedWarp& warp) {
         Notify("Warp point " + warp.label + " is in a part this run has not reached.");
         return;
     }
-    Notify("Warping to " + warp.label + ".");
+    Notify("Warping to '" + warp.label + "'.");
     engine->ServerCommand(("load " + warp.save + "\n").c_str());
 }
 
@@ -634,18 +649,22 @@ void SetWarp(const std::string& rest) {
 }
 
 void ListWarps() {
-    BeginReply("!warps");
+    if (SlotKey().empty()) {
+        Say("No slot is connected, so no warp points are loaded.");
+        return;
+    }
     const std::vector<NamedWarp> warps = NamedWarps();
     if (warps.empty()) {
-        Say("No warp points of your own. !setwarp <name> makes one where you stand.");
+        Say("No warp points of your own. !setwarp <name> makes one here.");
+    } else {
+        Say("Your warp points:");
+        for (const NamedWarp& warp : warps) {
+            const Chapter* chapter = Data().ChapterOfMap(warp.map);
+            Say("  !warp " + warp.label + "    " +
+                (chapter ? chapter->name : std::string("the hub")) + " (" + warp.map + ")");
+        }
     }
-    for (const NamedWarp& warp : warps) {
-        const Chapter* chapter = Data().ChapterOfMap(warp.map);
-        Say("!warp " + warp.label + "    " + (chapter ? chapter->name : std::string("Hub")) +
-            " (" + warp.map + ")");
-    }
-    Say("Parts you have reached: !warp <chapter> <part>.");
-    EndReply();
+    Say("Parts you have walked into: !warp <chapter> <part>.");
 }
 
 void Warp(const std::string& rest) {
@@ -688,6 +707,7 @@ void Warp(const std::string& rest) {
     // No part starts the chapter fresh; part 1 named is its warp point, which
     // `!setwarp` may have moved.
     if (part == 0) {
+        Notify("Warping to " + chapter->name + ".");
         RequestMap(chapter->maps.front());
         return;
     }
@@ -701,32 +721,14 @@ void Warp(const std::string& rest) {
                " yet.");
         return;
     }
+    Notify("Warping to " + chapter->name +
+           (part > 1 ? ", part " + std::to_string(part) : std::string()) + ".");
     const std::string save = WarpSaveName(map);
     if (!save.empty() && SaveExists(save)) {
         engine->ServerCommand(("load " + save + "\n").c_str());
     } else {
         RequestMap(map);
     }
-}
-
-void Tracker() {
-    BeginReply("!tracker");
-    const std::string map = CurrentMap();
-    int found = 0;
-    int missing = 0;
-    for (const Location& location : Data().Locations()) {
-        if (location.map != map || !State().InSeed(location.id)) {
-            continue;
-        }
-        if (State().checked.count(location.id) != 0) {
-            ++found;
-        } else {
-            ++missing;
-            Say("  missing: " + location.name);
-        }
-    }
-    Say(map + ": " + std::to_string(found) + " found, " + std::to_string(missing) + " missing.");
-    EndReply();
 }
 
 // The kit a map spawns at the player when loaded directly rather than through
@@ -883,13 +885,13 @@ bool GameDispatch(const std::string& name, const std::string& rest) {
     } else if (name == "warp") {
         Warp(rest);
     } else if (name == "hub") {
+        Notify("Returning to the hub.");
         GoHub("");
     } else if (name == "setwarp") {
         SetWarp(rest);
     } else if (name == "warps") {
         ListWarps();
     } else if (name == "tracker") {
-        Tracker();
         NavTracker(rest);
     } else {
         return NavDispatch(name, rest);
@@ -898,16 +900,20 @@ bool GameDispatch(const std::string& name, const std::string& rest) {
 }
 
 void GameHelp() {
-    Say("!ap          every chapter and its status");
-    Say("!warp <n>    start a chapter (number or name); !warp <n> <part> a part reached");
-    Say("!setwarp     move this part's warp point to where you stand");
-    Say("!setwarp <name>  make a warp point here; !warp <name> returns");
-    Say("!warps       your warp points");
-    Say("!hub         back to the hub");
-    Say("!tracker [text]  checks found and missing on this map, as a menu too");
-    Say("!menu        the navigation menu (bound to the - key)");
-    Say("!find [text] the nearest unfound check, and which way it is");
-    Say("!trace [text]  draws the way to it; again to stop");
+    Say(HelpLine("!ap", "every chapter and its unlock status"));
+    Say(HelpLine("!warp <number or name>", "travel to an unlocked chapter"));
+    Say(HelpLine("!warp <chapter> <part>", "to a part of it you have already reached"));
+    Say(HelpLine("", "the part as 3 or p3"));
+    Say(HelpLine("!warp <name>", "to a warp point of your own"));
+    Say(HelpLine("!setwarp", "reset this part's warp point to where you stand"));
+    Say(HelpLine("!setwarp <name>", "make a warp point here, called <name>"));
+    Say(HelpLine("!warps", "the warp points you have made"));
+    Say(HelpLine("!hub", "return to the hub"));
+    Say(HelpLine("!tracker [filter]", "every location in the seed, found and not"));
+    Say(HelpLine("!tracker kanal", "narrowed to a chapter, a map or a check name"));
+    Say(HelpLine("!find [text]", "point at the nearest unfound check"));
+    Say(HelpLine("!trace [text]", "as !find, and draw a path to it; again to stop"));
+    Say(HelpLine("!menu", "warps and the tracker as a menu (the - key)"));
 }
 
 void GameStatus() {

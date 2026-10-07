@@ -33,14 +33,17 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
-            title="!ap lists every chapter's status",
+            title="!ap lists every chapter's status, as in HL1",
             map=hub, closed=["d2_coast_01"], excluded=["d1_trainstation_01"],
             checked=[data.complete("d1_canals_01")],
             steps="""
-                Type !ap. Point Insertion is not in this seed, Route Kanal complete,
-                Highway 17 locked, the rest unlocked and Dark Energy OPEN (the harness
-                opens every chapter). The list goes to the console with one line on
-                screen if it is long.
+                Type !ap. Chat says "[AP] !ap: N lines in the console (~)." In the
+                console, one aligned line per chapter: "    1. Point Insertion ... [..]".
+                Point Insertion is not listed at all (not in this seed), Route Kanal
+                [complete], Highway 17 [locked], the rest [unlocked] and Dark Energy
+                [OPEN] (the harness opens every chapter), then a line on !warp and
+                !hub. Also !help: two aligned columns, as in HL1, and !warps: "Your
+                warp points:" or how to make one. Every chat line starts "[AP]".
                 !pass or !fail <what was wrong>.
             """,
         ),

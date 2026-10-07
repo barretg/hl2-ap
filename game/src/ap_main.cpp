@@ -11,6 +11,7 @@
 
 #include "ap_main.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <deque>
 #include <string>
@@ -67,6 +68,9 @@ void Queue(const std::string& text) {
             c = ' ';
         }
     }
+    // "[AP] " on chat too, as on the console and in HL1, so our lines read
+    // apart from players' chat.
+    rest.insert(0, "[AP] ");
     size_t indent = 0;
     while (!rest.empty()) {
         std::string piece;
@@ -171,7 +175,6 @@ void Poll() {
 
 void Status() {
     const Snapshot& state = State();
-    BeginReply("!status");
     Say("Map " + CurrentMap() + ", client " +
         (state.session.empty() ? std::string("not seen")
                                : state.connected ? std::string("connected")
@@ -181,36 +184,67 @@ void Status() {
             " items, " + std::to_string(state.checked.size()) + " checks sent");
     }
     GameStatus();
-    EndReply();
 }
 
 void Help() {
-    BeginReply("!help");
-    Say("!status      where the client and this map stand");
+    Say("In chat (Y), or in the console as ap <command>:");
     GameHelp();
-    Say("!help        this list");
+    Say(HelpLine("!status", "where the client and this map stand"));
+    Say(HelpLine("!help", "this list"));
     if (TestBuild()) {
         Say("Test build: !pass !fail !note !next !prev !redo !go !info !list "
             "!groups !group !tp and more; !info in a scenario");
     }
-    EndReply();
+    Say("Names ignore case and punctuation: 'kanal', 'Route Kanal', 'd1_canals_05'.");
 }
 
+// One reply per command, wherever it came from: `BeginReply` holds what it
+// says until it is done, so a short answer goes to chat and a listing stays in
+// the console. As in HL1.
+struct Reply {
+    explicit Reply(const std::string& label) { BeginReply(label); }
+    ~Reply() {
+        if (!dropped) {
+            EndReply();
+        }
+    }
+    // Not a command after all: says nothing, so the caller's refusal stands alone.
+    void Drop() {
+        dropped = true;
+        g_collecting = false;
+        g_reply.clear();
+        g_reply_label.clear();
+    }
+    bool dropped = false;
+};
+
 // Every `!x`. The harness's first in a test build, where it is the client.
-bool Dispatch(const std::string& name, const std::string& rest) {
+// `label` is the command as the player typed it, for the reply's chat line.
+bool Dispatch(const std::string& name, const std::string& rest, const std::string& label) {
     WatchdogStage("Dispatch (chat or console command)");
     if (TestDispatch(name, rest)) {
         return true;
     }
+    // The menu on screen, or a trace line going away, is the whole answer.
+    if (NavSilent(name, rest)) {
+        return NavDispatch(name, rest);
+    }
     if (name == "status") {
+        Reply reply(label);
         Status();
         return true;
     }
     if (name == "help") {
+        Reply reply(label);
         Help();
         return true;
     }
-    return GameDispatch(name, rest);
+    Reply reply(label);
+    if (!GameDispatch(name, rest)) {
+        reply.Drop();
+        return false;
+    }
+    return true;
 }
 
 class CArchipelagoSystem : public CAutoGameSystemPerFrame {
@@ -297,6 +331,12 @@ bool ClientReady() {
     return player != nullptr && player->IsConnected();
 }
 
+std::string HelpLine(const std::string& command, const std::string& what) {
+    std::string line = command;
+    line.resize((std::max)(line.size() + 1, kHelpColumn), ' ');
+    return line + what;
+}
+
 void Say(const std::string& text) {
     if (g_collecting) {
         g_reply.push_back(text);
@@ -374,7 +414,7 @@ bool HandleChat(CBasePlayer* player, const char* said) {
     const std::string name = Lower(space == std::string::npos ? text : text.substr(0, space));
     const std::string rest =
         space == std::string::npos ? std::string() : Trim(text.substr(space + 1));
-    if (!Dispatch(name, rest)) {
+    if (!Dispatch(name, rest, "!" + name)) {
         // Ours to answer even when it is not a command we have: a player who
         // typed `!statsu` wants to be told, not to have it broadcast.
         Notify("No such command: !" + name + ". Try !help.");
@@ -394,7 +434,7 @@ static void ApCommand(const CCommand& args)
     for (int i = 2; i < args.ArgC(); ++i) {
         rest += (rest.empty() ? "" : " ") + std::string(args.Arg(i));
     }
-    if (!ap::Dispatch(name, rest)) {
+    if (!ap::Dispatch(name, rest, "ap " + name)) {
         ap::Notify("No such command: ap " + name + ". Try ap help.");
     }
 }

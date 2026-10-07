@@ -18,24 +18,24 @@ import build_apworld  # noqa: E402
 @pytest.fixture
 def fake_build(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, Path]:
     dlls = {}
-    for relative in build_apworld.DLLS:
+    for relative in build_apworld.BUILT:
         built = tmp_path / "game" / Path(relative).name
         built.parent.mkdir(exist_ok=True)
         built.write_bytes(b"built " + built.name.encode())
         dlls[relative] = built
-    monkeypatch.setattr(build_apworld, "DLLS", dlls)
+    monkeypatch.setattr(build_apworld, "BUILT", dlls)
     return dlls
 
 
 def test_refuses_without_dlls(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(build_apworld, "DLLS", {"mod/files/bin/server.dll": tmp_path / "none"})
+    monkeypatch.setattr(build_apworld, "BUILT", {"mod/files/bin/server.dll": tmp_path / "none"})
     with pytest.raises(SystemExit):
         build_apworld.build(tmp_path / "out")
     assert not (tmp_path / "out").exists()
 
 
 def test_allow_no_dll(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(build_apworld, "DLLS", {"mod/files/bin/server.dll": tmp_path / "none"})
+    monkeypatch.setattr(build_apworld, "BUILT", {"mod/files/bin/server.dll": tmp_path / "none"})
     target = build_apworld.build(tmp_path, allow_no_dll=True)
     assert "half_life_2/mod/files/bin/server.dll" not in zipfile.ZipFile(target).namelist()
 

@@ -257,7 +257,7 @@ class HalfLife2Context(SuperContext):
         text = "".join(part.get("text", "") for part in args.get("data", []))
         text = text.replace("|", "/").replace("\n", " ").strip()
         if text:
-            self.bridge.queue_event("CHAT", f"[AP] {text}")
+            self.bridge.queue_event("CHAT", text)  # the game prefixes "[AP] " itself
 
     def receive_items(self, args: dict) -> None:
         """Apply an item packet. Unlocks are rebuilt from the full history the

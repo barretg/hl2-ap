@@ -364,7 +364,7 @@ void Trace(const std::string& filter, long only_id = 0) {
         return;
     }
     if (g_tracing && filter.empty() && only_id == 0) {
-        StopTrace("Trace off.");
+        StopTrace("");  // the line going away is the answer, as in HL1
         return;
     }
     Target best;
@@ -525,6 +525,80 @@ void Describe(long id) {
         }
     }
     Notify(name + ": first in " + WayTo(location->map) + "; nowhere open has one yet.");
+}
+
+// The tracker in the console, laid out as HL1's: a heading per part with its
+// count, a [x]/[ ] line per check, the weapons apart, the seed's total last.
+// A filter keeps a part whose chapter or map matches whole, and otherwise only
+// the checks whose names match; the total stays the seed's.
+void ConsoleTracker(const std::string& filter) {
+    if (State().checked.empty() && State().missing.empty()) {
+        Say("No location data yet. Is the client connected?");
+        return;
+    }
+    const std::string wanted = Simplify(filter);
+    auto hit = [&](const std::string& text) {
+        return !wanted.empty() && Simplify(text).find(wanted) != std::string::npos;
+    };
+    auto mark = [](const Location* location) {
+        return std::string("    ") + (State().checked.count(location->id) != 0 ? "[x] " : "[ ] ") +
+               location->name;
+    };
+
+    Say("=== Archipelago: location tracker ===");
+    int found = 0;
+    int total = 0;
+    int shown = 0;
+    auto section = [&](const std::string& head, const std::vector<const Location*>& checks,
+                       bool whole) {
+        for (const Location* location : checks) {
+            found += State().checked.count(location->id) != 0 ? 1 : 0;
+        }
+        total += static_cast<int>(checks.size());
+        std::vector<const Location*> listed;
+        for (const Location* location : checks) {
+            if (wanted.empty() || whole || hit(location->name)) {
+                listed.push_back(location);
+            }
+        }
+        if (listed.empty()) {
+            return;
+        }
+        ++shown;
+        Say(head + "  (" + Count(checks) + ")");
+        for (const Location* location : listed) {
+            Say(mark(location));
+        }
+    };
+
+    for (const Chapter& chapter : Data().Chapters()) {
+        if (State().ChapterExcluded(chapter.key)) {
+            continue;
+        }
+        for (size_t part = 0; part < chapter.maps.size(); ++part) {
+            const std::vector<const Location*> checks =
+                PartChecks(chapter, static_cast<int>(part) + 1);
+            if (checks.empty()) {
+                continue;
+            }
+            const std::string& map = chapter.maps[part];
+            const std::string head =
+                chapter.maps.size() > 1
+                    ? chapter.name + ", part " + std::to_string(part + 1) + " -- " + map
+                    : chapter.name + " -- " + map;
+            section(head, checks, hit(chapter.name) || hit(map));
+        }
+    }
+    const std::vector<const Location*> weapons = WeaponChecks();
+    if (!weapons.empty()) {
+        section("Half-Life 2: Weapons", weapons, hit("Half-Life 2 weapons"));
+    }
+
+    if (shown == 0 && !wanted.empty()) {
+        Say("Nothing matches \"" + filter + "\".");
+    }
+    Say("Found " + std::to_string(found) + " of " + std::to_string(total) +
+        " locations in this seed.");
 }
 
 // --- menu ------------------------------------------------------------------------
@@ -880,7 +954,7 @@ void NavFrame() {
         return;
     }
     if (State().checked.count(g_trace.id) != 0) {
-        StopTrace("Found " + ShortName(g_trace.name) + "; trace off.");
+        StopTrace("");  // the check going out is the answer, as in HL1
         return;
     }
     CBasePlayer* player = Player();
@@ -889,6 +963,10 @@ void NavFrame() {
     }
     g_next_beam = gpGlobals->curtime + kTraceRefresh;
     DrawTrace(player);
+}
+
+bool NavSilent(const std::string& name, const std::string& rest) {
+    return name == "menu" || (name == "trace" && g_tracing && Trim(rest).empty());
 }
 
 bool NavDispatch(const std::string& name, const std::string& rest) {
@@ -910,6 +988,7 @@ bool NavDispatch(const std::string& name, const std::string& rest) {
 
 void NavTracker(const std::string& filter) {
     const std::string text = Trim(filter);
+    ConsoleTracker(text);
     if (text.empty()) {
         Open(Page::kTracker);
     } else if (const Chapter* chapter = Data().FindChapter(text)) {

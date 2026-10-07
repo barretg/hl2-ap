@@ -63,14 +63,29 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
-            title="Trace: a drawn path, off when found or asked",
+            title="Trace: a drawn path, off quietly when found or asked",
             map="d2_coast_08",
             steps="""
                 Type !trace: an orange line runs from your feet along walkable ground to
                 the nearest unfound check, redrawn as you move. Follow it and collect the
-                check: chat says found, trace off, and the line stops. !trace again
-                starts a new one; !trace a second time turns it off.
+                check: chat says only that the check was found, and the line stops.
+                !trace again starts a new one; !trace a second time turns it off with
+                nothing said in chat.
                 !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
+            title="Tracker: the console listing, as in HL1",
+            map="d2_coast_08",
+            steps="""
+                Type !tracker, close the menu (0) and open the console (~). Chat said
+                "[AP] !tracker: N lines in the console (~)." The console has
+                "=== Archipelago: location tracker ===", then a heading per part such as
+                "Sandtraps, part 2 -- d2_coast_08  (0/3)" with a "[x]"/"[ ]" line per
+                check under it, a "Half-Life 2: Weapons" block, and last "Found X of Y
+                locations in this seed." !tracker kanal lists only Route Kanal's parts;
+                !tracker charger only chargers, the total line unchanged.
+                !pass or !fail <what was different>.
             """,
         ),
         Scenario(

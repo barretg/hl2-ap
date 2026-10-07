@@ -68,6 +68,10 @@ void EndReply();
 // The longest reply that still goes on screen as well as the console.
 constexpr size_t kReplyHudMaxLines = 9;
 
+// `!help`'s two columns: the command padded to this width, then what it does.
+constexpr size_t kHelpColumn = 26;
+std::string HelpLine(const std::string& command, const std::string& what);
+
 // Load a map from the frame loop. Hooks never change level inline; they ask
 // for it here and the next frame does it.
 void RequestMap(const std::string& map);

@@ -20,6 +20,9 @@ void NavFrame();
 
 // `!menu`, `!find`, `!trace`. False for any other command.
 bool NavDispatch(const std::string& name, const std::string& rest);
+// A command whose answer is on screen rather than in words (the menu, a trace
+// turned off), so it gets no reply line.
+bool NavSilent(const std::string& name, const std::string& rest);
 // `!tracker [text]`: its menu view, beside the console listing.
 void NavTracker(const std::string& filter);
 // The `menuselect` command: a menu key, 1 to 9, or 10 for 0.

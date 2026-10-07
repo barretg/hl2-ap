@@ -8,11 +8,15 @@ In order:
   5. DLLs            build/game (release) and build/game-test (scenario
                      harness), each configured with CMake on first use
   6. apworld         tools/build_apworld.py        (bundles build/game's DLLs)
+  7. worlds copy     the apworld into Archipelago's worlds folder
+                     (`--worlds`, default /games/Archipelago/worlds on Linux;
+                     skipped with `--no-install`)
 
-Installs nothing: run `python tools/install_mod.py` afterwards for the mod.
+Does not install the mod: run `python tools/install_mod.py` afterwards for that.
 
 Usage:
     python build.py [--game "<Half-Life 2 folder>"] [--skip-data] [--only release|test]
+                    [--worlds "<Archipelago worlds folder>" | --no-install]
 """
 
 from __future__ import annotations
@@ -30,6 +34,8 @@ SDK = REPO.parent / "source-sdk-2013"
 TOOLCHAIN = REPO / "game" / "toolchain-clangcl-x86.cmake"
 DLL_BUILDS = {"release": (REPO / "build" / "game", "OFF"),
               "test": (REPO / "build" / "game-test", "ON")}
+APWORLD = REPO / "build" / "half_life_2.apworld"
+DEFAULT_WORLDS = Path("/games/Archipelago/worlds") if sys.platform.startswith("linux") else None
 
 
 def run(label: str, command: list[str]) -> None:
@@ -64,12 +70,22 @@ def main(argv: list[str] | None = None) -> int:
                         help="skip steps 1 to 3 (no install needed)")
     parser.add_argument("--only", choices=sorted(DLL_BUILDS),
                         help="build one DLL set; the apworld is packaged only with release")
+    parser.add_argument("--worlds", type=Path, default=DEFAULT_WORLDS,
+                        help=f"Archipelago worlds folder to copy the apworld into "
+                             f"(default: {DEFAULT_WORLDS or 'none off Linux'})")
+    parser.add_argument("--no-install", action="store_true",
+                        help="leave the apworld in build/ only")
     args = parser.parse_args(argv)
 
     for program in ("cmake", "ninja"):
         if shutil.which(program) is None:
             print(f"{program} not found on PATH", file=sys.stderr)
             return 2
+    install = args.only != "test" and not args.no_install
+    if install and (args.worlds is None or not args.worlds.is_dir()):
+        print(f"Archipelago worlds folder not found: {args.worlds} "
+              f"(pass --worlds <folder> or --no-install)", file=sys.stderr)
+        return 2
     if not SDK.is_dir():
         print(f"SDK checkout not found at {SDK} (see game/README.md)", file=sys.stderr)
         return 2
@@ -84,6 +100,9 @@ def main(argv: list[str] | None = None) -> int:
         build_dlls(which)
     if args.only != "test":
         run("apworld", tool("build_apworld.py"))
+    if install:
+        print(f"== worlds copy -> {args.worlds}", flush=True)
+        shutil.copy2(APWORLD, args.worlds / APWORLD.name)
     print("== done. Install the mod with: python tools/install_mod.py")
     return 0
 
