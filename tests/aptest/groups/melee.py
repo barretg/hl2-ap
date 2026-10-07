@@ -30,9 +30,19 @@ def build(ctx) -> list[Scenario]:
         ),
         Scenario(
             title="Melee Throw: not without the item",
-            map="d1_canals_01", take=["Melee Throw"],
+            map="d1_canals_01", take=["Melee Throw"], snapshot={"melee_throw": True},
             steps="""
-                Secondary fire with the crowbar does nothing, as in retail.
+                Secondary fire with the crowbar does not throw it, and chat says
+                throwing needs the Melee Throw item (once, not every press).
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
+            title="Melee Throw: no notice when the seed has none",
+            map="d1_canals_01", take=["Melee Throw"], snapshot={"melee_throw": False},
+            steps="""
+                The seed's Melee Throw option is off. Secondary fire with the crowbar
+                does nothing, as in retail, and chat says nothing about it.
                 !pass or !fail <what happened>.
             """,
         ),

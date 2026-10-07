@@ -26,6 +26,16 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
+            title="impulse 101 sends no checks",
+            map="d1_canals_01", take=["SMG", "RPG"], setup=["sv_cheats 1"],
+            steps="""
+                Type impulse 101 in the console. You get every weapon you hold the
+                item for, but not the SMG or RPG, and nothing lands on the floor.
+                The harness reports no First <weapon> check and chat shows no Found.
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
             title="Using a health charger sends its check",
             map=health.map, pos=health.position, expect=[health.id],
             steps=f"""

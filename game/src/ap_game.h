@@ -48,8 +48,13 @@ void ScriptedWeaponRefused(CBasePlayer* player, CBaseCombatWeapon* weapon);
 
 // basecombatcharacter.cpp and hl2/npc_combine.cpp Event_Killed. In the Citadel
 // a dropped weapon dissolves only if this is true: the player's gravity gun
-// did the killing (a punt, a thrown prop, an energy ball).
+// did the killing (a punt, a thrown prop, an energy ball it caught; not one
+// the Pulse Rifle fired).
 bool GravityGunKill(const CTakeDamageInfo& info);
+// basecombatcharacter.cpp, a dissolving kill. Whether the dropped weapon
+// dissolves with the body: as retail outside the Citadel, only for a gravity
+// gun kill inside it.
+bool DissolveDroppedWeapon(const CTakeDamageInfo& info);
 
 // player.cpp GiveNamedItem, first line. True refuses the give, and the weapon
 // is left on the floor in front of the player instead.
@@ -85,6 +90,10 @@ void AirboatGunPulled();
 // hl2/vehicle_jeep.cpp. The same for the buggy's tau cannon.
 bool BuggyGunAllowed();
 void BuggyGunPulled();
+
+// ap_melee.cpp. Crowbar alt-fire without the Melee Throw item: a notice when
+// the seed has Melee Throw in its pool.
+void MeleeThrowRefused();
 
 // hl2/weapon_physcannon.cpp. Stages held of Progressive Gravity Gun (4 when
 // not gating): 1 holds and drops, 2 punts, 3 lets the Citadel supercharge it

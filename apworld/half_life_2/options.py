@@ -34,10 +34,10 @@ class LogicDifficulty(Choice):
     strict: a chapter is only expected of you once you own what makes it
     reasonable: a firearm from Route Kanal, the Shotgun, .357 Magnum, Pulse
     Rifle or Crossbow for Ravenholm, an SMG, Pulse Rifle or Shotgun from
-    Highway 17 on, the gravity gun for Ravenholm and Highway 17, bugbait for Nova
-    Prospekt, the buggy keys for driving
-    Highway 17 and Sandtraps, the Buggy Gun or the RPG for Sandtraps' battery,
-    and the Airboat Gun for the hunter-chopper. The default.
+    Highway 17 on, the gravity gun for Ravenholm, Highway 17 and Sandtraps,
+    bugbait for Nova Prospekt, the buggy keys for driving Highway 17 and
+    Sandtraps, the Buggy Gun or the RPG for Sandtraps' battery, and the
+    Airboat Gun for the hunter-chopper. The default.
     loose: those are dropped, and the buggy chapters may be expected on foot.
     What a chapter cannot be crossed without still applies at any difficulty:
     the boat keys, the gravity gun where the level needs it, the RPG where a

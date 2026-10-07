@@ -48,9 +48,6 @@ def build(ctx) -> list[Scenario]:
             Without the RPG, can you get past New Little Odessa's gunship to
             d2_coast_04?
         """, take=["RPG"]),
-        claim("Sandtraps needs the gravity gun", "d2_coast_09", """
-            Play Sandtraps with no gravity gun (the plank bridges over the sand).
-        """, counts={GUN: 0}),
         optional("Sandtraps on foot", "d2_coast_09", """
             Without Sandtraps Buggy Keys, can you get from d2_coast_09 into
             d2_coast_10 and on to the beach on foot?

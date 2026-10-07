@@ -77,8 +77,9 @@ def build(ctx) -> list[Scenario]:
             steps="""
                 Walk through the field. Soldiers can be grabbed, punted and vaporised as
                 in retail. A soldier killed by the gun (punted, hit by a thrown prop or
-                an energy ball) drops a weapon that dissolves. Look at another and type
-                npc_kill: that one's weapon stays on the floor.
+                an energy ball it launched) drops a weapon that dissolves. Look at
+                another and type npc_kill: that one's weapon stays on the floor. Then
+                give weapon_ar2 and kill one with its alt-fire ball: the weapon stays.
                 !pass or !fail <what happened>.
             """,
         ),

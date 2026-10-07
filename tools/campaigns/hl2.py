@@ -132,12 +132,11 @@ HL2 = Campaign(
                                   "any": ["explosives"]},
                         "maps": {"d2_coast_03": {"strict": ["highway 17 buggy"]},
                                  "d2_coast_04": {"items": {"RPG": 1}}}},
-        # Driven from the first map to the beach; plank bridges over the sand.
-        # Fine on foot under loose logic. Under strict, the buggy, and the
+        # Driven from the first map to the beach; plank bridges over the sand,
+        # which the gravity gun only helps with. Fine on foot under loose logic. Under strict, the buggy, and the
         # Buggy Gun or the RPG to get the battery that lets it into
         # d2_coast_10 (2026-10-06).
-        "d2_coast_09": {"entry": {"strict": ["heavy"],
-                                  "items": {"Progressive Gravity Gun": 1}},
+        "d2_coast_09": {"entry": {"strict": ["heavy", "gravity gun"]},
                         # Part 2's gunship (d2_coast_10) needs the RPG to move
                         # on, at any difficulty (2026-10-06).
                         "maps": {"d2_coast_10": {"strict": ["sandtraps buggy",

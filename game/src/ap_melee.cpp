@@ -124,7 +124,11 @@ void MeleePrecache() { UTIL_PrecacheOther(kThrownClass); }
 
 void CrowbarSecondary(CBaseCombatWeapon* crowbar) {
     CBasePlayer* player = crowbar ? ToBasePlayer(crowbar->GetOwner()) : nullptr;
-    if (player == nullptr || !Gating() || !State().Has(kMeleeThrowItem)) {
+    if (player == nullptr || !Gating()) {
+        return;
+    }
+    if (!State().Has(kMeleeThrowItem)) {
+        MeleeThrowRefused();
         return;
     }
     if (crowbar->m_flNextSecondaryAttack > gpGlobals->curtime) {

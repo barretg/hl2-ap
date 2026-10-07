@@ -460,11 +460,9 @@
    },
    "gates": {
     "strict": [
-     "heavy"
-    ],
-    "items": {
-     "Progressive Gravity Gun": 1
-    }
+     "heavy",
+     "gravity gun"
+    ]
    },
    "map_gates": {
     "d2_coast_10": {

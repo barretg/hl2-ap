@@ -76,7 +76,7 @@ index 21a6f9de..42b98892 100644
  		if ( !bOK )
  		{
 diff --git a/src/game/server/basecombatcharacter.cpp b/src/game/server/basecombatcharacter.cpp
-index 9f6a8674..e092cd3e 100644
+index 9f6a8674..fad8e549 100644
 --- a/src/game/server/basecombatcharacter.cpp
 +++ b/src/game/server/basecombatcharacter.cpp
 @@ -54,6 +54,8 @@
@@ -88,7 +88,15 @@ index 9f6a8674..e092cd3e 100644
  // memdbgon must be the last include file in a .cpp file!!!
  #include "tier0/memdbgon.h"
  
-@@ -1646,7 +1648,8 @@ void CBaseCombatCharacter::Event_Killed( const CTakeDamageInfo &info )
+@@ -1640,13 +1642,15 @@ void CBaseCombatCharacter::Event_Killed( const CTakeDamageInfo &info )
+ 			bRagdollCreated = Dissolve( NULL, gpGlobals->curtime, false, nDissolveType );
+ 
+ 			// Also dissolve any weapons we dropped
+-			if ( pDroppedWeapon )
++			// hl2ap: in the Citadel, only for a gravity gun kill.
++			if ( pDroppedWeapon && ap::DissolveDroppedWeapon( info ) )
+ 			{
+ 				pDroppedWeapon->Dissolve( NULL, gpGlobals->curtime, false, nDissolveType );
  			}
  		}
  #ifdef HL2_DLL

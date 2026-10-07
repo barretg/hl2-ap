@@ -6,6 +6,7 @@
 #include "hl2_player.h"
 #include "globalstate.h"
 #include "weapon_physcannon.h"
+#include "prop_combine_ball.h"
 #include "basecombatweapon_shared.h"
 #include "ammodef.h"
 #include "filesystem.h"
@@ -29,6 +30,9 @@
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
+// player.cpp: set while `impulse 101` hands out every weapon.
+extern int gEvilImpulse101;
 
 namespace ap {
 namespace {
@@ -937,6 +941,9 @@ Touch WeaponTouch(CBasePlayer* player, CBaseCombatWeapon* weapon) {
     if (ItemOf(classname).empty() || !StartsWith(classname, "weapon_")) {
         return Touch::kAllow;
     }
+    if (gEvilImpulse101) {
+        return Touch::kAllow;  // a cheat give RefuseGive let through: no check
+    }
     if (!NewGameKit(weapon)) {
         Found(Data().Pickup("weapon_pickup", classname));
     }
@@ -993,6 +1000,11 @@ bool RefuseGive(CBasePlayer* player, const char* classname) {
     // equip, gated by armour rather than by the give.
     if (ItemOf(classname).empty() || !StartsWith(classname, "weapon_")) {
         return false;
+    }
+    // `impulse 101` is a cheat, not a pickup: no checks, and what is not
+    // received yet is simply not given rather than dropped for later.
+    if (gEvilImpulse101) {
+        return !ClassnameHeld(classname);
     }
     Found(Data().Pickup("weapon_pickup", classname));
     if (ClassnameHeld(classname)) {
@@ -1125,8 +1137,18 @@ bool GravityGunKill(const CTakeDamageInfo& info) {
         return true;  // retail
     }
     CBaseEntity* attacker = info.GetAttacker();
-    return attacker != nullptr && attacker->IsPlayer() &&
-           (info.GetDamageType() & (DMG_PHYSGUN | DMG_CRUSH | DMG_DISSOLVE)) != 0;
+    if (attacker == nullptr || !attacker->IsPlayer() ||
+        (info.GetDamageType() & (DMG_PHYSGUN | DMG_CRUSH | DMG_DISSOLVE)) == 0) {
+        return false;
+    }
+    // A ball the gun catches loses its weapon-launched mark; the Pulse
+    // Rifle's alt-fire keeps it.
+    CPropCombineBall* ball = dynamic_cast<CPropCombineBall*>(info.GetInflictor());
+    return ball == nullptr || !ball->WasWeaponLaunched();
+}
+
+bool DissolveDroppedWeapon(const CTakeDamageInfo& info) {
+    return !Gating() || !Confiscated() || GravityGunKill(info);
 }
 
 bool AirboatGunAllowed() { return Holds(kAirboatGunItem); }
@@ -1137,11 +1159,25 @@ void AirboatGunPulled() {
     }
 }
 
-bool BuggyGunAllowed() { return Holds(kBuggyGunItem); }
+bool BuggyGunAllowed() {
+    const bool allowed = Holds(kBuggyGunItem);
+    // Temporary: a playtest saw the cannon fire without the item.
+    if (Debounced("buggy_gun_log", 5.0)) {
+        Msg("[AP] debug: buggy gun allowed=%d gating=%d count=%d\n", allowed ? 1 : 0,
+            Gating() ? 1 : 0, State().Count(kBuggyGunItem));
+    }
+    return allowed;
+}
 
 void BuggyGunPulled() {
     if (!BuggyGunAllowed() && Debounced("buggy_gun")) {
         Notify("The mounted gun needs the Buggy Gun item.");
+    }
+}
+
+void MeleeThrowRefused() {
+    if (State().OptionBool("melee_throw", false) && Debounced("melee_throw")) {
+        Notify("Throwing the crowbar needs the Melee Throw item.");
     }
 }
 

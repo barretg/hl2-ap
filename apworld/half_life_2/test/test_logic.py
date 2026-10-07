@@ -149,7 +149,8 @@ class TestLoose(HalfLife2TestBase):
     def test_highway_17_gravity_gun_dropped(self) -> None:
         everything_but(self, GRAVITY_GUN)
         self.assertTrue(self.can_reach_region("d2_coast_01"))
-        self.assertFalse(self.can_reach_region("d2_coast_09"))
+        self.assertTrue(self.can_reach_region("d2_coast_09"))
+        self.assertFalse(self.can_reach_region("d3_citadel_04"))
 
     def test_bugbait_dropped(self) -> None:
         everything_but(self, "Bugbait")
