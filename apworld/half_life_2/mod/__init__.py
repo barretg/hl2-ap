@@ -57,6 +57,12 @@ MOD_FILES = (
     ("files/resource/ui/basechat.res", "resource/ui/basechat.res"),
     # Generated from campaign.json by tools/gen_checkdata.py.
     ("files/archipelago/checkdata.txt", "archipelago/checkdata.txt"),
+    # New Game's hub picture, for the classic menu and GamepadUI; generated
+    # from assets/ap_logo.png by tools/gen_chapter_image.py.
+    # Under override/, which gameinfo.txt mounts ahead of retail's vpks.
+    *((f"files/materials/{texture}.{ext}", f"override/materials/{texture}.{ext}")
+      for texture in ("vgui/chapters/chapter1", "gamepadui/chapter1")
+      for ext in ("vmt", "vtf")),
 )
 
 # Files installed once and then left alone, because the player is expected to

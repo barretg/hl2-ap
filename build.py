@@ -4,6 +4,7 @@ In order:
   1. campaign data   tools/build_campaign_data.py  (reads the HL2 install)
   2. check data      tools/gen_checkdata.py
   3. voice lines     tools/gen_voice_lines.py      (reads the HL2 install)
+     hub picture     tools/gen_chapter_image.py    (from assets/ap_logo.png)
   4. SDK patches     tools/sdk_patches.py          (from ../source-sdk-2013)
   5. DLLs            build/game (release) and build/game-test (scenario
                      harness), each configured with CMake on first use
@@ -95,6 +96,7 @@ def main(argv: list[str] | None = None) -> int:
         run("campaign data", tool("build_campaign_data.py", *game))
         run("check data", tool("gen_checkdata.py"))
         run("voice lines", tool("gen_voice_lines.py", *game))
+        run("hub picture", tool("gen_chapter_image.py"))
     run("SDK patches", tool("sdk_patches.py", "--sdk", str(SDK)))
     for which in ([args.only] if args.only else ["release", "test"]):
         build_dlls(which)

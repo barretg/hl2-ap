@@ -144,9 +144,10 @@ def build(ctx) -> list[Scenario]:
             title="New Game lists only the hub",
             map=hub,
             steps="""
-                Press Esc, then New Game. The only entry is HUB (its picture is still
-                Point Insertion's). Pick it: the hub loads. Run !warp to any chapter and
-                back with !hub first if you like; the list stays at one entry.
+                Press Esc, then New Game. The only entry is HUB, pictured with the
+                Archipelago logo (not Point Insertion's train), in the classic menu and
+                in GamepadUI. Pick it: the hub loads. Run !warp to any chapter and back
+                with !hub first if you like; the list stays at one entry.
                 !pass or !fail <what was listed>.
             """,
         ),

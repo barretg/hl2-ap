@@ -18,6 +18,10 @@
 
 		SearchPaths
 		{
+			// Our replacements for files retail keeps in its vpks (New Game's
+			// hub picture), which would otherwise be found first.
+			game				|gameinfo_path|override
+
 			game+mod			hl2/custom/*
 
 			game_lv				hl2/hl2_lv.vpk
