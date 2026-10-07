@@ -149,7 +149,8 @@ class TrapPercentage(Range):
     - Headcrab Trap: four headcrabs.
     - Butterfingers Trap: the weapon in your hands goes flying. The suit
       reissues it after half a minute if you cannot find it again (see
-      Butterfingers Reissue).
+      Butterfingers Reissue). Any number can be out at once, each on its own
+      clock.
     - Manhack Swarm Trap: four manhacks.
     - Rollermine Trap: three rollermines roll out around you.
     - Bunny Hop Trap: you jump every time you land, for fifteen seconds.

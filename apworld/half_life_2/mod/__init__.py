@@ -174,11 +174,14 @@ HUB_MAP_TARGET = "maps/temp_hub.bsp"
 HL2_APP_ID = "220"
 
 
-# Retail HL2's HUD layout, copied in as `scripts/hudlayout.res` with one change:
+# Retail HL2's HUD layout, copied in as `scripts/hudlayout.res` with two changes.
 # HL2 ships the chat panel (`HudChat`) 4x4 pixels in the corner, so chat and
 # `messagemode` work but cannot be seen, and chat is where the game side talks
 # to the player and where `!` commands are typed. The block is replaced with
-# HL2DM's geometry; every other element stays as the player's install has it.
+# HL2DM's geometry. And the numbered menu (`HudMenu`, the `!menu` menu) asks
+# for fonts and colours HL2's scheme never defines (`MenuTextFont`,
+# `MenuColor`...), so it drew nothing; its block names HL2's own instead.
+# Every other element stays as the player's install has it.
 HUDLAYOUT_SOURCE = "hl2/scripts/hudlayout.res"
 HUDLAYOUT_TARGET = "scripts/hudlayout.res"
 HUDCHAT_BLOCK = re.compile(r'(?ms)^([ \t]*)HudChat\s*\{.*?^[ \t]*\}')
@@ -197,6 +200,24 @@ HUDCHAT_LAYOUT = (
 )
 
 
+HUDMENU_BLOCK = re.compile(r'(?ms)^([ \t]*)HudMenu\s*\{.*?^[ \t]*\}')
+HUDMENU_LAYOUT = (
+    '{i}HudMenu\r\n{i}{{\r\n'
+    '{i}\t"fieldName"\t"HudMenu"\r\n'
+    '{i}\t"visible"\t"1"\r\n'
+    '{i}\t"enabled"\t"1"\r\n'
+    '{i}\t"wide"\t"640"\r\n'
+    '{i}\t"tall"\t"480"\r\n'
+    '{i}\t"TextFont"\t"HudHintTextSmall"\r\n'
+    '{i}\t"ItemFont"\t"HudHintTextSmall"\r\n'
+    '{i}\t"ItemFontPulsing"\t"HudHintTextLarge"\r\n'
+    '{i}\t"MenuColor"\t"BrightFg"\r\n'
+    '{i}\t"MenuItemColor"\t"BrightFg"\r\n'
+    '{i}\t"MenuBoxColor"\t"SelectionBoxBg"\r\n'
+    '{i}}}'
+)
+
+
 def hudlayout_text(hl2_dir: Path) -> bytes | None:
     """The player's HL2 HUD layout with a visible chat panel, or None when the
     install has no layout file or no `HudChat` block to replace."""
@@ -207,6 +228,7 @@ def hudlayout_text(hl2_dir: Path) -> bytes | None:
     patched, count = HUDCHAT_BLOCK.subn(lambda m: HUDCHAT_LAYOUT.format(i=m.group(1)), text, count=1)
     if count == 0:
         return None
+    patched = HUDMENU_BLOCK.sub(lambda m: HUDMENU_LAYOUT.format(i=m.group(1)), patched, count=1)
     return patched.encode("utf-8", errors="surrogateescape")
 
 

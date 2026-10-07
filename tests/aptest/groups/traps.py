@@ -91,12 +91,26 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
+            title="Butterfingers Trap: several at once, each on its own clock",
+            map="d2_coast_01",
+            steps=f"""
+                Hold the SMG and type !trap butterfingers four times, a few seconds
+                apart: four different weapons fly off, one per trap, with no limit.
+                Pick up one: yours again, no check, and the others stay withheld. The
+                rest come back by themselves 30 seconds after each was dropped, at
+                different times.
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
             title="Butterfingers Trap: no reissue when the option is off",
             map="d2_coast_01", snapshot={"butterfingers_reissue": False},
             steps=f"""
                 Hold the SMG and type !trap butterfingers. {WAIT} the SMG flies. Wait a
-                minute without picking it up: it is not handed back. Pick it up: yours
-                again, no check.
+                minute without picking it up: it is not handed back. Send the trap four
+                more times: each throws another weapon. Pick
+                them up: yours again, no check. Once you hold nothing at all, the suit
+                hands one back.
                 !pass or !fail <what happened>.
             """,
         ),
@@ -136,7 +150,9 @@ def build(ctx) -> list[Scenario]:
                 Hold the SMG with a full magazine and note the reserve. Type !trap
                 reload. {WAIT} the SMG reloads from empty; afterwards the magazine is
                 full and magazine plus reserve add up to what they did before. With the
-                crowbar in hand, chat says there is nothing to reload.
+                RPG in hand (and rockets left) it plays its reload and cannot fire until
+                that finishes; no rocket is lost. With the crowbar in hand, chat says
+                there is nothing to reload.
                 !pass or !fail <what happened>.
             """,
         ),

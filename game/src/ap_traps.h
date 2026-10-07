@@ -6,7 +6,8 @@
 //                       wanders, or runs away from them
 //   Headcrab Trap       four headcrabs
 //   Butterfingers Trap  the weapon in hand is flung away as a physics object;
-//                       the suit hands it back after half a minute (option)
+//                       the suit hands it back after half a minute (option);
+//                       any number out at once, each on its own clock
 //   Manhack Swarm Trap  four manhacks (HL1's Bot Swarm: HL2 has no bots)
 //   Rollermine Trap     three rollermines
 //   Bunny Hop Trap      the player jumps whenever they land, for a while

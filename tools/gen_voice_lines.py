@@ -31,7 +31,7 @@ CHARACTERS: list[tuple[str, list[str]]] = [
               "vo/npc/alyx/"]),
     ("barney", ["vo/k_lab/ba_", "vo/trainyard/ba_", "vo/npc/barney/"]),
     ("monk", ["vo/ravenholm/monk_"]),
-    ("odessa", ["vo/coast/odessa/"]),
+    ("odessa", ["vo/coast/odessa/nlo_"]),
 ]
 
 

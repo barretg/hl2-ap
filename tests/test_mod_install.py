@@ -202,6 +202,25 @@ def test_install_makes_the_chat_panel_visible(tmp_path: Path) -> None:
     assert not (target / "scripts").exists()
 
 
+def test_install_gives_the_menu_hl2_fonts(tmp_path: Path) -> None:
+    """HL2's scheme has no menu fonts, so HudMenu drew nothing; see HUDMENU_LAYOUT."""
+    hl2 = _fake_hl2(tmp_path / "Half-Life 2")
+    layout = hl2 / "hl2" / "scripts" / "hudlayout.res"
+    layout.parent.mkdir(parents=True, exist_ok=True)
+    layout.write_bytes(
+        b'"Resource/HudLayout.res"\r\n{\r\n\tHudChat\r\n\t{\r\n\t\t"wide"\t "4"\r\n\t}\r\n'
+        b'\tHudMenu\r\n\t{\r\n\t\t"fieldName" "HudMenu"\r\n\t}\r\n'
+        b'\tHudHistoryResource\r\n\t{\r\n\t\t"wide"\t "248"\r\n\t}\r\n}\r\n')
+    target = tmp_path / "hl2ap"
+    mod.install(target, hl2_dir=hl2)
+    text = (target / "scripts" / "hudlayout.res").read_text(encoding="utf-8")
+    menu = text[text.index("HudMenu"):text.index("HudHistoryResource")]
+    assert '"TextFont"\t"HudHintTextSmall"' in menu
+    assert '"MenuColor"\t"BrightFg"' in menu
+    assert text.count("{") == text.count("}")
+    mod.uninstall(target)
+
+
 def test_install_copies_the_hub_map(tmp_path: Path) -> None:
     """The stand-in hub is the player's own background map under a name the
     engine will save on; see HUB_MAP_SOURCE."""

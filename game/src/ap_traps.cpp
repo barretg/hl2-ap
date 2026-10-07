@@ -96,6 +96,7 @@ const float kJunkFadeSeconds = 60.0f;   // so a pile never blocks a doorway for 
 const float kJunkMaxDamage = 5.0f;
 const float kButterfingersPickupDelay = 1.0f;  // not caught on the way out
 const float kWanderEverySeconds = 3.0f;
+const int kNpcHealth = 40;
 const int kLinesPerCharacter = 14;        // precached per map, at random
 const float kUseReach = 128.0f;
 const float kAmbientMin = 25.0f;           // seconds between unprompted lines
@@ -231,9 +232,13 @@ std::vector<std::vector<const char*>> g_lines;
 float g_next_wander = 0.0f;
 
 // Butterfingers.
-std::string g_withheld;
-EHANDLE g_drop;
-float g_dropped_at = 0.0f;
+// Butterfingers: each weapon thrown, on its own clock, any number at once.
+struct Drop {
+    std::string classname;
+    EHANDLE weapon;
+    float dropped_at;
+};
+std::vector<Drop> g_drops;
 
 // Bunny Hop and Sticky Key, on this map's clock.
 float g_hop_until = 0.0f;
@@ -261,9 +266,13 @@ void PlayerCommand(CBasePlayer* player, const std::string& command) {
     engine->ClientCommand(player->edict(), "%s\n", command.c_str());
 }
 
-void ClearWithheld() {
-    g_withheld.clear();
-    g_drop = nullptr;
+const Drop* DropOf(CBaseEntity* weapon) {
+    for (const Drop& drop : g_drops) {
+        if (weapon != nullptr && drop.weapon.Get() == weapon) {
+            return &drop;
+        }
+    }
+    return nullptr;
 }
 
 // --- the traps -----------------------------------------------------------------
@@ -306,9 +315,10 @@ void SpringNpcs(CBasePlayer* player) {
         // player by a capability, the story ones by default.
         npc->CapabilitiesRemove(bits_CAP_FRIENDLY_DMG_IMMUNE);
         npc->m_takedamage = DAMAGE_YES;
-        if (npc->GetHealth() <= 0) {
-            npc->SetHealth(40);
-        }
+        // One health for all: Mossman's 8, with a vital ally's cap of a quarter
+        // of it per hit and its regeneration, made her near unkillable.
+        npc->SetMaxHealth(kNpcHealth);
+        npc->SetHealth(kNpcHealth);
         // Its own AI's chatter would be in the wrong voice; ours speaks instead.
         if (CBaseEntity* filter = CreateEntityByName("ai_speechfilter")) {
             filter->KeyValue("subject", actor.c_str());
@@ -339,7 +349,7 @@ void SpringNpcs(CBasePlayer* player) {
             npc->AddEntityRelationship(player, D_FR, 99);
         }
     }
-    Notify(made > 0 ? "NPC Trap: company has arrived." : "NPC Trap: no room for company here.");
+    Notify(made > 0 ? "Company has arrived." : "NPC Trap: no room for company here.");
 }
 
 void SpringButterfingers(CBasePlayer* player) {
@@ -380,9 +390,7 @@ void SpringButterfingers(CBasePlayer* player) {
         phys->AddVelocity(nullptr, &spin);
     }
     weapon->Lock(1.0e6f, player);  // the player's to pick up; never an NPC's
-    g_withheld = classname;
-    g_drop = weapon;
-    g_dropped_at = gpGlobals->curtime;
+    g_drops.push_back({classname, weapon, gpGlobals->curtime});
     if (player->GetActiveWeapon() == nullptr) {
         player->SwitchToNextBestWeapon(nullptr);
     }
@@ -391,7 +399,7 @@ void SpringButterfingers(CBasePlayer* player) {
 
 void SpringBunnyHop() {
     g_hop_until = gpGlobals->curtime + kHeldKeySeconds;
-    Notify("Bunny Hop Trap: hop, hop, hop.");
+    Notify("Hop, hop, hop!");
 }
 
 void SpringStickyKey(CBasePlayer* player) {
@@ -408,6 +416,14 @@ void SpringStickyKey(CBasePlayer* player) {
 
 void SpringReload(CBasePlayer* player) {
     CBaseCombatWeapon* weapon = player->GetActiveWeapon();
+    // The RPG has no magazine: a rocket is loaded from the reserve as it
+    // fires. Its reload is the animation, and no firing until it is done.
+    if (weapon != nullptr && FClassnameIs(weapon, "weapon_rpg") &&
+        player->GetAmmoCount(weapon->GetPrimaryAmmoType()) > 0 && weapon->Reload()) {
+        weapon->m_flNextPrimaryAttack = gpGlobals->curtime + weapon->GetViewModelSequenceDuration();
+        Notify("Tactical reload!");
+        return;
+    }
     if (weapon == nullptr || !weapon->UsesClipsForAmmo1() || weapon->Clip1() <= 0 ||
         weapon->GetPrimaryAmmoType() < 0) {
         Notify("Reload Trap: nothing in hand to reload.");
@@ -418,7 +434,7 @@ void SpringReload(CBasePlayer* player) {
     player->SetAmmoCount(player->GetAmmoCount(ammo) + weapon->Clip1(), ammo);
     weapon->m_iClip1 = 0;
     weapon->Reload();
-    Notify("Reload Trap: reloading.");
+    Notify("Tactical reload!");
 }
 
 void SpringJunk(CBasePlayer* player) {
@@ -471,7 +487,7 @@ void SpringJunk(CBasePlayer* player) {
             break;
         }
     }
-    Notify(made > 0 ? "Junk Trap: look up." : "Junk Trap: no room overhead.");
+    Notify(made > 0 ? "Look out!" : "Junk Trap: no room overhead.");
 }
 
 // Whether the trap went off; false leaves it queued for a better moment.
@@ -482,11 +498,11 @@ bool Spring(CBasePlayer* player, const std::string& name) {
     } else if (name == "Headcrab Trap") {
         const int made = SpawnAround(player, "npc_headcrab", kHeadcrabCount, kSmallHull, 72.0f,
                                      160.0f, 40.0f, true);
-        Notify(made > 0 ? "Headcrab Trap!" : "Headcrab Trap: no room here.");
+        Notify(made > 0 ? "What remarkable specimen!" : "Headcrab Trap: no room here.");
     } else if (name == "Manhack Swarm Trap") {
         const int made = SpawnAround(player, "npc_manhack", kManhackCount, kFlyerHull, 96.0f,
                                      200.0f, 40.0f, false);
-        Notify(made > 0 ? "Manhack Swarm Trap!" : "Manhack Swarm Trap: no room here.");
+        Notify(made > 0 ? "Manhack Swarm!" : "Manhack Swarm Trap: no room here.");
     } else if (name == "Rollermine Trap") {
         const int made = SpawnAround(player, "npc_rollermine", kRollermineCount, kRollermineHull,
                                      96.0f, 200.0f, 48.0f, true);
@@ -494,7 +510,7 @@ bool Spring(CBasePlayer* player, const std::string& name) {
     } else if (name == "Crow Trap") {
         const int made =
             SpawnAround(player, "npc_crow", kCrowCount, kCrowHull, 48.0f, 240.0f, 20.0f, true);
-        Notify(made > 0 ? "Crow Trap: murder." : "Crow Trap: no room here.");
+        Notify(made > 0 ? "There's been a murder!" : "Crow Trap: no room here.");
     } else if (name == "Junk Trap") {
         SpringJunk(player);
     } else if (name == "Bunny Hop Trap") {
@@ -502,8 +518,8 @@ bool Spring(CBasePlayer* player, const std::string& name) {
     } else if (name == "Sticky Key Trap") {
         SpringStickyKey(player);
     } else if (name == "Butterfingers Trap") {
-        if (!on_foot || !g_withheld.empty()) {
-            return false;  // nothing in hand in a vehicle; one fumble at a time
+        if (!on_foot) {
+            return false;  // nothing in hand in a vehicle
         }
         SpringButterfingers(player);
     } else if (name == "Reload Trap") {
@@ -518,27 +534,31 @@ bool Spring(CBasePlayer* player, const std::string& name) {
 }
 
 void RunWithheld(CBasePlayer* player) {
-    if (g_withheld.empty()) {
-        return;
-    }
-    auto* dropped = dynamic_cast<CBaseCombatWeapon*>(g_drop.Get());
-    if (dropped != nullptr && dropped->GetOwner() == player) {
-        ClearWithheld();  // picked back up: it is in the player's hands again
-        return;
-    }
     const bool reissue = State().OptionBool("butterfingers_reissue", true);
-    const bool lost = g_drop == nullptr;  // fell out of the world, or dissolved
-    const bool due = reissue && gpGlobals->curtime - g_dropped_at >= kButterfingersReturnSeconds;
-    const bool empty_handed = player->WeaponCount() == 0;
-    if (!lost && !due && !empty_handed) {
-        return;
+    // With reissue off the suit only steps in once the player has nothing
+    // left, and then hands back one weapon: the longest gone.
+    bool empty_handed = player->WeaponCount() == 0;
+    for (size_t i = 0; i < g_drops.size();) {
+        Drop& drop = g_drops[i];
+        auto* weapon = dynamic_cast<CBaseCombatWeapon*>(drop.weapon.Get());
+        if (weapon != nullptr && weapon->GetOwner() == player) {
+            g_drops.erase(g_drops.begin() + i);  // picked back up
+            continue;
+        }
+        const bool lost = weapon == nullptr;  // fell out of the world, or dissolved
+        const bool due =
+            reissue && gpGlobals->curtime - drop.dropped_at >= kButterfingersReturnSeconds;
+        if (!lost && !due && !empty_handed) {
+            ++i;
+            continue;
+        }
+        empty_handed = false;
+        if (weapon != nullptr) {
+            UTIL_Remove(weapon);
+        }
+        Notify("The suit hands back your " + ItemNameOf(drop.classname) + ".");
+        g_drops.erase(g_drops.begin() + i);  // the loadout grants it
     }
-    if (g_drop != nullptr) {
-        UTIL_Remove(g_drop);
-    }
-    const std::string name = ItemNameOf(g_withheld);
-    ClearWithheld();
-    Notify("The suit hands back your " + name + ".");  // the loadout grants it
 }
 
 void RunKeys(CBasePlayer* player) {
@@ -575,11 +595,14 @@ void Speak(TrapNpc& who, CAI_BaseNPC* npc) {
     const char* line = lines[RandomInt(0, static_cast<int>(lines.size()) - 1)];
     CPASAttenuationFilter filter(npc);
     EmitSound_t sound;
-    sound.m_nChannel = CHAN_VOICE;  // the mouth follows the voice channel
+    // The second voice channel: the NPC's own AI stops CHAN_VOICE whenever it
+    // starts a response (a use, a greeting), which cut these lines off unheard.
+    sound.m_nChannel = CHAN_VOICE2;
     sound.m_pSoundName = line;
     sound.m_flVolume = 1.0f;
     sound.m_SoundLevel = SNDLVL_TALKING;
     CBaseEntity::EmitSound(filter, npc->entindex(), sound);
+    Msg("[AP] %s (%s) says %s\n", npc->GetClassname(), STRING(npc->GetModelName()), line);
     who.busy_until = gpGlobals->curtime + enginesound->GetSoundDuration(line) + 0.5f;
     who.next_line = who.busy_until + RandomFloat(kAmbientMin, kAmbientMax);
 }
@@ -657,7 +680,7 @@ void TrapsPrecache() {
 }
 
 void TrapsLevelStart() {
-    ClearWithheld();
+    g_drops.clear();
     g_npcs.clear();
     g_next_wander = 0.0f;
     g_release_due = g_hop_until > 0.0f || g_jump_down || g_stuck_key != nullptr || g_release_due;
@@ -700,14 +723,20 @@ void TrapsFrame() {
 }
 
 bool Withheld(const std::string& classname) {
-    return !g_withheld.empty() && g_withheld == classname;
+    for (const Drop& drop : g_drops) {
+        if (drop.classname == classname) {
+            return true;
+        }
+    }
+    return false;
 }
 
 TrapDrop TrapDropTouched(CBaseEntity* weapon) {
-    if (weapon == nullptr || g_drop == nullptr || g_drop.Get() != weapon) {
+    const Drop* drop = DropOf(weapon);
+    if (drop == nullptr) {
         return TrapDrop::kNotTrap;
     }
-    if (gpGlobals->curtime - g_dropped_at < kButterfingersPickupDelay) {
+    if (gpGlobals->curtime - drop->dropped_at < kButterfingersPickupDelay) {
         return TrapDrop::kTooSoon;
     }
     // Not forgotten yet: a touch is not a pickup (the pickup can still fail,

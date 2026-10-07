@@ -219,6 +219,36 @@ bool g_tracing = false;
 Target g_trace;
 float g_next_beam = 0.0f;
 
+// The ground node nearest `at` that it can see, else the nearest at all.
+// Not CAI_Network::NearestNodeToPoint: its visibility check traces with a
+// filter built on the asking NPC, and with none it crashed the game.
+int NearestNode(CAI_Network* net, const Vector& at) {
+    const int kCandidates = 8;
+    std::vector<std::pair<float, int>> nearest;
+    for (int id = 0; id < net->NumNodes(); ++id) {
+        CAI_Node* node = net->GetNode(id, false);
+        if (node == nullptr || node->GetType() != NODE_GROUND) {
+            continue;
+        }
+        nearest.emplace_back((node->GetOrigin() - at).LengthSqr(), id);
+    }
+    if (nearest.empty()) {
+        return NO_NODE;
+    }
+    const size_t keep = (std::min)(nearest.size(), static_cast<size_t>(kCandidates));
+    std::partial_sort(nearest.begin(), nearest.begin() + keep, nearest.end());
+    const Vector lift(0, 0, 16);
+    for (size_t i = 0; i < keep; ++i) {
+        trace_t tr;
+        UTIL_TraceLine(at + lift, net->GetNode(nearest[i].second, false)->GetOrigin() + lift,
+                       MASK_SOLID_BRUSHONLY, nullptr, COLLISION_GROUP_NONE, &tr);
+        if (tr.fraction >= 1.0f) {
+            return nearest[i].second;
+        }
+    }
+    return nearest.front().second;
+}
+
 // Node path from near `from` to near `to` over the AI node graph, walkable by
 // a human hull. Empty when there is no graph or no way.
 std::vector<Vector> NodePath(const Vector& from, const Vector& to) {
@@ -227,14 +257,8 @@ std::vector<Vector> NodePath(const Vector& from, const Vector& to) {
     if (net == nullptr || net->NumNodes() == 0) {
         return path;
     }
-    int start = net->NearestNodeToPoint(from, true);
-    if (start == NO_NODE) {
-        start = net->NearestNodeToPoint(from, false);
-    }
-    int goal = net->NearestNodeToPoint(to, true);
-    if (goal == NO_NODE) {
-        goal = net->NearestNodeToPoint(to, false);
-    }
+    const int start = NearestNode(net, from);
+    const int goal = NearestNode(net, to);
     if (start == NO_NODE || goal == NO_NODE) {
         return path;
     }
