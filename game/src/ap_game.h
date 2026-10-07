@@ -8,6 +8,8 @@
 #pragma once
 
 #include <string>
+#include <utility>
+#include <vector>
 
 class CBaseEntity;
 class CBasePlayer;
@@ -17,6 +19,7 @@ class CTakeDamageInfo;
 namespace ap {
 
 struct PendingEvent;
+struct Chapter;
 
 // --- from ap_main --------------------------------------------------------
 
@@ -34,6 +37,16 @@ CBaseEntity* GrantWeapon(CBasePlayer* player, const char* classname);
 // Is the seed gating anything? Not before a client has named a slot: a
 // player who never started a client plays retail Half-Life 2.
 bool Gating();
+
+// --- for ap_nav ----------------------------------------------------------
+
+std::string ChapterStatusText(const Chapter& chapter);
+// May a warp go to this chapter, and to this part of it (1-based)?
+bool WarpOpen(const Chapter& chapter);
+bool PartOpen(const Chapter& chapter, int part);
+// The player's named warp points: label and map.
+std::vector<std::pair<std::string, std::string>> WarpPoints();
+bool HeldItem(const std::string& item);
 
 // --- hooks in the SDK ----------------------------------------------------
 
@@ -69,6 +82,10 @@ void ChargerUsed(CBaseEntity* charger, CBaseEntity* user);
 
 // triggers.cpp ChangeLevelNow. True blocks the level change.
 bool BlockChangeLevel(const char* next_map);
+
+// player.cpp OnTakeDamage, on its copy of the damage: trap junk barely hurts
+// and never kills (ap_traps.cpp).
+void AdjustPlayerDamage(CBasePlayer* player, CTakeDamageInfo& info);
 
 // player.cpp Event_Killed, CRevertSaved::InputReload.
 void PlayerKilled();

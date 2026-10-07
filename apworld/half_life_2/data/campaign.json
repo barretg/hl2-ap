@@ -1,6 +1,6 @@
 {
  "format": 1,
- "data_version": "544d29ded2a4",
+ "data_version": "3c5198d9da4b",
  "hub_map": "temp_hub",
  "campaigns": [
   {
@@ -557,8 +557,7 @@
    },
    "gates": {
     "strict": [
-     "heavy",
-     "bugbait"
+     "heavy"
     ]
    }
   },
@@ -924,9 +923,6 @@
    "Grenade",
    "RPG"
   ],
-  "bugbait": [
-   "Bugbait"
-  ],
   "sandtraps battery": [
    [
     "Buggy Gun",
@@ -1144,7 +1140,7 @@
   {
    "id": 8820023,
    "name": "Bugbait",
-   "classification": "progression",
+   "classification": "useful",
    "group": "weapon",
    "campaign": "hl2",
    "classnames": [
@@ -1256,6 +1252,76 @@
    "name": "Battery",
    "classification": "filler",
    "group": "filler"
+  },
+  {
+   "id": 8820036,
+   "name": "NPC Trap",
+   "classification": "trap",
+   "group": "trap",
+   "weight": 25
+  },
+  {
+   "id": 8820037,
+   "name": "Headcrab Trap",
+   "classification": "trap",
+   "group": "trap",
+   "weight": 25
+  },
+  {
+   "id": 8820038,
+   "name": "Butterfingers Trap",
+   "classification": "trap",
+   "group": "trap",
+   "weight": 25
+  },
+  {
+   "id": 8820039,
+   "name": "Manhack Swarm Trap",
+   "classification": "trap",
+   "group": "trap",
+   "weight": 25
+  },
+  {
+   "id": 8820045,
+   "name": "Rollermine Trap",
+   "classification": "trap",
+   "group": "trap",
+   "weight": 25
+  },
+  {
+   "id": 8820040,
+   "name": "Bunny Hop Trap",
+   "classification": "trap",
+   "group": "trap",
+   "weight": 25
+  },
+  {
+   "id": 8820041,
+   "name": "Sticky Key Trap",
+   "classification": "trap",
+   "group": "trap",
+   "weight": 25
+  },
+  {
+   "id": 8820042,
+   "name": "Reload Trap",
+   "classification": "trap",
+   "group": "trap",
+   "weight": 25
+  },
+  {
+   "id": 8820043,
+   "name": "Crow Trap",
+   "classification": "trap",
+   "group": "trap",
+   "weight": 25
+  },
+  {
+   "id": 8820044,
+   "name": "Junk Trap",
+   "classification": "trap",
+   "group": "trap",
+   "weight": 25
   }
  ],
  "locations": [

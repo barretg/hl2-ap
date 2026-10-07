@@ -24,6 +24,9 @@ item_name_to_id: dict[str, int] = {entry["name"]: entry["id"] for entry in ITEMS
 filler_items: list[str] = [e["name"] for e in ITEMS if e["classification"] == "filler"]
 filler_weights: list[int] = [e.get("weight", 1) for e in ITEMS if e["classification"] == "filler"]
 
+trap_items: list[str] = [e["name"] for e in ITEMS if e["classification"] == "trap"]
+trap_weights: list[int] = [e.get("weight", 1) for e in ITEMS if e["classification"] == "trap"]
+
 weapon_items: list[str] = [e["name"] for e in ITEMS if e.get("group") == "weapon"]
 equipment_items: list[str] = [e["name"] for e in ITEMS if e.get("group") == "equipment"]
 vehicle_key_items: list[str] = [e["name"] for e in ITEMS if e.get("group") == "vehicle_key"]
@@ -42,6 +45,7 @@ item_name_groups: dict[str, set[str]] = {
     "Vehicle Upgrades": {e["name"] for e in ITEMS if e.get("group") == "vehicle_upgrade"},
     "Abilities": {e["name"] for e in ITEMS if e.get("group") == "ability"},
     "Filler": set(filler_items),
+    "Traps": set(trap_items),
 }
 item_name_groups = {k: v for k, v in item_name_groups.items() if v}
 

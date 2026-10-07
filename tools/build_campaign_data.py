@@ -56,12 +56,27 @@ SF_NPC_NO_WEAPON_DROP = 8192
 # that one, rebuilt in the neighbouring map.
 SEAM_TWIN_RADIUS = 32.0
 
-# Items no map provides: abilities and filler. Traps join in Phase 7.
+# Items no map provides: abilities and filler.
 WORLD_ITEMS: list[tuple[str, str, str]] = [
     ("Melee Throw", "useful", "ability"),
     ("Ammo Cache", "filler", "filler"),
     ("Medkit", "filler", "filler"),
     ("Battery", "filler", "filler"),
+]
+
+# Traps replace a share of the filler, set by `trap_percentage`; each has a
+# weight among the traps. The game springs them by name (game/src/ap_traps.cpp).
+TRAPS: list[tuple[str, int]] = [
+    ("NPC Trap", 25),
+    ("Headcrab Trap", 25),
+    ("Butterfingers Trap", 25),
+    ("Manhack Swarm Trap", 25),
+    ("Rollermine Trap", 25),
+    ("Bunny Hop Trap", 25),
+    ("Sticky Key Trap", 25),
+    ("Reload Trap", 25),
+    ("Crow Trap", 25),
+    ("Junk Trap", 25),
 ]
 
 # A weapon whose single item is several copies, each a stage.
@@ -600,10 +615,11 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
             add_item(campaign.display(name), "progression", "weapon", classnames=classnames,
                      count=count)
         else:
-            add_item(campaign.display(item), "progression", "weapon", classnames=classnames)
+            classification = campaign.item_classification.get(item, "progression")
+            add_item(campaign.display(item), classification, "weapon", classnames=classnames)
     for item, classnames in campaign.equipment.items():
         # As HL1: the suit gates armour and aux power, the flashlight only light.
-        classification = campaign.equipment_classification.get(item, "progression")
+        classification = campaign.item_classification.get(item, "progression")
         add_item(campaign.display(item), classification, "equipment", classnames=classnames)
     for chapter in chapters:
         for script in vehicles.get(chapter.key, []):
@@ -644,7 +660,7 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
     }
 
 
-def check_gate(campaign: Campaign, gate: dict, item_names: set[str], where: str) -> dict:
+def check_gate(campaign: Campaign, gate: dict, item_names: dict[str, str], where: str) -> dict:
     """A gate record, checked against the campaign's items and groups."""
     unknown = set(gate) - {"strict", "any", "items"}
     if unknown:
@@ -655,6 +671,8 @@ def check_gate(campaign: Campaign, gate: dict, item_names: set[str], where: str)
     for name, count in gate.get("items", {}).items():
         if campaign.display(name) not in item_names or count < 1:
             raise ScanError(f"{where}: no item {name!r} (or a bad count)")
+        if item_names[campaign.display(name)] != "progression":
+            raise ScanError(f"{where}: {name!r} is not progression, so logic cannot need it")
     return {k: v for k, v in (
         ("strict", list(gate.get("strict", []))),
         ("any", list(gate.get("any", []))),
@@ -666,7 +684,8 @@ def apply_logic(campaign: Campaign, chapters: list[dict], items: list[dict],
                 locations: list[dict]) -> None:
     """Write the campaign's gates into its chapters and checks, failing on
     any chapter, map, item or group name the data does not have."""
-    item_names = {i["name"] for i in items}
+    # Name to classification: only progression items may appear in logic.
+    item_names = {i["name"]: i["classification"] for i in items}
     for group, options in campaign.requirement_groups.items():
         for option in options:
             if isinstance(option, list) and len(option) < 2:
@@ -674,6 +693,9 @@ def apply_logic(campaign: Campaign, chapters: list[dict], items: list[dict],
             for name in option if isinstance(option, list) else [option]:
                 if campaign.display(name) not in item_names:
                     raise ScanError(f"requirement group {group!r}: no item {name!r}")
+                if item_names[campaign.display(name)] != "progression":
+                    raise ScanError(f"requirement group {group!r}: {name!r} is not "
+                                    "progression, so logic cannot need it")
     for name in campaign.starting_items:
         if campaign.display(name) not in item_names:
             raise ScanError(f"starting item {name!r} is not an item")
@@ -748,6 +770,9 @@ def build(game_root: Path, registry: Registry) -> dict:
     for name, classification, group in WORLD_ITEMS:
         items.append({"id": registry.item(name), "name": name,
                       "classification": classification, "group": group})
+    for name, weight in TRAPS:
+        items.append({"id": registry.item(name), "name": name,
+                      "classification": "trap", "group": "trap", "weight": weight})
     if not any(HUB_SOURCE_MAP in c.excluded_maps for c in CAMPAIGNS):
         raise ScanError(f"hub source map {HUB_SOURCE_MAP} is in no campaign's excluded_maps")
     if not (game_root / CAMPAIGNS[0].game_dir / "maps" / f"{HUB_SOURCE_MAP}.bsp").is_file():

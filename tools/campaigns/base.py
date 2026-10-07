@@ -51,8 +51,9 @@ class Campaign:
     confiscating_upgrade: str = ""
     # Equipment items, `{item: [classname, ...]}`.
     equipment: dict[str, list[str]] = field(default_factory=dict)
-    # Classification of an equipment item when not "progression".
-    equipment_classification: dict[str, str] = field(default_factory=dict)
+    # Classification of a weapon or equipment item when not "progression".
+    # Logic may only need progression items; the data build enforces it.
+    item_classification: dict[str, str] = field(default_factory=dict)
     # NPC classes whose `additionalequipment` the player can take off their
     # body. Allies are listed separately: a weapon only an ally drops is a
     # source only behind an option.

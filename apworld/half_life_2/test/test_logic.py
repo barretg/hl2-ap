@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from BaseClasses import CollectionState
+from BaseClasses import CollectionState, ItemClassification
 
 from ..data import CHAPTERS_BY_KEY
-from ..items import unlock_item_for_chapter
+from ..items import filler_items, trap_items, unlock_item_for_chapter
 from ..rules import gate_rule
 from . import HalfLife2TestBase
 
@@ -21,6 +21,13 @@ class TestDefaults(HalfLife2TestBase):
         unfilled = [l for l in self.multiworld.get_locations(self.player) if l.item is None]
         pool = [i for i in self.multiworld.itempool if i.player == self.player]
         self.assertEqual(len(unfilled), len(pool))
+
+    def test_bugbait_not_required(self) -> None:
+        bugbait = [i for i in self.multiworld.itempool if i.name == "Bugbait"]
+        self.assertTrue(bugbait)
+        self.assertFalse(any(i.advancement for i in bugbait))
+        everything_but(self, "Bugbait")
+        self.assertTrue(self.can_reach_location("Dark Energy: Complete"))
 
     def test_four_gravity_gun_stages(self) -> None:
         names = [i.name for i in self.multiworld.itempool]
@@ -76,11 +83,6 @@ class TestDefaults(HalfLife2TestBase):
         self.assertFalse(self.can_reach_region("d1_town_01"))
         self.collect(self.get_item_by_name(GRAVITY_GUN))
         self.assertTrue(self.can_reach_region("d1_town_01"))
-
-    def test_nova_prospekt_bugbait_strict(self) -> None:
-        everything_but(self, "Bugbait")
-        self.assertTrue(self.can_reach_region("d2_prison_01"))
-        self.assertFalse(self.can_reach_region("d2_prison_02"))
 
     def test_highway_17_strict_gravity_gun(self) -> None:
         everything_but(self, GRAVITY_GUN)
@@ -152,10 +154,6 @@ class TestLoose(HalfLife2TestBase):
         self.assertTrue(self.can_reach_region("d2_coast_09"))
         self.assertFalse(self.can_reach_region("d3_citadel_04"))
 
-    def test_bugbait_dropped(self) -> None:
-        everything_but(self, "Bugbait")
-        self.assertTrue(self.can_reach_region("d2_prison_02"))
-
     def test_highway_17_explosives(self) -> None:
         everything_but(self, "Grenade", "RPG")
         self.assertTrue(self.can_reach_region("d1_town_01"))
@@ -198,3 +196,22 @@ class TestOneChapterRequired(HalfLife2TestBase):
 
     def test_seal(self) -> None:
         self.assertEqual(self.world.missions_required_by_campaign["hl2"], 1)
+
+
+class TestNoTraps(HalfLife2TestBase):
+    options = {"trap_percentage": 0}
+
+    def test_no_traps(self) -> None:
+        traps = [i for i in self.multiworld.itempool if i.classification & ItemClassification.trap]
+        self.assertEqual(traps, [])
+
+
+class TestAllTraps(HalfLife2TestBase):
+    options = {"trap_percentage": 100}
+
+    def test_filler_all_traps(self) -> None:
+        filler = [i for i in self.multiworld.itempool if i.name in filler_items]
+        traps = [i for i in self.multiworld.itempool if i.name in trap_items]
+        self.assertEqual(filler, [])
+        self.assertGreater(len(traps), 0)
+        self.assertEqual(len(set(trap_items)), 10)

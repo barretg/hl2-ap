@@ -39,11 +39,19 @@ from .items import (
     filler_weights,
     item_name_groups,
     item_name_to_id,
+    trap_items,
+    trap_weights,
     unlock_item_for_chapter,
     weapon_items,
 )
 from .locations import location_name_groups, location_name_to_id
-from .options import HalfLife2Options, ShuffleFlashlight, ShuffleHevSuit
+from .options import (
+    ButterfingersReissue,
+    HalfLife2Options,
+    ShuffleFlashlight,
+    ShuffleHevSuit,
+    TrapPercentage,
+)
 from .regions import create_regions
 from .rules import chapter_is_startable
 
@@ -81,6 +89,7 @@ class HalfLife2Web(WebWorld):
     ]
     option_groups = [
         OptionGroup("Equipment", [ShuffleHevSuit, ShuffleFlashlight]),
+        OptionGroup("Traps", [TrapPercentage, ButterfingersReissue]),
     ]
 
 
@@ -227,8 +236,17 @@ class HalfLife2World(World):
         remaining = len(self.multiworld.get_unfilled_locations(self.player)) - len(pool)
         if remaining < 0:
             raise AssertionError(f"{self.game}: {-remaining} more items than locations")
-        pool += [self.create_item(self.get_filler_item_name()) for _ in range(remaining)]
+        pool += [self.create_item(name) for name in self.get_filler_names(remaining)]
         self.multiworld.itempool += pool
+
+    def get_filler_names(self, count: int) -> list[str]:
+        """Fill the leftover locations, with `trap_percentage` of them traps."""
+        traps = round(count * self.options.trap_percentage.value / 100)
+        names = self.random.choices(trap_items, weights=trap_weights, k=traps)
+        names += self.random.choices(filler_items, weights=filler_weights, k=count - traps)
+        # Otherwise every trap lands in the same stretch of the pool.
+        self.random.shuffle(names)
+        return names
 
     def get_filler_item_name(self) -> str:
         return self.random.choices(filler_items, weights=filler_weights, k=1)[0]
@@ -257,6 +275,7 @@ class HalfLife2World(World):
             "shuffle_hev_suit": bool(self.options.shuffle_hev_suit),
             "shuffle_flashlight": bool(self.options.shuffle_flashlight),
             "melee_throw": bool(self.options.melee_throw),
+            "butterfingers_reissue": bool(self.options.butterfingers_reissue),
             "death_link": bool(self.options.death_link),
             "death_link_amnesty": self.options.death_link_amnesty.value,
         }

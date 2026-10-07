@@ -35,7 +35,7 @@ class LogicDifficulty(Choice):
     reasonable: a firearm from Route Kanal, the Shotgun, .357 Magnum, Pulse
     Rifle or Crossbow for Ravenholm, an SMG, Pulse Rifle or Shotgun from
     Highway 17 on, the gravity gun for Ravenholm, Highway 17 and Sandtraps,
-    bugbait for Nova Prospekt, the buggy keys for driving Highway 17 and
+    the buggy keys for driving Highway 17 and
     Sandtraps, the Buggy Gun or the RPG for Sandtraps' battery, and the
     Airboat Gun for the hunter-chopper. The default.
     loose: those are dropped, and the buggy chapters may be expected on foot.
@@ -104,6 +104,48 @@ class DeathLinkAmnesty(Range):
     default = 4
 
 
+class ButterfingersReissue(DefaultOnToggle):
+    """Whether the suit hands back a weapon the Butterfingers Trap knocked away.
+
+    When on, it comes back after half a minute if you have not picked it up.
+
+    When off, you have to go and get it. The suit only steps in once you have
+    no weapons left at all. Moving to another map still returns it.
+    """
+
+    display_name = "Butterfingers Reissue"
+
+
+class TrapPercentage(Range):
+    """Percentage of your filler items replaced by traps.
+
+    All are nuisances rather than punishments; none should cost you a run:
+
+    - NPC Trap: four characters from the story (the G-Man, Kleiner, Eli and
+      others) appear around you, each with a random mind of its own. Some
+      follow you, some wander and talk.
+    - Headcrab Trap: four headcrabs.
+    - Butterfingers Trap: the weapon in your hands goes flying. The suit
+      reissues it after half a minute if you cannot find it again (see
+      Butterfingers Reissue).
+    - Manhack Swarm Trap: four manhacks.
+    - Rollermine Trap: three rollermines roll out around you.
+    - Bunny Hop Trap: you jump every time you land, for fifteen seconds.
+    - Sticky Key Trap: one movement key (forward, back, or a strafe) is held
+      down for fifteen seconds. You are told which.
+    - Reload Trap: the weapon in your hands reloads from empty. The magazine
+      goes back into your reserve first, so no ammo is lost.
+    - Crow Trap: a dozen crows land around you.
+    - Junk Trap: a shower of loose props falls on you from above. It barely
+      hurts.
+    """
+
+    display_name = "Trap Percentage"
+    range_start = 0
+    range_end = 100
+    default = 15
+
+
 @dataclass
 class HalfLife2Options(PerGameCommonOptions):
     missions_required: MissionsRequired
@@ -112,6 +154,8 @@ class HalfLife2Options(PerGameCommonOptions):
     shuffle_hev_suit: ShuffleHevSuit
     shuffle_flashlight: ShuffleFlashlight
     melee_throw: MeleeThrow
+    trap_percentage: TrapPercentage
+    butterfingers_reissue: ButterfingersReissue
     start_inventory_from_pool: StartInventoryPool
     death_link: DeathLink
     death_link_amnesty: DeathLinkAmnesty

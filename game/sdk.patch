@@ -469,7 +469,7 @@ index 7e49b7f4..f5f38461 100644
  		return true;
  
 diff --git a/src/game/server/player.cpp b/src/game/server/player.cpp
-index 0538f90a..200f2184 100644
+index 0538f90a..d125a16b 100644
 --- a/src/game/server/player.cpp
 +++ b/src/game/server/player.cpp
 @@ -97,6 +97,8 @@ ConVar sv_bonus_challenge( "sv_bonus_challenge", "0", FCVAR_REPLICATED, "Set to
@@ -481,7 +481,15 @@ index 0538f90a..200f2184 100644
  // memdbgon must be the last include file in a .cpp file!!!
  #include "tier0/memdbgon.h"
  
-@@ -1651,6 +1653,8 @@ void CBasePlayer::Event_Killed( const CTakeDamageInfo &info )
+@@ -1068,6 +1070,7 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
+ 	float flHealthPrev = m_iHealth;
+ 
+ 	CTakeDamageInfo info = inputInfo;
++	ap::AdjustPlayerDamage( this, info ); // hl2ap: trap junk barely hurts
+ 
+ 	IServerVehicle *pVehicle = GetVehicle();
+ 	if ( pVehicle )
+@@ -1651,6 +1654,8 @@ void CBasePlayer::Event_Killed( const CTakeDamageInfo &info )
  {
  	CSound *pSound;
  
@@ -490,7 +498,7 @@ index 0538f90a..200f2184 100644
  	if ( Hints() )
  	{
  		Hints()->ResetHintTimers();
-@@ -5389,6 +5393,10 @@ bool CBasePlayer::CanEnterVehicle( IServerVehicle *pVehicle, int nRole )
+@@ -5389,6 +5394,10 @@ bool CBasePlayer::CanEnterVehicle( IServerVehicle *pVehicle, int nRole )
  	if ( IsEFlagSet( EFL_IS_BEING_LIFTED_BY_BARNACLE ) )
  		return false;
  
@@ -501,7 +509,7 @@ index 0538f90a..200f2184 100644
  	return true;
  }
  
-@@ -5655,6 +5663,9 @@ void CBloodSplat::Think( void )
+@@ -5655,6 +5664,9 @@ void CBloodSplat::Think( void )
  //-----------------------------------------------------------------------------
  CBaseEntity	*CBasePlayer::GiveNamedItem( const char *pszName, int iSubType )
  {
@@ -511,7 +519,7 @@ index 0538f90a..200f2184 100644
  	// If I already own this type don't create one
  	if ( Weapon_OwnsThisType(pszName, iSubType) )
  		return NULL;
-@@ -7601,6 +7612,7 @@ void CStripWeapons::StripWeapons(inputdata_t &data, bool stripSuit)
+@@ -7601,6 +7613,7 @@ void CStripWeapons::StripWeapons(inputdata_t &data, bool stripSuit)
  
  	if ( pPlayer )
  	{
@@ -519,7 +527,7 @@ index 0538f90a..200f2184 100644
  		pPlayer->RemoveAllItems( stripSuit );
  	}
  }
-@@ -7708,6 +7720,8 @@ void CRevertSaved::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
+@@ -7708,6 +7721,8 @@ void CRevertSaved::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE
  
  void CRevertSaved::InputReload( inputdata_t &inputdata )
  {

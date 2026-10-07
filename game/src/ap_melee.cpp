@@ -34,7 +34,7 @@ const float kPhysThink = 0.1f;
 const float kPhysCatchRadius = 48.0f;
 
 ConVar ap_crowbar_throw_style("ap_crowbar_throw_style", "1", FCVAR_NONE,
-                              "Crowbar throw: 0 scripted flight, 1 Murder-style physics (test)");
+                              "Crowbar throw: 0 scripted flight, 1 Murder-style physics");
 
 }  // namespace
 

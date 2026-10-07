@@ -197,10 +197,14 @@ def test_item_and_trap_queue_events(harness: aptest.Harness) -> None:
     harness.command("next", "")
     harness.command("item", "medkit")
     harness.command("trap", "headcrab")
+    harness.command("trap", "manhack")
+    harness.command("trap", "nonsense")
     harness.command("item", "nonsense")
     snap = harness.bridge.in_path.read_text()
     assert "|ITEM|Medkit|" in snap
-    assert "No trap 'headcrab'" in said(harness)  # none in this build
+    assert "|TRAP|Headcrab Trap|" in snap
+    assert "|TRAP|Manhack Swarm Trap|" in snap
+    assert "No trap 'nonsense'" in said(harness)
     assert "No item 'nonsense'" in said(harness)
 
 
@@ -386,3 +390,12 @@ def test_templated_sources_are_spawned_by_setup() -> None:
         name, _, input_name = src.spawner.partition(",")
         assert scenario.setup[0] == "sv_cheats 1"
         assert scenario.setup[-2:] == ["notarget", f"ent_fire {name} {input_name}"]
+
+
+def test_trap_names_match_the_data() -> None:
+    import json
+    data = json.loads((HERE.parent / "apworld" / "half_life_2" / "data" / "campaign.json").read_text())
+    traps = [i["name"] for i in data["items"] if i["classification"] == "trap"]
+    filler = [i["name"] for i in data["items"] if i["classification"] == "filler"]
+    assert sorted(aptest.TRAPS) == sorted(traps)
+    assert sorted(aptest.FILLER) == sorted(filler)

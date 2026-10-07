@@ -27,6 +27,8 @@
 #include "ap_melee.h"
 #include "ap_state.h"
 #include "ap_text.h"
+#include "ap_nav.h"
+#include "ap_traps.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -402,6 +404,9 @@ void ApplyLoadout() {
             }
             if (classname == "weapon_crowbar" && CrowbarThrown()) {
                 continue;  // it comes back by itself
+            }
+            if (Withheld(classname)) {
+                continue;  // Butterfingers: on the floor until picked up or reissued
             }
             if (IsConsumable(classname) && g_granted_here.count(classname) != 0) {
                 continue;  // once per map; used up is used up
@@ -788,6 +793,28 @@ bool g_kit_listening = false;
 
 bool Gating() { return !State().slot.empty() && Data().Loaded(); }
 
+std::string ChapterStatusText(const Chapter& chapter) { return ChapterStatus(chapter); }
+
+bool WarpOpen(const Chapter& chapter) { return !Gating() || ChapterAvailable(chapter); }
+
+bool PartOpen(const Chapter& chapter, int part) {
+    if (part < 1 || part > static_cast<int>(chapter.maps.size())) {
+        return false;
+    }
+    return part == 1 || !Gating() ||
+           State().checked.count(Data().MapReached(chapter.maps[part - 1])) != 0;
+}
+
+std::vector<std::pair<std::string, std::string>> WarpPoints() {
+    std::vector<std::pair<std::string, std::string>> points;
+    for (const NamedWarp& warp : NamedWarps()) {
+        points.emplace_back(warp.label, warp.map);
+    }
+    return points;
+}
+
+bool HeldItem(const std::string& item) { return Holds(item); }
+
 void GameLevelStart() {
     Data().Load(StoreDir() + "/checkdata.txt");
     g_owed.clear();
@@ -800,6 +827,8 @@ void GameLevelStart() {
     g_unstuck = false;
     g_last_notice.clear();
     g_granted_here.clear();
+    TrapsLevelStart();
+    NavLevelStart();
     if (!g_kit_listening) {
         gEntList.AddListenerEntity(&g_kit_remover);
         g_kit_listening = true;
@@ -858,7 +887,7 @@ void GameEvent(const PendingEvent& event) {
     } else if (event.kind == "DEATHLINK") {
         DeathLinkArrived(event);
     } else if (event.kind == "TRAP") {
-        Notify("Trap " + event.payload + " (traps are not in this build).");
+        QueueTrap(event.payload);
     }
 }
 
@@ -872,6 +901,8 @@ void GameFrame() {
         g_unstuck = true;
         Unstick(player);
     }
+    TrapsFrame();
+    NavFrame();
     static int frame = 0;
     if (++frame % 30 == 0) {
         ApplyLoadout();  // catches spawns and quickloads without a hook
@@ -906,8 +937,9 @@ bool GameDispatch(const std::string& name, const std::string& rest) {
         ListWarps();
     } else if (name == "tracker") {
         Tracker();
+        NavTracker(rest);
     } else {
-        return false;
+        return NavDispatch(name, rest);
     }
     return true;
 }
@@ -919,7 +951,10 @@ void GameHelp() {
     Say("!setwarp <name>  make a warp point here; !warp <name> returns");
     Say("!warps       your warp points");
     Say("!hub         back to the hub");
-    Say("!tracker     checks found and missing on this map");
+    Say("!tracker [text]  checks found and missing on this map, as a menu too");
+    Say("!menu        the navigation menu (bound to the - key)");
+    Say("!find [text] the nearest unfound check, and which way it is");
+    Say("!trace [text]  draws the way to it; again to stop");
 }
 
 void GameStatus() {
@@ -934,6 +969,15 @@ void GameStatus() {
 }
 
 Touch WeaponTouch(CBasePlayer* player, CBaseCombatWeapon* weapon) {
+    // The weapon Butterfingers threw is the player's own: never a check.
+    switch (TrapDropTouched(weapon)) {
+        case TrapDrop::kTooSoon:
+            return Touch::kRefuse;
+        case TrapDrop::kTaken:
+            return Touch::kAllow;
+        case TrapDrop::kNotTrap:
+            break;
+    }
     if (player == nullptr || weapon == nullptr || !Gating() || g_granting) {
         return Touch::kAllow;
     }
@@ -1160,13 +1204,7 @@ void AirboatGunPulled() {
 }
 
 bool BuggyGunAllowed() {
-    const bool allowed = Holds(kBuggyGunItem);
-    // Temporary: a playtest saw the cannon fire without the item.
-    if (Debounced("buggy_gun_log", 5.0)) {
-        Msg("[AP] debug: buggy gun allowed=%d gating=%d count=%d\n", allowed ? 1 : 0,
-            Gating() ? 1 : 0, State().Count(kBuggyGunItem));
-    }
-    return allowed;
+    return Holds(kBuggyGunItem);
 }
 
 void BuggyGunPulled() {

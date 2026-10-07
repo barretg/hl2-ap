@@ -22,6 +22,8 @@
 #include "ap_melee.h"
 #include "ap_state.h"
 #include "ap_text.h"
+#include "ap_nav.h"
+#include "ap_traps.h"
 #include "ap_watchdog.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -218,6 +220,8 @@ public:
     void LevelInitPreEntity() override {
         WatchdogStage("LevelInitPreEntity");
         MeleePrecache();
+        TrapsPrecache();
+        NavPrecache();
         WatchdogStage("engine");
     }
 

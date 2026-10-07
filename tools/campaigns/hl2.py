@@ -46,7 +46,8 @@ HL2 = Campaign(
     confiscating_upgrade="Super Gravity Gun",
     # The flashlight has no pickup: the item lets the flashlight key work.
     equipment={"HEV Suit": ["item_suit"], "Flashlight": []},
-    equipment_classification={"Flashlight": "useful"},
+    # Nova Prospekt can be done without the Bugbait (2026-10-06).
+    item_classification={"Flashlight": "useful", "Bugbait": "useful"},
     enemy_npcs=frozenset({"npc_combine_s", "npc_metropolice"}),
     ally_npcs=frozenset({"npc_citizen", "npc_barney", "npc_alyx", "npc_monk"}),
     input_gives={"ExtractBugbait": "weapon_bugbait"},
@@ -103,8 +104,6 @@ HL2 = Campaign(
         # neither it cannot (confirmed in play, 2026-10-06).
         "chopper killer": ["Airboat Gun", "RPG"],
         "explosives": ["Grenade", "RPG"],
-        # Nova Prospekt can be done without it, but strict expects it (2026-10-06).
-        "bugbait": ["Bugbait"],
         # Sandtraps' battery is reached by blasting its way with the buggy's
         # cannon or the RPG (2026-10-06).
         # The gun only counts with the buggy it is mounted on.
@@ -142,7 +141,7 @@ HL2 = Campaign(
                         "maps": {"d2_coast_10": {"strict": ["sandtraps buggy",
                                                           "sandtraps battery"]},
                                  "d2_coast_11": {"items": {"RPG": 1}}}},
-        "d2_prison_02": {"entry": {"strict": ["heavy", "bugbait"]}},
+        "d2_prison_02": {"entry": {"strict": ["heavy"]}},
         "d2_prison_06": {"entry": {"strict": ["heavy"]}},
         "d3_c17_02": {"entry": {"strict": ["heavy"]}},
         # Gunships and the striders at the end.

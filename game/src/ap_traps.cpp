@@ -1,0 +1,624 @@
+#include "cbase.h"
+#include "player.h"
+#include "basecombatweapon_shared.h"
+#include "ai_basenpc.h"
+#include "props.h"
+#include "weapon_physcannon.h"
+
+#include <algorithm>
+#include <vector>
+
+#include "ap_traps.h"
+
+#include "ap_checkdata.h"
+#include "ap_game.h"
+#include "ap_main.h"
+#include "ap_state.h"
+
+// memdbgon must be the last include file in a .cpp file!!!
+#include "tier0/memdbgon.h"
+
+namespace ap {
+namespace {
+
+const char* const kTrapName = "ap_trap";
+const char* const kJunkName = "ap_junk";
+
+// --- what traps spawn ---------------------------------------------------------
+
+// NPC Trap: a body and a mind, rolled separately. Every model is a human on
+// the shared animation sets, so any of these minds can drive any of them.
+const char* const kStoryModels[] = {
+    "models/gman.mdl",  "models/kleiner.mdl", "models/eli.mdl",
+    "models/breen.mdl", "models/mossman.mdl", "models/alyx.mdl",
+    "models/barney.mdl", "models/monk.mdl",   "models/odessa.mdl",
+};
+struct Mind {
+    const char* classname;
+    bool can_follow;  // a player companion, with a follow behaviour
+};
+const Mind kMinds[] = {
+    {"npc_citizen", true}, {"npc_barney", true},   {"npc_monk", false},
+    {"npc_kleiner", false}, {"npc_eli", false},    {"npc_breen", false},
+    {"npc_mossman", false}, {"npc_gman", false},
+};
+enum class Behaviour { kFollow, kWander, kFlee };
+
+const char* const kOtherClasses[] = {"npc_headcrab", "npc_manhack", "npc_rollermine",
+                                     "npc_crow"};
+
+// Junk Trap falls back on these when the map has few loose props of its own.
+const char* const kJunkModels[] = {
+    "models/props_junk/watermelon01.mdl",
+    "models/props_junk/popcan01a.mdl",
+    "models/props_junk/garbage_milkcarton002a.mdl",
+    "models/props_junk/cardboard_box001a.mdl",
+    "models/props_junk/metal_paintcan001a.mdl",
+    "models/props_c17/furniturechair001a.mdl",
+    "models/props_junk/wood_crate001a.mdl",
+    "models/props_junk/plasticbucket001a.mdl",
+    "models/props_c17/doll01.mdl",
+    "models/props_junk/shoe001a.mdl",
+    "models/props_lab/monitor01a.mdl",
+    "models/props_c17/metalpot001a.mdl",
+    "models/props_junk/trafficcone001a.mdl",
+    "models/props_junk/garbage_plasticbottle003a.mdl",
+    "models/props_interiors/pot01a.mdl",
+    "models/props_junk/glassjug01.mdl",
+    "models/props_c17/briefcase001a.mdl",
+    "models/props_junk/metalbucket01a.mdl",
+    "models/props_lab/huladoll.mdl",
+};
+const char* const kMapPropClasses[] = {"prop_physics", "prop_physics_multiplayer",
+                                       "prop_physics_respawnable", "prop_physics_override"};
+
+const int kNpcCount = 4;
+const int kHeadcrabCount = 4;
+const int kManhackCount = 4;
+const int kRollermineCount = 3;
+const int kCrowCount = 12;
+const int kJunkCount = 8;
+const float kJunkMaxMass = 150.0f;      // kg; a dropped fridge is not junk
+const float kJunkFadeSeconds = 60.0f;   // so a pile never blocks a doorway for good
+const float kJunkMaxDamage = 5.0f;
+const float kButterfingersPickupDelay = 1.0f;  // not caught on the way out
+const float kWanderEverySeconds = 3.0f;
+
+// --- placement ----------------------------------------------------------------
+//
+// From the HL1 port: each spawn rolls its own bearing and distance, checked
+// with traces, so a corridor still gets all of them and nobody arrives inside
+// a wall.
+
+struct Hull {
+    Vector mins, maxs;
+};
+const Hull kHumanHull = {Vector(-13, -13, 0), Vector(13, 13, 72)};
+const Hull kSmallHull = {Vector(-12, -12, 0), Vector(12, 12, 24)};
+const Hull kCrowHull = {Vector(-6, -6, 0), Vector(6, 6, 12)};
+const Hull kRollermineHull = {Vector(-16, -16, 0), Vector(16, 16, 32)};
+const Hull kFlyerHull = {Vector(-12, -12, -12), Vector(12, 12, 12)};
+
+const int kPlaceAttempts = 10;
+const float kWallMargin = 16.0f;
+const float kDropHeight = 128.0f;
+const float kStepLift = 18.0f;
+
+bool Place(CBasePlayer* player, const Hull& hull, float min_r, float max_r, float separation,
+           bool on_floor, std::vector<Vector>& placed, Vector& spot) {
+    const Vector base = on_floor ? player->GetAbsOrigin() + Vector(0, 0, kStepLift)
+                                 : player->EyePosition() - Vector(0, 0, 8);
+    for (int attempt = 0; attempt < kPlaceAttempts; ++attempt) {
+        const float yaw = RandomFloat(0.0f, 360.0f);
+        const float dist = RandomFloat(min_r, max_r);
+        Vector dir;
+        AngleVectors(QAngle(0, yaw, 0), &dir);
+        trace_t tr;
+        UTIL_TraceHull(base, base + dir * dist, hull.mins, hull.maxs, MASK_NPCSOLID, player,
+                       COLLISION_GROUP_NONE, &tr);
+        if (tr.startsolid) {
+            continue;
+        }
+        const float reach = dist * tr.fraction - (tr.fraction < 1.0f ? kWallMargin : 0.0f);
+        if (reach < min_r * 0.5f) {
+            continue;  // a wall in the player's face
+        }
+        Vector at = base + dir * reach;
+        if (on_floor) {
+            UTIL_TraceHull(at, at - Vector(0, 0, kDropHeight + kStepLift), hull.mins, hull.maxs,
+                           MASK_NPCSOLID, player, COLLISION_GROUP_NONE, &tr);
+            if (tr.startsolid || tr.fraction >= 1.0f) {
+                continue;  // no floor within reach: a ledge or a shaft
+            }
+            at = tr.endpos;
+        }
+        UTIL_TraceHull(at, at, hull.mins, hull.maxs, MASK_NPCSOLID, player, COLLISION_GROUP_NONE,
+                       &tr);
+        if (tr.startsolid || tr.allsolid) {
+            continue;
+        }
+        bool crowded = false;
+        for (const Vector& other : placed) {
+            crowded = crowded || (other - at).Length() < separation;
+        }
+        if (crowded) {
+            continue;
+        }
+        placed.push_back(at);
+        spot = at;
+        return true;
+    }
+    return false;
+}
+
+QAngle Facing(CBasePlayer* player, const Vector& from) {
+    QAngle angles;
+    VectorAngles(player->GetAbsOrigin() - from, angles);
+    return QAngle(0, angles.y, 0);
+}
+
+CBaseEntity* SpawnAt(const char* classname, const Vector& at, const QAngle& angles,
+                     const std::vector<std::pair<const char*, const char*>>& keys = {}) {
+    CBaseEntity* entity = CreateEntityByName(classname);
+    if (entity == nullptr) {
+        return nullptr;
+    }
+    for (const auto& kv : keys) {
+        entity->KeyValue(kv.first, kv.second);
+    }
+    entity->SetAbsOrigin(at);
+    entity->SetAbsAngles(angles);
+    entity->SetName(AllocPooledString(kTrapName));
+    if (DispatchSpawn(entity) < 0 || entity->IsMarkedForDeletion()) {
+        return nullptr;
+    }
+    entity->Activate();
+    return entity;
+}
+
+// Spawns `count` of a class around the player; how many made it.
+int SpawnAround(CBasePlayer* player, const char* classname, int count, const Hull& hull,
+                float min_r, float max_r, float separation, bool on_floor) {
+    std::vector<Vector> placed;
+    int made = 0;
+    for (int i = 0; i < count; ++i) {
+        Vector at;
+        if (Place(player, hull, min_r, max_r, separation, on_floor, placed, at) &&
+            SpawnAt(classname, at, Facing(player, at)) != nullptr) {
+            ++made;
+        }
+    }
+    return made;
+}
+
+// --- state ---------------------------------------------------------------------
+
+struct Queued {
+    std::string name;
+    float wait;  // game seconds left, counted only while the player is up
+};
+std::vector<Queued> g_queue;
+
+std::vector<EHANDLE> g_wanderers;
+float g_next_wander = 0.0f;
+
+// Butterfingers.
+std::string g_withheld;
+EHANDLE g_drop;
+float g_dropped_at = 0.0f;
+
+// Bunny Hop and Sticky Key, on this map's clock.
+float g_hop_until = 0.0f;
+bool g_jump_down = false;
+float g_stuck_until = 0.0f;
+const char* g_stuck_key = nullptr;  // "forward", "back", "moveleft", "moveright"
+bool g_release_due = false;
+
+struct StuckKey {
+    const char* command;
+    const char* said;
+};
+const StuckKey kStuckKeys[] = {
+    {"forward", "forward"}, {"back", "back"}, {"moveleft", "strafe left"},
+    {"moveright", "strafe right"},
+};
+
+// "Shotgun" for weapon_shotgun: the item name where it has one.
+std::string ItemNameOf(const std::string& classname) {
+    const std::string item = Data().GateOf(classname);
+    return item.empty() ? classname.substr(classname.rfind('_') + 1) : item;
+}
+
+void PlayerCommand(CBasePlayer* player, const std::string& command) {
+    engine->ClientCommand(player->edict(), "%s\n", command.c_str());
+}
+
+void ClearWithheld() {
+    g_withheld.clear();
+    g_drop = nullptr;
+}
+
+// --- the traps -----------------------------------------------------------------
+
+void SpringNpcs(CBasePlayer* player) {
+    std::vector<const char*> models(std::begin(kStoryModels), std::end(kStoryModels));
+    for (size_t i = models.size(); i > 1; --i) {
+        std::swap(models[i - 1], models[RandomInt(0, static_cast<int>(i) - 1)]);
+    }
+    std::vector<Vector> placed;
+    int made = 0;
+    for (int i = 0; i < kNpcCount; ++i) {
+        Vector at;
+        if (!Place(player, kHumanHull, 72.0f, 160.0f, 40.0f, true, placed, at)) {
+            continue;
+        }
+        const Mind& mind = kMinds[RandomInt(0, ARRAYSIZE(kMinds) - 1)];
+        const char* model = models[i % models.size()];
+        // A unique citizen wears the model it is given; the others are reskinned
+        // once they have spawned in their own.
+        CBaseEntity* entity = SpawnAt(mind.classname, at, Facing(player, at),
+                                      {{"model", model}, {"citizentype", "4"}});
+        CAI_BaseNPC* npc = entity ? entity->MyNPCPointer() : nullptr;
+        if (npc == nullptr) {
+            continue;
+        }
+        if (Q_stricmp(STRING(npc->GetModelName()), model) != 0) {
+            npc->SetModel(model);
+            npc->ResetSequenceInfo();
+        }
+        ++made;
+        Behaviour behaviour = static_cast<Behaviour>(RandomInt(0, 2));
+        if (behaviour == Behaviour::kFollow && !mind.can_follow) {
+            behaviour = Behaviour::kWander;
+        }
+        if (behaviour == Behaviour::kFollow) {
+            // The level designers' way to make a companion follow: a goal entity.
+            static int serial = 0;
+            const std::string actor = std::string(kTrapName) + "_" + std::to_string(++serial);
+            npc->SetName(AllocPooledString(actor.c_str()));
+            CBaseEntity* goal = CreateEntityByName("ai_goal_follow");
+            if (goal != nullptr) {
+                goal->KeyValue("actor", actor.c_str());
+                goal->KeyValue("goal", "!player");
+                goal->KeyValue("Formation", "0");
+                DispatchSpawn(goal);
+                goal->Activate();
+                variant_t none;
+                goal->AcceptInput("Activate", player, player, none, 0);
+            }
+        } else if (behaviour == Behaviour::kFlee) {
+            npc->AddEntityRelationship(player, D_FR, 99);
+        } else {
+            g_wanderers.push_back(npc);
+        }
+    }
+    Notify(made > 0 ? "NPC Trap: company has arrived." : "NPC Trap: no room for company here.");
+}
+
+void SpringButterfingers(CBasePlayer* player) {
+    CBaseCombatWeapon* weapon = player->GetActiveWeapon();
+    auto droppable = [](CBaseCombatWeapon* w) {
+        if (w == nullptr) {
+            return false;
+        }
+        const char* name = w->GetClassname();
+        // A grenade is ammo in the hand; the super gravity gun is the level's.
+        return !FClassnameIs(w, "weapon_frag") &&
+               !(FClassnameIs(w, "weapon_physcannon") && PlayerHasMegaPhysCannon()) &&
+               Q_strncmp(name, "weapon_", 7) == 0;
+    };
+    if (!droppable(weapon)) {
+        weapon = nullptr;
+        for (int i = 0; i < player->WeaponCount() && weapon == nullptr; ++i) {
+            if (droppable(player->GetWeapon(i))) {
+                weapon = player->GetWeapon(i);
+            }
+        }
+    }
+    if (weapon == nullptr) {
+        Notify("Butterfingers Trap: nothing to drop.");
+        return;
+    }
+    const std::string classname = weapon->GetClassname();
+    // A fumble: up and away, somewhere ahead, tumbling. A real physics object,
+    // as the thrown crowbar is.
+    QAngle aim(-30.0f, player->EyeAngles().y + RandomFloat(-50.0f, 50.0f), 0.0f);
+    Vector dir;
+    AngleVectors(aim, &dir);
+    Vector velocity = dir * 450.0f;
+    player->Weapon_Drop(weapon, nullptr, &velocity);
+    if (IPhysicsObject* phys = weapon->VPhysicsGetObject()) {
+        AngularImpulse spin(RandomFloat(-1500, 1500), RandomFloat(-1500, 1500),
+                            RandomFloat(-1500, 1500));
+        phys->AddVelocity(nullptr, &spin);
+    }
+    weapon->Lock(1.0e6f, player);  // the player's to pick up; never an NPC's
+    g_withheld = classname;
+    g_drop = weapon;
+    g_dropped_at = gpGlobals->curtime;
+    if (player->GetActiveWeapon() == nullptr) {
+        player->SwitchToNextBestWeapon(nullptr);
+    }
+    Notify("Butterfingers Trap: you fumbled your " + ItemNameOf(classname) + ".");
+}
+
+void SpringBunnyHop() {
+    g_hop_until = gpGlobals->curtime + kHeldKeySeconds;
+    Notify("Bunny Hop Trap: hop, hop, hop.");
+}
+
+void SpringStickyKey(CBasePlayer* player) {
+    if (g_stuck_key != nullptr) {
+        PlayerCommand(player, std::string("-") + g_stuck_key);
+    }
+    const StuckKey& key = kStuckKeys[RandomInt(0, ARRAYSIZE(kStuckKeys) - 1)];
+    g_stuck_key = key.command;
+    g_stuck_until = gpGlobals->curtime + kHeldKeySeconds;
+    PlayerCommand(player, std::string("+") + key.command);
+    Notify(std::string("Sticky Key Trap: ") + key.said + " is stuck down for " +
+           std::to_string(static_cast<int>(kHeldKeySeconds)) + " seconds.");
+}
+
+void SpringReload(CBasePlayer* player) {
+    CBaseCombatWeapon* weapon = player->GetActiveWeapon();
+    if (weapon == nullptr || !weapon->UsesClipsForAmmo1() || weapon->Clip1() <= 0 ||
+        weapon->GetPrimaryAmmoType() < 0) {
+        Notify("Reload Trap: nothing in hand to reload.");
+        return;
+    }
+    // Straight into the reserve, past the carry limit: no ammo is lost.
+    const int ammo = weapon->GetPrimaryAmmoType();
+    player->SetAmmoCount(player->GetAmmoCount(ammo) + weapon->Clip1(), ammo);
+    weapon->m_iClip1 = 0;
+    weapon->Reload();
+    Notify("Reload Trap: reloading.");
+}
+
+void SpringJunk(CBasePlayer* player) {
+    std::vector<std::string> models(std::begin(kJunkModels), std::end(kJunkModels));
+    for (const char* cls : kMapPropClasses) {
+        for (CBaseEntity* e = gEntList.FindEntityByClassname(nullptr, cls); e != nullptr;
+             e = gEntList.FindEntityByClassname(e, cls)) {
+            const char* model = STRING(e->GetModelName());
+            if (model != nullptr && *model != '\0' &&
+                std::find(models.begin(), models.end(), model) == models.end()) {
+                models.push_back(model);
+            }
+        }
+    }
+    // Under the ceiling, a good way over the player's head.
+    const Vector eye = player->EyePosition();
+    trace_t tr;
+    UTIL_TraceLine(eye, eye + Vector(0, 0, 200), MASK_SOLID, player, COLLISION_GROUP_NONE, &tr);
+    const float top = (std::max)(tr.endpos.z - 24.0f, eye.z + 24.0f);
+    int made = 0;
+    for (int i = 0; i < kJunkCount; ++i) {
+        const Vector above(eye.x, eye.y, top);
+        const Vector want = above + Vector(RandomFloat(-64, 64), RandomFloat(-64, 64), 0);
+        UTIL_TraceLine(above, want, MASK_SOLID, player, COLLISION_GROUP_NONE, &tr);
+        const Vector at = above + (want - above) * (std::max)(tr.fraction - 0.2f, 0.0f);
+        for (int tries = 0; tries < 3; ++tries) {
+            const std::string& model = models[RandomInt(0, static_cast<int>(models.size()) - 1)];
+            CBaseEntity* entity = CreateEntityByName("prop_physics");
+            if (entity == nullptr) {
+                break;
+            }
+            entity->KeyValue("model", model.c_str());
+            entity->SetAbsOrigin(at);
+            entity->SetAbsAngles(QAngle(RandomFloat(0, 360), RandomFloat(0, 360), 0));
+            entity->SetName(AllocPooledString(kJunkName));
+            if (DispatchSpawn(entity) < 0 || entity->IsMarkedForDeletion()) {
+                continue;  // no physics model: not a prop that can fall
+            }
+            IPhysicsObject* phys = entity->VPhysicsGetObject();
+            auto* prop = dynamic_cast<CPhysicsProp*>(entity);
+            if (phys == nullptr || phys->GetMass() > kJunkMaxMass ||
+                (prop != nullptr && prop->GetExplosiveDamage() > 0.0f)) {
+                UTIL_Remove(entity);  // too heavy to be junk, or a barrel that blows up
+                continue;
+            }
+            entity->Activate();
+            phys->Wake();
+            entity->SUB_StartFadeOut(kJunkFadeSeconds, false);
+            ++made;
+            break;
+        }
+    }
+    Notify(made > 0 ? "Junk Trap: look up." : "Junk Trap: no room overhead.");
+}
+
+// Whether the trap went off; false leaves it queued for a better moment.
+bool Spring(CBasePlayer* player, const std::string& name) {
+    const bool on_foot = !player->IsInAVehicle();
+    if (name == "NPC Trap") {
+        SpringNpcs(player);
+    } else if (name == "Headcrab Trap") {
+        const int made = SpawnAround(player, "npc_headcrab", kHeadcrabCount, kSmallHull, 72.0f,
+                                     160.0f, 40.0f, true);
+        Notify(made > 0 ? "Headcrab Trap!" : "Headcrab Trap: no room here.");
+    } else if (name == "Manhack Swarm Trap") {
+        const int made = SpawnAround(player, "npc_manhack", kManhackCount, kFlyerHull, 96.0f,
+                                     200.0f, 40.0f, false);
+        Notify(made > 0 ? "Manhack Swarm Trap!" : "Manhack Swarm Trap: no room here.");
+    } else if (name == "Rollermine Trap") {
+        const int made = SpawnAround(player, "npc_rollermine", kRollermineCount, kRollermineHull,
+                                     96.0f, 200.0f, 48.0f, true);
+        Notify(made > 0 ? "Rollermine Trap!" : "Rollermine Trap: no room here.");
+    } else if (name == "Crow Trap") {
+        const int made =
+            SpawnAround(player, "npc_crow", kCrowCount, kCrowHull, 48.0f, 240.0f, 20.0f, true);
+        Notify(made > 0 ? "Crow Trap: murder." : "Crow Trap: no room here.");
+    } else if (name == "Junk Trap") {
+        SpringJunk(player);
+    } else if (name == "Bunny Hop Trap") {
+        SpringBunnyHop();
+    } else if (name == "Sticky Key Trap") {
+        SpringStickyKey(player);
+    } else if (name == "Butterfingers Trap") {
+        if (!on_foot || !g_withheld.empty()) {
+            return false;  // nothing in hand in a vehicle; one fumble at a time
+        }
+        SpringButterfingers(player);
+    } else if (name == "Reload Trap") {
+        if (!on_foot) {
+            return false;
+        }
+        SpringReload(player);
+    } else {
+        Notify("Trap " + name + " is not one this build knows.");
+    }
+    return true;
+}
+
+void RunWithheld(CBasePlayer* player) {
+    if (g_withheld.empty()) {
+        return;
+    }
+    const bool reissue = State().OptionBool("butterfingers_reissue", true);
+    const bool lost = g_drop == nullptr;  // fell out of the world, or dissolved
+    const bool due = reissue && gpGlobals->curtime - g_dropped_at >= kButterfingersReturnSeconds;
+    const bool empty_handed = player->WeaponCount() == 0;
+    if (!lost && !due && !empty_handed) {
+        return;
+    }
+    if (g_drop != nullptr) {
+        UTIL_Remove(g_drop);
+    }
+    const std::string name = ItemNameOf(g_withheld);
+    ClearWithheld();
+    Notify("The suit hands back your " + name + ".");  // the loadout grants it
+}
+
+void RunKeys(CBasePlayer* player) {
+    if (g_release_due) {
+        g_release_due = false;
+        PlayerCommand(player, "-jump");
+        for (const StuckKey& key : kStuckKeys) {
+            PlayerCommand(player, std::string("-") + key.command);
+        }
+    }
+    if (g_hop_until > 0.0f) {
+        if (g_jump_down) {
+            PlayerCommand(player, "-jump");
+            g_jump_down = false;
+        } else if (gpGlobals->curtime >= g_hop_until) {
+            g_hop_until = 0.0f;
+        } else if (player->GetFlags() & FL_ONGROUND) {
+            PlayerCommand(player, "+jump");
+            g_jump_down = true;
+        }
+    }
+    if (g_stuck_key != nullptr && gpGlobals->curtime >= g_stuck_until) {
+        PlayerCommand(player, std::string("-") + g_stuck_key);
+        g_stuck_key = nullptr;
+    }
+}
+
+void RunWanderers() {
+    if (gpGlobals->curtime < g_next_wander) {
+        return;
+    }
+    g_next_wander = gpGlobals->curtime + kWanderEverySeconds;
+    for (size_t i = 0; i < g_wanderers.size();) {
+        CAI_BaseNPC* npc = g_wanderers[i] ? g_wanderers[i]->MyNPCPointer() : nullptr;
+        if (npc == nullptr || !npc->IsAlive()) {
+            g_wanderers.erase(g_wanderers.begin() + i);
+            continue;
+        }
+        if (!npc->IsMoving() && npc->GetState() != NPC_STATE_SCRIPT &&
+            npc->GetState() != NPC_STATE_COMBAT) {
+            npc->SetSchedule(SCHED_IDLE_WANDER);
+        }
+        ++i;
+    }
+}
+
+}  // namespace
+
+void TrapsPrecache() {
+    for (const char* model : kStoryModels) {
+        CBaseEntity::PrecacheModel(model);
+    }
+    for (const char* model : kJunkModels) {
+        CBaseEntity::PrecacheModel(model);
+    }
+    for (const Mind& mind : kMinds) {
+        UTIL_PrecacheOther(mind.classname);
+    }
+    for (const char* classname : kOtherClasses) {
+        UTIL_PrecacheOther(classname);
+    }
+}
+
+void TrapsLevelStart() {
+    ClearWithheld();
+    g_wanderers.clear();
+    g_next_wander = 0.0f;
+    g_release_due = g_hop_until > 0.0f || g_jump_down || g_stuck_key != nullptr || g_release_due;
+    g_hop_until = 0.0f;
+    g_jump_down = false;
+    g_stuck_key = nullptr;
+    g_stuck_until = 0.0f;
+    for (Queued& queued : g_queue) {
+        queued.wait = kTrapDelaySeconds;  // the new level settles first too
+    }
+}
+
+void QueueTrap(const std::string& name) { g_queue.push_back({name, kTrapDelaySeconds}); }
+
+void TrapsFrame() {
+    CBasePlayer* player = Player();
+    if (player == nullptr) {
+        return;
+    }
+    RunKeys(player);
+    if (!player->IsAlive()) {
+        return;
+    }
+    RunWithheld(player);
+    RunWanderers();
+    for (size_t i = 0; i < g_queue.size();) {
+        g_queue[i].wait -= gpGlobals->frametime;
+        if (g_queue[i].wait > 0.0f) {
+            ++i;
+            continue;
+        }
+        const std::string name = g_queue[i].name;
+        if (Spring(player, name)) {
+            g_queue.erase(g_queue.begin() + i);
+        } else {
+            g_queue[i].wait = 1.0f;  // try again shortly
+            ++i;
+        }
+    }
+}
+
+bool Withheld(const std::string& classname) {
+    return !g_withheld.empty() && g_withheld == classname;
+}
+
+TrapDrop TrapDropTouched(CBaseEntity* weapon) {
+    if (weapon == nullptr || g_drop == nullptr || g_drop.Get() != weapon) {
+        return TrapDrop::kNotTrap;
+    }
+    if (gpGlobals->curtime - g_dropped_at < kButterfingersPickupDelay) {
+        return TrapDrop::kTooSoon;
+    }
+    ClearWithheld();
+    return TrapDrop::kTaken;
+}
+
+void AdjustPlayerDamage(CBasePlayer* player, CTakeDamageInfo& info) {
+    CBaseEntity* inflictor = info.GetInflictor();
+    CBaseEntity* attacker = info.GetAttacker();
+    const bool junk = (inflictor != nullptr && inflictor->NameMatches(kJunkName)) ||
+                      (attacker != nullptr && attacker->NameMatches(kJunkName));
+    if (!junk || player == nullptr) {
+        return;
+    }
+    float damage = (std::min)(info.GetDamage(), kJunkMaxDamage);
+    damage = (std::min)(damage, static_cast<float>((std::max)(player->GetHealth() - 1, 0)));
+    info.SetDamage(damage);
+}
+
+}  // namespace ap
