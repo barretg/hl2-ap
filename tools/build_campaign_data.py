@@ -75,6 +75,9 @@ TRAPS: list[tuple[str, int]] = [
     ("Headcrab Trap", 25),
     ("Butterfingers Trap", 25),
     ("Manhack Swarm Trap", 25),
+    ("Bot Swarm Trap", 25),
+    # Off by default: its weight comes from `mega_bot_swarm_trap_weight`.
+    ("Mega Bot Swarm Trap", 0),
     ("Rollermine Trap", 25),
     ("Bunny Hop Trap", 25),
     ("Sticky Key Trap", 25),

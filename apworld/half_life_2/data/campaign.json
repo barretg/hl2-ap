@@ -1,6 +1,6 @@
 {
  "format": 1,
- "data_version": "c70d426c3f5d",
+ "data_version": "245de306087d",
  "hub_map": "alpha_hub",
  "campaigns": [
   {
@@ -1289,6 +1289,20 @@
    "weight": 25
   },
   {
+   "id": 8820047,
+   "name": "Bot Swarm Trap",
+   "classification": "trap",
+   "group": "trap",
+   "weight": 25
+  },
+  {
+   "id": 8820048,
+   "name": "Mega Bot Swarm Trap",
+   "classification": "trap",
+   "group": "trap",
+   "weight": 0
+  },
+  {
    "id": 8820045,
    "name": "Rollermine Trap",
    "classification": "trap",
@@ -1379,25 +1393,6 @@
     "type": "map_reached",
     "map": "d1_trainstation_04"
    }
-  },
-  {
-   "id": 8830004,
-   "key": "hl2|d1_trainstation_01|d1_trainstation_01|charger|item_suitcharger@-3649 -425 24",
-   "name": "Point Insertion: Suit Charger (Part 1)",
-   "campaign": "hl2",
-   "chapter": "d1_trainstation_01",
-   "map": "d1_trainstation_01",
-   "trigger": {
-    "type": "charger",
-    "map": "d1_trainstation_01",
-    "classname": "item_suitcharger",
-    "at": "-3649 -425 24"
-   },
-   "position": [
-    -3649,
-    -425,
-    24
-   ]
   },
   {
    "id": 8830005,

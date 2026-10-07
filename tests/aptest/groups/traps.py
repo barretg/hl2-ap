@@ -45,6 +45,43 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
+            title="Bot Swarm Trap: six bots with crowbars",
+            map="d2_coast_01",
+            steps=f"""
+                Type !trap bot. {WAIT} six bots appear around you on the floor, in mixed
+                bodies (citizens, Combine, vortigaunts, zombies). They run about, jump
+                over what is in their way, and swing at whatever they bump into, you
+                included, a few swings at a time before running off. Humans and Combine
+                hold a crowbar. Each dies to a few hits and ragdolls. Map NPCs ignore
+                them. Spring it again a few times: new bodies each time, no repeats
+                until every model has turned up once.
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
+            title="Mega Bot Swarm Trap: one bot in every body",
+            map="d2_coast_01",
+            steps=f"""
+                Type !trap mega. {WAIT} "MEGA bot swarm!", and a crowd of bots (about 73 on
+                a full install), each in a different body, spread out from you and as
+                far as they need to. The game keeps running. They behave as the Bot
+                Swarm's do.
+                !pass or !fail <how many, what happened>.
+            """,
+        ),
+        Scenario(
+            title="Spawning traps in a cramped spot: the nearest room, never none",
+            map="d1_canals_01",
+            steps=f"""
+                Squeeze into a tight corner or a narrow passage. Type !trap bot, then
+                !trap headcrab, then !trap npc. {WAIT} each announces itself once, and
+                all of its spawns appear at the nearest spots they fit (round a corner
+                or through a wall if need be), never "no room here". If none fit at
+                all, step into the open: the rest arrive within a couple of seconds.
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
             title="Rollermine Trap: three rollermines",
             map="d2_coast_01",
             steps=f"""

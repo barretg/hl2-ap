@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import Any, ClassVar
 
 from BaseClasses import Tutorial
-from Options import OptionGroup
+from Options import DeathLink, OptionGroup
 from worlds.AutoWorld import WebWorld, World
 from worlds.LauncherComponents import Component, Type, components, launch_subprocess
 
@@ -48,7 +48,13 @@ from .items import (
 from .locations import location_name_groups, location_name_to_id
 from .options import (
     ButterfingersReissue,
+    Chargesanity,
+    DeathLinkAmnesty,
     HalfLife2Options,
+    LogicDifficulty,
+    MegaBotSwarmTrapWeight,
+    MeleeThrow,
+    MissionsRequired,
     RandomizeAuxPower,
     ShuffleFlashlight,
     ShuffleHevSuit,
@@ -90,11 +96,21 @@ class HalfLife2Web(WebWorld):
             ["hl2-ap"],
         )
     ]
+    # In this order, ahead of Archipelago's own blocks; Experimental last.
     option_groups = [
+        OptionGroup("Goal and Logic", [MissionsRequired, LogicDifficulty]),
+        OptionGroup("Locations", [Chargesanity]),
         OptionGroup("Equipment", [ShuffleHevSuit, ShuffleFlashlight, RandomizeAuxPower,
                                   StartingAuxPower]),
+        OptionGroup("Gameplay", [MeleeThrow]),
+        OptionGroup("DeathLink", [DeathLink, DeathLinkAmnesty]),
         OptionGroup("Traps", [TrapPercentage, ButterfingersReissue]),
+        OptionGroup("Experimental", [MegaBotSwarmTrapWeight]),
     ]
+
+
+# Weighted by its own (experimental) option instead of the data.
+MEGA_BOT_SWARM = "Mega Bot Swarm Trap"
 
 
 class HalfLife2World(World):
@@ -259,7 +275,9 @@ class HalfLife2World(World):
     def get_filler_names(self, count: int) -> list[str]:
         """Fill the leftover locations, with `trap_percentage` of them traps."""
         traps = round(count * self.options.trap_percentage.value / 100)
-        names = self.random.choices(trap_items, weights=trap_weights, k=traps)
+        weights = list(trap_weights)
+        weights[trap_items.index(MEGA_BOT_SWARM)] = self.options.mega_bot_swarm_trap_weight.value
+        names = self.random.choices(trap_items, weights=weights, k=traps)
         names += self.random.choices(filler_items, weights=filler_weights, k=count - traps)
         # Otherwise every trap lands in the same stretch of the pool.
         self.random.shuffle(names)

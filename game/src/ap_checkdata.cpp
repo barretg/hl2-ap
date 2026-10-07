@@ -121,24 +121,47 @@ const Chapter* CheckData::ChapterByKey(const std::string& key) const {
     return nullptr;
 }
 
-const Chapter* CheckData::FindChapter(const std::string& text) const {
+std::vector<const Chapter*> CheckData::MatchChapters(const std::string& text) const {
     const std::string want = Simplify(text);
+    std::vector<const Chapter*> found;
     if (want.empty()) {
-        return nullptr;
+        return found;
     }
-    for (const Chapter& chapter : chapters_) {
-        if (Simplify(chapter.number) == want || Simplify(chapter.key) == want ||
-            Simplify(chapter.name) == want) {
-            return &chapter;
+    auto tier = [&](auto matches) {
+        for (const Chapter& chapter : chapters_) {
+            if (matches(chapter)) {
+                found.push_back(&chapter);
+            }
         }
-    }
-    // A name typed in part: the first chapter whose name starts with it.
-    for (const Chapter& chapter : chapters_) {
-        if (StartsWith(Simplify(chapter.name), want)) {
-            return &chapter;
+        return !found.empty();
+    };
+    auto word_starts = [&](const Chapter& chapter) {
+        for (const std::string& word : Split(chapter.name, ' ')) {
+            const std::string simple = Simplify(word);
+            if (!simple.empty() && StartsWith(simple, want)) {
+                return true;
+            }
         }
+        return false;
+    };
+    // A map name finds its own chapter, whatever the other tiers would say.
+    if (const Chapter* by_map = ChapterOfMap(Lower(Trim(text)))) {
+        found.push_back(by_map);
+        return found;
     }
-    return nullptr;
+    tier([&](const Chapter& c) {
+        return Simplify(c.number) == want || Simplify(c.key) == want ||
+               Simplify(c.name) == want;
+    }) ||
+        tier([&](const Chapter& c) { return StartsWith(Simplify(c.name), want); }) ||
+        tier(word_starts) ||
+        tier([&](const Chapter& c) { return Simplify(c.name).find(want) != std::string::npos; });
+    return found;
+}
+
+const Chapter* CheckData::FindChapter(const std::string& text) const {
+    const std::vector<const Chapter*> found = MatchChapters(text);
+    return found.size() == 1 ? found.front() : nullptr;
 }
 
 long CheckData::MapReached(const std::string& map) const {

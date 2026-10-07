@@ -70,8 +70,13 @@ public:
     // The chapter a map belongs to, or null (the hub, menu backgrounds).
     const Chapter* ChapterOfMap(const std::string& map) const;
     const Chapter* ChapterByKey(const std::string& key) const;
-    // A chapter typed by a player: its number ("9a"), index+1, key or name,
-    // case and punctuation ignored.
+    // A chapter typed by a player, case and punctuation ignored. Tried in
+    // tiers, the first with any match winning: its number ("9a"), key, name
+    // or any of its maps; the start of its name ("route"); the start of any
+    // word of its name ("kanal", "ravenholm"); anywhere in its name.
+    // MatchChapters gives every match of that tier; FindChapter only a
+    // unique one, null when there is none or the text is ambiguous.
+    std::vector<const Chapter*> MatchChapters(const std::string& text) const;
     const Chapter* FindChapter(const std::string& text) const;
 
     // Location ids, 0 when there is none.

@@ -53,6 +53,10 @@ HL2 = Campaign(
     input_gives={"ExtractBugbait": "weapon_bugbait"},
     vehicles={"scripts/vehicles/airboat.txt": "Boat",
               "scripts/vehicles/jeep_test.txt": "Buggy"},
+    # Found unreachable in play (2026-10-07).
+    unreachable_chargers={
+        "d1_trainstation_01": {("item_suitcharger", (-3649, -425, 24))},
+    },
     # Verdicts from the `sources` harness group (2026-10-04) unless noted.
     unreachable_copies={
         # Point Insertion's and A Red Letter Day's metrocops are scripted and

@@ -70,7 +70,7 @@ TEST_CLIENT_DLL_MARKER = b"HL2AP_ClientFrames"
 # Deliveries the harness accepts for `!item` / `!trap`. Placeholders until the
 # item table exists (plan Phase 3); the game ignores names it does not know.
 FILLER = ["Ammo Cache", "Medkit", "Battery"]
-TRAPS = ["NPC Trap", "Headcrab Trap", "Butterfingers Trap", "Manhack Swarm Trap", "Rollermine Trap",
+TRAPS = ["NPC Trap", "Headcrab Trap", "Butterfingers Trap", "Manhack Swarm Trap", "Bot Swarm Trap", "Mega Bot Swarm Trap", "Rollermine Trap",
          "Bunny Hop Trap", "Sticky Key Trap", "Reload Trap", "Crow Trap", "Junk Trap"]
 # Every run opens with these and never loses them (the seed's starting items).
 STARTING = ["weapon_crowbar"]

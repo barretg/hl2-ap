@@ -8,7 +8,10 @@
 //   Butterfingers Trap  the weapon in hand is flung away as a physics object;
 //                       the suit hands it back after half a minute (option);
 //                       any number out at once, each on its own clock
-//   Manhack Swarm Trap  four manhacks (HL1's Bot Swarm: HL2 has no bots)
+//   Manhack Swarm Trap  four manhacks
+//   Bot Swarm Trap      six HL1-style bots with crowbars (ap_bots.cpp), in
+//                       random human, Combine, vortigaunt and zombie bodies
+//   Mega Bot Swarm Trap one bot in every usable body, all at once
 //   Rollermine Trap     three rollermines
 //   Bunny Hop Trap      the player jumps whenever they land, for a while
 //   Sticky Key Trap     one movement key is held down for a while, named
@@ -19,7 +22,8 @@
 //                       barely hurt (AdjustPlayerDamage)
 //
 // Every model a trap can spawn is precached at map load: spawning one that
-// is not is fatal.
+// is not is fatal. Only models found on disk are precached or used, so an
+// install missing one loses that variety, never the game.
 
 #pragma once
 

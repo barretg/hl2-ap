@@ -206,6 +206,23 @@ class TestNoTraps(HalfLife2TestBase):
         self.assertEqual(traps, [])
 
 
+class TestMegaBotSwarmOffByDefault(HalfLife2TestBase):
+    options = {"trap_percentage": 100}
+
+    def test_no_mega_bot_swarm(self) -> None:
+        names = [i.name for i in self.multiworld.itempool]
+        self.assertNotIn("Mega Bot Swarm Trap", names)
+        self.assertIn("Bot Swarm Trap", names)
+
+
+class TestMegaBotSwarmWeighted(HalfLife2TestBase):
+    options = {"trap_percentage": 100, "mega_bot_swarm_trap_weight": 100}
+
+    def test_mega_bot_swarm_rolled(self) -> None:
+        names = [i.name for i in self.multiworld.itempool]
+        self.assertIn("Mega Bot Swarm Trap", names)
+
+
 class TestAllTraps(HalfLife2TestBase):
     options = {"trap_percentage": 100}
 
@@ -214,7 +231,7 @@ class TestAllTraps(HalfLife2TestBase):
         traps = [i for i in self.multiworld.itempool if i.name in trap_items]
         self.assertEqual(filler, [])
         self.assertGreater(len(traps), 0)
-        self.assertEqual(len(set(trap_items)), 10)
+        self.assertEqual(len(set(trap_items)), 12)
 
 
 class TestAuxPowerOff(HalfLife2TestBase):

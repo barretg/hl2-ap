@@ -61,7 +61,16 @@ def test_every_map_has_its_chapter_and_reached_check(probe: Path) -> None:
 def test_find_chapter(probe: Path) -> None:
     assert ask(probe, "find", "9a") == ["d2_prison_06"]
     assert ask(probe, "find", "route kanal") == ["d1_canals_01"]
-    assert ask(probe, "find", "ravenholm") == [""]  # not a prefix of the name
+    assert ask(probe, "find", "kanal") == ["d1_canals_01"]  # a later word of the name
+    assert ask(probe, "find", "Kanal") == ["d1_canals_01"]
+    assert ask(probe, "find", "ravenholm") == ["d1_town_01"]
+    assert ask(probe, "find", "freeman") == ["d3_c17_09"]
+    assert ask(probe, "find", "17") == ["d2_coast_01"]  # Highway 17, not chapter 17
+    assert ask(probe, "find", "redletter") == ["d1_trainstation_05"]  # inside the name
+    assert ask(probe, "find", "d1_canals_05") == ["d1_canals_01"]  # a later map
+    # "a": A Red Letter Day and Anticitizen One both start with it.
+    assert ask(probe, "find", "a") == [""]
+    assert ask(probe, "match", "a") == ["d1_trainstation_05", "d3_c17_02"]
     assert ask(probe, "find", "We dont go") == ["d1_town_01"]
     assert ask(probe, "find", "D1_Eli_01") == ["d1_eli_01"]
 

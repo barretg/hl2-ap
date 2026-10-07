@@ -86,6 +86,17 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
+            title="!warp finds a chapter by any word of its name",
+            map=hub,
+            steps="""
+                Type !warp kanal: Route Kanal loads. !hub, then !warp Ravenholm: We Don't
+                Go To Ravenholm loads. !hub, then !warp freeman: Follow Freeman! loads.
+                !hub, then !warp a: nothing loads, and you are told it could be A Red
+                Letter Day or Anticitizen One.
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
             title="!warp to a part only once reached",
             map=hub, checked=[data.reached("d1_canals_03")],
             steps="""

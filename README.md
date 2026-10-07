@@ -94,12 +94,12 @@ saves. See [docs/protocol.md](docs/protocol.md).
 
 ## Locations
 
-169 in all:
+168 in all:
 
 | Type | Count | Fires when |
 | --- | --- | --- |
 | `map_reached` / `chapter_complete` | 68 / 14 | you reach a part of a chapter, or finish the chapter |
-| `charger` | 74 | you press use on a health charger (41) or suit charger (33) |
+| `charger` | 73 | you press use on a health charger (41) or suit charger (32) |
 | `weapon_pickup` | 11 | you first pick up that weapon |
 | `item_pickup` / `weapon_upgrade` | 1 / 1 | the HEV suit; the super gravity gun |
 

@@ -29,6 +29,10 @@ int main(int argc, char** argv) {
     } else if (query == "find") {
         const ap::Chapter* c = data.FindChapter(a);
         std::printf("%s\n", c ? c->key.c_str() : "");
+    } else if (query == "match") {
+        for (const ap::Chapter* c : data.MatchChapters(a)) {
+            std::printf("%s\n", c->key.c_str());
+        }
     } else if (query == "exits") {
         const ap::Chapter* c = data.ChapterByKey(a);
         for (const auto& e : c->exits) {

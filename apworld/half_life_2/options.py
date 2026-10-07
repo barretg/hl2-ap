@@ -152,6 +152,11 @@ class TrapPercentage(Range):
       Butterfingers Reissue). Any number can be out at once, each on its own
       clock.
     - Manhack Swarm Trap: four manhacks.
+    - Bot Swarm Trap: six crowbar-wielding bots appear around you, in random
+      bodies (citizens, Combine, vortigaunts, zombies), run about jumping over
+      things, and swing at whatever they bump into, you included.
+    - Mega Bot Swarm Trap: off unless Mega Bot Swarm Trap Weight is above 0
+      (see Experimental).
     - Rollermine Trap: three rollermines roll out around you.
     - Bunny Hop Trap: you jump every time you land, for fifteen seconds.
     - Sticky Key Trap: one movement key (forward, back, or a strafe) is held
@@ -169,6 +174,25 @@ class TrapPercentage(Range):
     default = 15
 
 
+class MegaBotSwarmTrapWeight(Range):
+    """Experimental. How often the Mega Bot Swarm Trap is picked when a trap
+    is rolled, against a weight of 25 for every other trap. 0 leaves it out.
+
+    The Mega Bot Swarm spawns one bot in every body the game has, about 73 at
+    once on a full install, all with crowbars, all after you.
+
+    Performance warning: that many bots at once can drop the frame rate
+    badly, and the first time each body appears on a map it is loaded on the
+    spot, which can stall the game for a moment. Leave this at 0 unless your
+    machine copes.
+    """
+
+    display_name = "Mega Bot Swarm Trap Weight"
+    range_start = 0
+    range_end = 100
+    default = 0
+
+
 @dataclass
 class HalfLife2Options(PerGameCommonOptions):
     missions_required: MissionsRequired
@@ -181,6 +205,7 @@ class HalfLife2Options(PerGameCommonOptions):
     melee_throw: MeleeThrow
     trap_percentage: TrapPercentage
     butterfingers_reissue: ButterfingersReissue
+    mega_bot_swarm_trap_weight: MegaBotSwarmTrapWeight
     start_inventory_from_pool: StartInventoryPool
     death_link: DeathLink
     death_link_amnesty: DeathLinkAmnesty

@@ -702,8 +702,26 @@ void Warp(const std::string& rest) {
             WarpToNamed(*warp);
             return;
         }
+        const std::vector<const Chapter*> matches = Data().MatchChapters(name);
+        if (matches.size() > 1) {
+            std::string list;
+            for (const Chapter* c : matches) {
+                list += (list.empty() ? "" : ", ") + c->name;
+            }
+            Notify("'" + name + "' could be " + list + ". Type more of the name.");
+            return;
+        }
         Notify("No chapter or warp point called " + name + ". !ap and !warps list them.");
         return;
+    }
+    // A map name is that part of its chapter: `!warp d1_canals_05`.
+    if (part == 0) {
+        const std::string map = Lower(Trim(name));
+        for (size_t i = 0; i < chapter->maps.size(); ++i) {
+            if (i > 0 && chapter->maps[i] == map) {
+                part = static_cast<int>(i) + 1;
+            }
+        }
     }
     if (Gating() && !ChapterAvailable(*chapter)) {
         Notify(chapter->name + " is " + ChapterStatus(*chapter) + ".");

@@ -44,7 +44,7 @@ and the game keeps running.
 | Chat | Console | What it does |
 | --- | --- | --- |
 | `!ap` | `ap chapters` | every chapter and its unlock status |
-| `!warp <number or name>` | `ap warp …` | travel to an unlocked chapter |
+| `!warp <number or name>` | `ap warp …` | travel to an unlocked chapter; any word of its name will do (`kanal`), or a map name for that part |
 | `!warp <chapter> <part>` | `ap warp …` | to a part you have already reached; the part as `3` or `p3` |
 | `!warp <name>` | `ap warp …` | to a warp point of your own |
 | `!setwarp [name]` | `ap setwarp …` | make a warp point where you stand |
@@ -161,6 +161,7 @@ server.
 | `trap_percentage` | 15 | share of your filler replaced by traps |
 | `butterfingers_reissue` | on | the suit hands back a weapon the Butterfingers Trap knocked away after half a minute |
 | `death_link_amnesty` | 4 | deaths forgiven before one goes out to the multiworld |
+| `mega_bot_swarm_trap_weight` | 0 | experimental: how often the Mega Bot Swarm Trap (about 73 bots at once) is rolled, against 25 for each other trap. Heavy on performance |
 
 The HEV suit is never taken away from you, whatever `shuffle_hev_suit` says.
 What the item controls is armour and aux power.

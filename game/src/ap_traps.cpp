@@ -7,11 +7,17 @@
 #include "in_buttons.h"
 #include "engine/IEngineSound.h"
 #include "weapon_physcannon.h"
+#include "ai_network.h"
+#include "ai_node.h"
+#include "filesystem.h"
 
 #include <algorithm>
+#include <cmath>
 #include <vector>
 
 #include "ap_traps.h"
+
+#include "ap_bots.h"
 
 #include "ap_checkdata.h"
 #include "ap_game.h"
@@ -122,7 +128,47 @@ const int kPlaceAttempts = 10;
 const float kWallMargin = 16.0f;
 const float kDropHeight = 128.0f;
 const float kStepLift = 18.0f;
+// The fallback search: from just clear of the player out to this far.
+const float kPlayerClearance = 40.0f;
+const float kSearchRadius = 1024.0f;
+const float kSearchStep = 48.0f;
 
+// Whether a body fits at `at` (feet for floor hulls), on a floor if it needs
+// one, clear of the player and of those already placed. `at` is moved down
+// onto the floor.
+bool Fits(CBasePlayer* player, const Hull& hull, float separation, bool on_floor,
+          const std::vector<Vector>& placed, Vector& at) {
+    trace_t tr;
+    if (on_floor) {
+        UTIL_TraceHull(at + Vector(0, 0, kStepLift), at - Vector(0, 0, kDropHeight), hull.mins,
+                       hull.maxs, MASK_NPCSOLID, player, COLLISION_GROUP_NONE, &tr);
+        if (tr.startsolid || tr.fraction >= 1.0f) {
+            return false;  // no floor within reach: a ledge or a shaft
+        }
+        at = tr.endpos;
+    }
+    UTIL_TraceHull(at, at, hull.mins, hull.maxs, MASK_NPCSOLID, player, COLLISION_GROUP_NONE,
+                   &tr);
+    if (tr.startsolid || tr.allsolid) {
+        return false;
+    }
+    // Not on top of the player, whom the traces ignore.
+    if ((at - player->GetAbsOrigin()).Length2D() < kPlayerClearance &&
+        std::fabs(at.z - player->GetAbsOrigin().z) < 72.0f) {
+        return false;
+    }
+    for (const Vector& other : placed) {
+        if ((other - at).Length() < separation) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// A spot for one spawn. First a random bearing and distance in the ring, as
+// the HL1 port; failing that, the nearest spot that fits, searched outward in
+// rings (through walls if need be), then the map's AI nodes, nearest first.
+// False only when nowhere on the map near enough fits; the caller retries.
 bool Place(CBasePlayer* player, const Hull& hull, float min_r, float max_r, float separation,
            bool on_floor, std::vector<Vector>& placed, Vector& spot) {
     const Vector base = on_floor ? player->GetAbsOrigin() + Vector(0, 0, kStepLift)
@@ -144,28 +190,53 @@ bool Place(CBasePlayer* player, const Hull& hull, float min_r, float max_r, floa
         }
         Vector at = base + dir * reach;
         if (on_floor) {
-            UTIL_TraceHull(at, at - Vector(0, 0, kDropHeight + kStepLift), hull.mins, hull.maxs,
-                           MASK_NPCSOLID, player, COLLISION_GROUP_NONE, &tr);
-            if (tr.startsolid || tr.fraction >= 1.0f) {
-                continue;  // no floor within reach: a ledge or a shaft
+            at.z -= kStepLift;
+        }
+        if (Fits(player, hull, separation, on_floor, placed, at)) {
+            placed.push_back(at);
+            spot = at;
+            return true;
+        }
+    }
+    // The nearest that fits: rings outward, a start bearing at random so a
+    // swarm does not line up, closer ones packed tighter.
+    const float tight = (std::min)(separation, hull.maxs.x * 2.0f + 4.0f);
+    const float offset = RandomFloat(0.0f, 360.0f);
+    for (float r = kPlayerClearance; r <= kSearchRadius; r += kSearchStep) {
+        const int bearings = (std::max)(8, static_cast<int>(2.0f * M_PI_F * r / kSearchStep));
+        for (int b = 0; b < bearings; ++b) {
+            Vector dir;
+            AngleVectors(QAngle(0, offset + 360.0f * b / bearings, 0), &dir);
+            for (float dz : {0.0f, 64.0f, -64.0f}) {
+                Vector at = (on_floor ? player->GetAbsOrigin() : base) + dir * r +
+                            Vector(0, 0, dz);
+                if (Fits(player, hull, tight, on_floor, placed, at)) {
+                    placed.push_back(at);
+                    spot = at;
+                    return true;
+                }
             }
-            at = tr.endpos;
         }
-        UTIL_TraceHull(at, at, hull.mins, hull.maxs, MASK_NPCSOLID, player, COLLISION_GROUP_NONE,
-                       &tr);
-        if (tr.startsolid || tr.allsolid) {
-            continue;
+    }
+    if (g_pBigAINet != nullptr) {
+        std::vector<std::pair<float, Vector>> nodes;
+        for (int n = 0; n < g_pBigAINet->NumNodes(); ++n) {
+            CAI_Node* node = g_pBigAINet->GetNode(n);
+            if (node != nullptr && node->GetType() == NODE_GROUND) {
+                const Vector at = node->GetPosition(HULL_HUMAN);
+                nodes.push_back({(at - player->GetAbsOrigin()).LengthSqr(), at});
+            }
         }
-        bool crowded = false;
-        for (const Vector& other : placed) {
-            crowded = crowded || (other - at).Length() < separation;
+        std::sort(nodes.begin(), nodes.end(),
+                  [](const auto& a, const auto& b) { return a.first < b.first; });
+        for (const auto& node : nodes) {
+            Vector at = node.second + (on_floor ? vec3_origin : Vector(0, 0, 48));
+            if (Fits(player, hull, tight, on_floor, placed, at)) {
+                placed.push_back(at);
+                spot = at;
+                return true;
+            }
         }
-        if (crowded) {
-            continue;
-        }
-        placed.push_back(at);
-        spot = at;
-        return true;
     }
     return false;
 }
@@ -202,8 +273,10 @@ int SpawnAround(CBasePlayer* player, const char* classname, int count, const Hul
     int made = 0;
     for (int i = 0; i < count; ++i) {
         Vector at;
-        if (Place(player, hull, min_r, max_r, separation, on_floor, placed, at) &&
-            SpawnAt(classname, at, Facing(player, at)) != nullptr) {
+        if (!Place(player, hull, min_r, max_r, separation, on_floor, placed, at)) {
+            break;  // the whole search failed; the rest would too
+        }
+        if (SpawnAt(classname, at, Facing(player, at)) != nullptr) {
             ++made;
         }
     }
@@ -215,6 +288,9 @@ int SpawnAround(CBasePlayer* player, const char* classname, int count, const Hul
 struct Queued {
     std::string name;
     float wait;  // game seconds left, counted only while the player is up
+    // Spawns still owed, for a trap that could not place all of them at once;
+    // -1 before it first springs.
+    int remaining = -1;
 };
 std::vector<Queued> g_queue;
 
@@ -227,6 +303,10 @@ struct TrapNpc {
     float busy_until;
 };
 std::vector<TrapNpc> g_npcs;
+// Which story models and fallback junk this install has: a missing model is
+// never precached or set.
+std::vector<bool> g_storyOnDisk;
+std::vector<std::string> g_junkOnDisk;
 // This map's precached share of each character's lines.
 std::vector<std::vector<const char*>> g_lines;
 float g_next_wander = 0.0f;
@@ -277,20 +357,27 @@ const Drop* DropOf(CBaseEntity* weapon) {
 
 // --- the traps -----------------------------------------------------------------
 
-void SpringNpcs(CBasePlayer* player) {
+// Spawns up to `want`; how many arrived.
+int SpringNpcs(CBasePlayer* player, int want) {
     std::vector<int> characters;
     for (int i = 0; i < ARRAYSIZE(kStoryModels); ++i) {
-        characters.push_back(i);
+        if (i < static_cast<int>(g_storyOnDisk.size()) && g_storyOnDisk[i]) {
+            characters.push_back(i);
+        }
+    }
+    if (characters.empty()) {
+        Notify("NPC Trap: none of the story models are installed.");
+        return want;  // owed nothing: no install can ever pay it
     }
     for (size_t i = characters.size(); i > 1; --i) {
         std::swap(characters[i - 1], characters[RandomInt(0, static_cast<int>(i) - 1)]);
     }
     std::vector<Vector> placed;
     int made = 0;
-    for (int i = 0; i < kNpcCount; ++i) {
+    for (int i = 0; i < want; ++i) {
         Vector at;
         if (!Place(player, kHumanHull, 72.0f, 160.0f, 40.0f, true, placed, at)) {
-            continue;
+            break;  // the whole search failed; the rest would too
         }
         const Mind& mind = kMinds[RandomInt(0, ARRAYSIZE(kMinds) - 1)];
         const int character = characters[i % characters.size()];
@@ -349,7 +436,27 @@ void SpringNpcs(CBasePlayer* player) {
             npc->AddEntityRelationship(player, D_FR, 99);
         }
     }
-    Notify(made > 0 ? "Company has arrived." : "NPC Trap: no room for company here.");
+    return made;
+}
+
+int SpringBots(CBasePlayer* player, int want) {
+    if (!BotsAvailable()) {
+        Notify("Bot Swarm Trap: none of the bot models are installed.");
+        return want;  // owed nothing: no install can ever pay it
+    }
+    std::vector<Vector> placed;
+    int made = 0;
+    for (int i = 0; i < want; ++i) {
+        Vector at;
+        if (!Place(player, kHumanHull, 72.0f, 200.0f, 40.0f, true, placed, at)) {
+            break;  // the whole search failed; the rest would too
+        }
+        // Facing the player, so the first thing each runs into is them. One
+        // that fails for want of a usable model is not owed: only room is.
+        SpawnBot(at, Facing(player, at).y);
+        ++made;  // a model that failed was retired (no moves, or a full table)
+    }
+    return made;
 }
 
 void SpringButterfingers(CBasePlayer* player) {
@@ -437,8 +544,8 @@ void SpringReload(CBasePlayer* player) {
     Notify("Tactical reload!");
 }
 
-void SpringJunk(CBasePlayer* player) {
-    std::vector<std::string> models(std::begin(kJunkModels), std::end(kJunkModels));
+int SpringJunk(CBasePlayer* player, int want) {
+    std::vector<std::string> models = g_junkOnDisk;
     for (const char* cls : kMapPropClasses) {
         for (CBaseEntity* e = gEntList.FindEntityByClassname(nullptr, cls); e != nullptr;
              e = gEntList.FindEntityByClassname(e, cls)) {
@@ -455,12 +562,15 @@ void SpringJunk(CBasePlayer* player) {
     UTIL_TraceLine(eye, eye + Vector(0, 0, 200), MASK_SOLID, player, COLLISION_GROUP_NONE, &tr);
     const float top = (std::max)(tr.endpos.z - 24.0f, eye.z + 24.0f);
     int made = 0;
-    for (int i = 0; i < kJunkCount; ++i) {
+    for (int i = 0; i < want; ++i) {
         const Vector above(eye.x, eye.y, top);
         const Vector want = above + Vector(RandomFloat(-64, 64), RandomFloat(-64, 64), 0);
         UTIL_TraceLine(above, want, MASK_SOLID, player, COLLISION_GROUP_NONE, &tr);
         const Vector at = above + (want - above) * (std::max)(tr.fraction - 0.2f, 0.0f);
         for (int tries = 0; tries < 3; ++tries) {
+            if (models.empty()) {
+                break;
+            }
             const std::string& model = models[RandomInt(0, static_cast<int>(models.size()) - 1)];
             CBaseEntity* entity = CreateEntityByName("prop_physics");
             if (entity == nullptr) {
@@ -487,32 +597,57 @@ void SpringJunk(CBasePlayer* player) {
             break;
         }
     }
-    Notify(made > 0 ? "Look out!" : "Junk Trap: no room overhead.");
+    return made;
 }
 
 // Whether the trap went off; false leaves it queued for a better moment.
-bool Spring(CBasePlayer* player, const std::string& name) {
+bool Spring(CBasePlayer* player, Queued& queued) {
+    const std::string& name = queued.name;
     const bool on_foot = !player->IsInAVehicle();
+    // A trap that spawns things never fails for want of room: what could not
+    // be placed now stays owed, and the trap is retried shortly for the rest.
+    // Announced once, on its first try.
+    auto counted = [&](int count, const char* announce, auto spawn) {
+        const bool first = queued.remaining < 0;
+        const int want = first ? count : queued.remaining;
+        if (first) {
+            Notify(announce);
+        }
+        queued.remaining = want - spawn(want);
+        return queued.remaining <= 0;
+    };
     if (name == "NPC Trap") {
-        SpringNpcs(player);
+        return counted(kNpcCount, "Company has arrived.",
+                       [&](int want) { return SpringNpcs(player, want); });
     } else if (name == "Headcrab Trap") {
-        const int made = SpawnAround(player, "npc_headcrab", kHeadcrabCount, kSmallHull, 72.0f,
-                                     160.0f, 40.0f, true);
-        Notify(made > 0 ? "What remarkable specimen!" : "Headcrab Trap: no room here.");
+        return counted(kHeadcrabCount, "What remarkable specimen!", [&](int want) {
+            return SpawnAround(player, "npc_headcrab", want, kSmallHull, 72.0f, 160.0f, 40.0f, true);
+        });
     } else if (name == "Manhack Swarm Trap") {
-        const int made = SpawnAround(player, "npc_manhack", kManhackCount, kFlyerHull, 96.0f,
-                                     200.0f, 40.0f, false);
-        Notify(made > 0 ? "Manhack Swarm!" : "Manhack Swarm Trap: no room here.");
+        return counted(kManhackCount, "Manhack Swarm!", [&](int want) {
+            return SpawnAround(player, "npc_manhack", want, kFlyerHull, 96.0f, 200.0f, 40.0f, false);
+        });
+    } else if (name == "Bot Swarm Trap") {
+        return counted(kBotSwarmCount, "Bot swarm!",
+                       [&](int want) { return SpringBots(player, want); });
+    } else if (name == "Mega Bot Swarm Trap") {
+        // Test only (not in the apworld): one bot per usable model, each once.
+        if (queued.remaining < 0) {
+            RefillBotModels();
+        }
+        return counted(BotModelCount(), "MEGA bot swarm!",
+                       [&](int want) { return SpringBots(player, want); });
     } else if (name == "Rollermine Trap") {
-        const int made = SpawnAround(player, "npc_rollermine", kRollermineCount, kRollermineHull,
-                                     96.0f, 200.0f, 48.0f, true);
-        Notify(made > 0 ? "Rollermine Trap!" : "Rollermine Trap: no room here.");
+        return counted(kRollermineCount, "Rollermine Trap!", [&](int want) {
+            return SpawnAround(player, "npc_rollermine", want, kRollermineHull, 96.0f, 200.0f, 48.0f, true);
+        });
     } else if (name == "Crow Trap") {
-        const int made =
-            SpawnAround(player, "npc_crow", kCrowCount, kCrowHull, 48.0f, 240.0f, 20.0f, true);
-        Notify(made > 0 ? "There's been a murder!" : "Crow Trap: no room here.");
+        return counted(kCrowCount, "There's been a murder!", [&](int want) {
+            return SpawnAround(player, "npc_crow", want, kCrowHull, 48.0f, 240.0f, 20.0f, true);
+        });
     } else if (name == "Junk Trap") {
-        SpringJunk(player);
+        return counted(kJunkCount, "Look out!",
+                       [&](int want) { return SpringJunk(player, want); });
     } else if (name == "Bunny Hop Trap") {
         SpringBunnyHop();
     } else if (name == "Sticky Key Trap") {
@@ -650,12 +785,18 @@ void RunNpcs(CBasePlayer* player) {
 }  // namespace
 
 void TrapsPrecache() {
+    g_storyOnDisk.clear();
     for (const char* model : kStoryModels) {
-        CBaseEntity::PrecacheModel(model);
+        const bool present = filesystem->FileExists(model, "GAME");
+        g_storyOnDisk.push_back(present && CBaseEntity::PrecacheModel(model) >= 0);
     }
+    g_junkOnDisk.clear();
     for (const char* model : kJunkModels) {
-        CBaseEntity::PrecacheModel(model);
+        if (filesystem->FileExists(model, "GAME") && CBaseEntity::PrecacheModel(model) >= 0) {
+            g_junkOnDisk.push_back(model);
+        }
     }
+    BotsPrecache();
     for (const Mind& mind : kMinds) {
         UTIL_PrecacheOther(mind.classname);
     }
@@ -712,11 +853,10 @@ void TrapsFrame() {
             ++i;
             continue;
         }
-        const std::string name = g_queue[i].name;
-        if (Spring(player, name)) {
+        if (Spring(player, g_queue[i])) {
             g_queue.erase(g_queue.begin() + i);
         } else {
-            g_queue[i].wait = 1.0f;  // try again shortly
+            g_queue[i].wait = 2.0f;  // try again shortly, for what is still owed
             ++i;
         }
     }
