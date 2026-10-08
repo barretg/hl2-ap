@@ -37,6 +37,9 @@ class Scenario:
     expect_complete: list[str] = field(default_factory=list)
     # Missions locked for this scenario.
     closed: list[str] = field(default_factory=list)
+    # Missions required to open the finale, as the client counts them. 0: the
+    # finale is open like any chapter.
+    seal: int = 0
     # Missions not in this seed at all for this scenario (also locked).
     excluded: list[str] = field(default_factory=list)
     # Locations the server already has (e.g. a part's arrival, for part warps).

@@ -19,13 +19,23 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
-            title="Unlocked chapters and an open finale are announced",
-            map="d1_canals_01", closed=["d1_town_01", "d3_breen_01"],
+            title="An unlocked chapter is announced",
+            map="d1_canals_01", closed=["d1_town_01"],
             steps="""
-                Type !give d1_town_01: chat says We Don't Go to
-                Ravenholm... unlocked, with the !warp to get there. Type !give
-                d3_breen_01: chat says Dark Energy is open. Finish it to win. Each
-                line shows once; !take d1_town_01 then !give d1_town_01 shows it again.
+                Type !give d1_town_01: chat says We Don't Go to Ravenholm... unlocked,
+                with the !warp to get there. It shows once; !take d1_town_01 then
+                !give d1_town_01 shows it again.
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
+            title="The finale opens by completions, and says so",
+            map="d1_canals_01", seal=2,
+            steps="""
+                !ap lists Dark Energy as sealed. !give d3_breen_01 is refused: the
+                finale is not an item. !complete d1_canals_01: nothing in chat yet.
+                !complete d1_town_01: chat says Dark Energy is open. Finish it to
+                win. !ap now lists it as OPEN.
                 !pass or !fail <what happened>.
             """,
         ),

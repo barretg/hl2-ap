@@ -97,6 +97,17 @@ std::string ShortName(const std::string& name) {
     return text;
 }
 
+// Whether `later` is a part of `chapter` after `map`: a "reached" check is
+// had going on, never through the way back, nor another chapter's way in.
+bool LaterPart(const Chapter* chapter, const std::string& map, const std::string& later) {
+    if (chapter == nullptr) {
+        return false;
+    }
+    const auto& maps = chapter->maps;
+    const auto here = std::find(maps.begin(), maps.end(), map);
+    return here != maps.end() && std::find(here + 1, maps.end(), later) != maps.end();
+}
+
 // Every place on this map where an unfound check matching `filter` can be had.
 std::vector<Target> TargetsHere(const std::string& filter) {
     std::vector<Target> targets;
@@ -115,7 +126,7 @@ std::vector<Target> TargetsHere(const std::string& filter) {
                 add(Vector(source.position[0], source.position[1], source.position[2]));
             }
         }
-        if (location.type == "map_reached" && location.map != map) {
+        if (location.type == "map_reached" && LaterPart(chapter, map, location.map)) {
             for (const Vector& at : ChangelevelsTo(location.map)) {
                 add(at);  // the way into the part it names
             }

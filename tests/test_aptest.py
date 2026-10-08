@@ -403,3 +403,49 @@ def test_trap_names_match_the_data() -> None:
     filler = [i["name"] for i in data["items"] if i["classification"] == "filler"]
     assert sorted(aptest.TRAPS) == sorted(traps)
     assert sorted(aptest.FILLER) == sorted(filler)
+
+
+def test_finale_opens_by_completions_not_give(ctx: Context) -> None:
+    ctx.checkdata = checkdata.parse(REPO_CHECKDATA)
+    h = aptest.Harness(ctx, group_registry.discover(), "alpha1")
+    titles = [s.title for s in h.scenarios]
+    h.command("go", str(titles.index("The finale opens by completions, and says so")))
+
+    def open_chapters() -> list[str]:
+        line = next(l for l in h.bridge.in_path.read_text().splitlines()
+                    if l.startswith("chapters="))
+        return line.split("=", 1)[1].split(",")
+
+    assert "d3_breen_01" not in open_chapters()
+    h.command("give", "d3_breen_01")
+    assert "not an item" in said(h)
+    assert "d3_breen_01" not in open_chapters()
+    h.command("complete", "d1_canals_01")
+    assert "d3_breen_01" not in open_chapters()
+    h.command("complete", "We Don't Go to Ravenholm...")
+    assert "d3_breen_01" in open_chapters()
+    assert "seal 2/2, open" in said(h)
+
+
+def test_give_opens_a_closed_chapter(ctx: Context) -> None:
+    ctx.checkdata = checkdata.parse(REPO_CHECKDATA)
+    h = aptest.Harness(ctx, group_registry.discover(), "alpha1")
+    titles = [s.title for s in h.scenarios]
+    h.command("go", str(titles.index("An unlocked chapter is announced")))
+
+    def open_chapters() -> list[str]:
+        return h.bridge.in_path.read_text().split("chapters=", 1)[1].splitlines()[0].split(",")
+
+    assert "d1_town_01" not in open_chapters()
+    h.command("give", "d1_town_01")
+    assert "d1_town_01" in open_chapters()
+
+
+def test_game_forwards_every_harness_verb() -> None:
+    """A verb the game does not forward answers "No such command" in play."""
+    import re
+    source = (HERE.parent / "game" / "src" / "ap_aptest.cpp").read_text(encoding="utf-8")
+    listed = re.search(r"kHarnessVerbs\[\] = \{(.*?)\};", source, re.S).group(1)
+    forwarded = set(re.findall(r'"(\w+)"', listed)) | {"tp"}
+    helped = set(re.findall(r"!(\w+)", aptest.HELP))
+    assert helped <= forwarded, sorted(helped - forwarded)

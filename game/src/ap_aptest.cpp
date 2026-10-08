@@ -210,7 +210,7 @@ void Teleport() {
 const char* const kHarnessVerbs[] = {
     "pass", "fail", "note", "next", "prev", "redo", "go", "info", "status",
     "list", "groups", "group", "give", "take", "item", "trap", "deathlink",
-    "clear", "connect", "disconnect",
+    "clear", "complete", "connect", "disconnect",
 };
 
 }  // namespace

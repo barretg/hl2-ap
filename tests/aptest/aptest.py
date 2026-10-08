@@ -86,7 +86,7 @@ LOCK_NAME = "aptest.lock"
 
 HELP = ("[aptest] !pass !fail !note !next !prev !redo !go <n> !info !status !list "
         "!groups !group <name> !clear !give !take !tp !item !trap !deathlink "
-        "!connect !disconnect")
+        "!complete !connect !disconnect")
 
 
 # -------------------------------------------------------------- results
@@ -198,6 +198,8 @@ class Harness:
         self.seen: set[int] = set()
         # Closed chapters !give has opened since the scenario started.
         self.opened: set[str] = set()
+        # Chapters completed since then: the game's COMPLETEs and !complete.
+        self.completed: set[str] = set()
         self.connected = True
         # Re-entrant: a verdict from the game arrives inside the poll and starts
         # the next scenario, which takes the lock again.
@@ -260,9 +262,7 @@ class Harness:
         checked = set(s.checked if s is not None else ()) | self.seen
         self.bridge.write_snapshot(
             connected=self.connected,
-            chapters=[c for c in chapters
-                      if s is None or c in self.opened
-                      or (c not in s.closed and c not in s.excluded)],
+            chapters=[c for c in chapters if self.chapter_open(c)],
             excluded=sorted(s.excluded) if s is not None else [],
             items=[name for name, n in self.items.items() if n > 0],
             counts={name: n for name, n in self.items.items() if name in stages and n > 0},
@@ -304,6 +304,7 @@ class Harness:
                 self.items[name] += 1
             self.seen = set()
             self.opened = set()
+            self.completed = set()
             self.connected = s.connected
             self.publish(force=True)
             # The game loads the map when the sequence number moves, so a redo
@@ -475,6 +476,18 @@ class Harness:
                 self.bridge.queue_event("DEATHLINK", "APTest~a test DeathLink")
                 self.publish()
                 self.tell("[aptest] DeathLink sent.")
+            elif verb == "complete" and arg:
+                # As a server reports a completion, collected or played.
+                chapter = self.chapter_named(arg, closed_only=False)
+                if chapter is None or chapter.is_goal:
+                    self.tell(f"[aptest] No chapter '{arg}' to complete.")
+                else:
+                    self.completed.add(chapter.key)
+                    self.publish()
+                    self.tell(f"[aptest] complete: {chapter.name} ({self.seal_count()})")
+            elif verb in ("give", "take") and self.goal_named(arg):
+                self.tell("[aptest] The finale opens by completions, not an item: "
+                          "!complete chapters until its seal opens.")
             elif verb in ("give", "take") and self.chapter_named(arg) is not None:
                 # One of the scenario's closed chapters, opened or closed again.
                 chapter = self.chapter_named(arg)
@@ -496,14 +509,39 @@ class Harness:
             else:
                 self.tell(HELP)
 
-    def chapter_named(self, arg: str):
-        """A chapter of the scenario's `closed` list by key or name, else None."""
+    def chapter_named(self, arg: str, closed_only: bool = True):
+        """A chapter by key or name, else None; by default only one of the
+        scenario's `closed` list."""
         s = self.scenario()
         data = self.ctx.checkdata
         if s is None or data is None or not arg:
             return None
-        return next((c for c in data.chapters if c.key in s.closed
+        return next((c for c in data.chapters
+                     if (not closed_only or c.key in s.closed)
                      and arg.lower() in (c.key.lower(), c.name.lower())), None)
+
+    def goal_named(self, arg: str) -> bool:
+        chapter = self.chapter_named(arg, closed_only=False)
+        return chapter is not None and chapter.is_goal
+
+    def seal_count(self) -> str:
+        s = self.scenario()
+        if s is None or not s.seal:
+            return "finale not sealed"
+        done = len(self.completed)
+        return f"seal {min(done, s.seal)}/{s.seal}" + (", open" if done >= s.seal else "")
+
+    def chapter_open(self, key: str) -> bool:
+        """Whether the snapshot lists `key` as open. A sealed finale opens, as
+        the client opens it, once enough other chapters are complete."""
+        s = self.scenario()
+        if s is None:
+            return True
+        if key in s.excluded:
+            return False
+        if s.seal and self.goal_named(key):
+            return len(self.completed) >= s.seal
+        return key in self.opened or key not in s.closed
 
     # Game to us.
 
@@ -532,6 +570,9 @@ class Harness:
             self.bridge.acknowledge(int(event.arg))
         elif event.kind in ("COMPLETE", "GOAL"):
             self.judge_complete(event.kind, event.arg)
+            if event.kind == "COMPLETE" and not self.goal_named(event.arg):
+                self.completed.add(event.arg)
+                self.publish()
         elif event.kind == "DEATH":
             # The last field is the forgiven flag: say it in words, since a bare
             # 1 reads as an amnesty count.
