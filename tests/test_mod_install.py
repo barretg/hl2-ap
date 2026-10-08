@@ -265,3 +265,17 @@ def test_hl2_install_dir(tmp_path: Path) -> None:
     _fake_hl2(tmp_path / "steamapps" / "common" / "Half-Life 2")
     assert mod.hl2_install_dir(tmp_path) == tmp_path / "steamapps" / "common" / "Half-Life 2"
     assert mod.hl2_install_dir(tmp_path / "nowhere") is None
+
+
+@linux_only
+def test_steam_library_of_flatpak(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    flatpak = tmp_path / ".var" / "app" / "com.valvesoftware.Steam"
+    write_libraryfolders(flatpak, {"/mnt/lib": ["220"]})
+    assert mod.steam_library_of() == Path("/mnt/lib")
+
+
+def test_steam_library_of_unescapes_windows_paths(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(mod, "steam_roots", lambda: [tmp_path / ".local" / "share" / "Steam"])
+    write_libraryfolders(tmp_path, {"D:\\\\SteamLibrary": ["220"]})
+    assert mod.steam_library_of() == Path("D:\\SteamLibrary")

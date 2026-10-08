@@ -250,18 +250,47 @@ def hudlayout_text(hl2_dir: Path) -> bytes | None:
     return patched.encode("utf-8", errors="surrogateescape")
 
 
+def steam_roots() -> list[Path]:
+    """Candidate Steam install folders, most likely first.
+
+    Windows records it in the registry (`SteamPath`); Linux Steam lives in one
+    of a few places depending on how it was installed (native, `~/.steam`
+    link, Flatpak).
+    """
+    roots: list[Path] = []
+    if sys.platform == "win32":
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Valve\Steam") as key:
+                raw, _ = winreg.QueryValueEx(key, "SteamPath")
+            roots.append(Path(raw))
+        except OSError:
+            pass
+        for env in ("ProgramFiles(x86)", "ProgramFiles"):
+            if os.environ.get(env):
+                roots.append(Path(os.environ[env]) / "Steam")
+    else:
+        home = Path.home()
+        roots += [home / ".local" / "share" / "Steam",
+                  home / ".steam" / "steam",
+                  home / ".steam" / "root",
+                  home / ".var" / "app" / "com.valvesoftware.Steam" / ".local" / "share" / "Steam"]
+    return roots
+
+
 def steam_library_of(app_id: str = HL2_APP_ID) -> Path | None:
-    """The Steam library folder that has `app_id` installed, or None (Linux)."""
-    vdf = Path.home() / ".local" / "share" / "Steam" / "steamapps" / "libraryfolders.vdf"
-    try:
-        text = vdf.read_text(errors="replace")
-    except OSError:
-        return None
-    # Each library is a block with a "path" followed by its "apps" block.
-    for match in re.finditer(r'"path"\s+"([^"]+)"(.*?)(?="path"|\Z)', text, re.S):
-        apps = re.search(r'"apps"\s*\{([^}]*)\}', match.group(2))
-        if apps and re.search(rf'"{re.escape(app_id)}"\s+"', apps.group(1)):
-            return Path(match.group(1))
+    """The Steam library folder that has `app_id` installed, or None."""
+    for root in steam_roots():
+        try:
+            text = (root / "steamapps" / "libraryfolders.vdf").read_text(errors="replace")
+        except OSError:
+            continue
+        # Each library is a block with a "path" followed by its "apps" block.
+        # Windows paths are written with escaped backslashes.
+        for match in re.finditer(r'"path"\s+"([^"]+)"(.*?)(?="path"|\Z)', text, re.S):
+            apps = re.search(r'"apps"\s*\{([^}]*)\}', match.group(2))
+            if apps and re.search(rf'"{re.escape(app_id)}"\s+"', apps.group(1)):
+                return Path(match.group(1).replace("\\\\", "\\"))
     return None
 
 

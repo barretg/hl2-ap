@@ -79,6 +79,9 @@ class HalfLife2CommandProcessor(ClientCommandProcessor):
             logger.error(f"Install failed: {exc}")
             return True
         logger.info(f"Installed {written} files into {game_dir}.")
+        if not any(game_dir.glob(mod.LOCALIZATION_TARGET.format("*"))):
+            logger.warning("Half-Life 2's install was not found, so its text was not copied "
+                           "and menus and the HUD will show raw #HL2_ names.")
         if not has_dll:
             logger.warning("This apworld carries no server dll, so the mod cannot run. "
                            "Get a release build of the apworld.")
