@@ -26,6 +26,8 @@ SLOT_DATA = {
     "excluded_triggers": [],
     "starting_items": ["Crowbar", "HEV Suit", "Flashlight"],
     "melee_throw": True,
+    "randomize_aux_power": True,
+    "allow_aux_without_hev": True,
     "death_link": True,
     "death_link_amnesty": 3,
 }
@@ -94,6 +96,9 @@ class TestSnapshot(ClientTest):
         self.assertEqual(fields["starting"], "weapon_crowbar")
         self.assertEqual(fields["excluded"], "d1_trainstation_01")
         self.assertEqual(fields["melee_throw"], "1")
+        self.assertEqual(fields["randomize_aux_power"], "1")
+        self.assertEqual(fields["allow_aux_without_hev"], "1")
+        self.assertEqual(fields["butterfingers_reissue"], "0")
         self.assertEqual(fields["death_link"], "1")
         self.assertEqual(fields["death_link_amnesty"], "3")
 

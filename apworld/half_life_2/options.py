@@ -69,6 +69,17 @@ class ShuffleHevSuit(Toggle):
     display_name = "Shuffle HEV Suit"
 
 
+class AllowAuxWithoutHev(Toggle):
+    """Aux power works before the HEV Suit arrives.
+
+    Sprint, the flashlight's drain and extra air underwater all run on aux
+    power, which normally needs the suit. With this on they do not; Randomize
+    Aux Power still caps the meter. Only matters when the suit is shuffled.
+    """
+
+    display_name = "Allow Aux Without HEV"
+
+
 class ShuffleFlashlight(Toggle):
     """Shuffle the flashlight into the item pool.
 
@@ -199,6 +210,7 @@ class HalfLife2Options(PerGameCommonOptions):
     logic_difficulty: LogicDifficulty
     chargesanity: Chargesanity
     shuffle_hev_suit: ShuffleHevSuit
+    allow_aux_without_hev: AllowAuxWithoutHev
     shuffle_flashlight: ShuffleFlashlight
     randomize_aux_power: RandomizeAuxPower
     starting_aux_power: StartingAuxPower

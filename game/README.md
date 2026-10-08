@@ -84,6 +84,9 @@ plus our own per-campaign switching.
     source, not Valve's prebuilt lib.
   - `game/client/hud_basechat.cpp`: `hud_saytext_time` defaults to 30 s, so
     notices stay readable.
+  - `game/client/hud_closecaption.cpp`: caption fonts are taken proportional.
+    The 2025 retail scheme sizes them once, for 480 lines, so unscaled they
+    were 12 px at any resolution.
   - `game/server/hl2/hl2_player.cpp` `CHL2_Player::Spawn`: no longer sets
     `HIDEHUD_CHAT`, which hid the chat panel even once it could open.
   - `game/client/clientmode_shared.cpp` `StartMessageMode`: the "multiplayer

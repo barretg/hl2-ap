@@ -43,6 +43,46 @@ def build(ctx) -> list[Scenario]:
                 !pass or !fail <what happened>.
             """,
         ),
+        Scenario(
+            title="Aux without HEV: on, sprint works with no suit",
+            map="d2_coast_01", take=["HEV Suit"],
+            snapshot={"allow_aux_without_hev": True},
+            steps="""
+                You have no HEV Suit (no armour). Sprint: it works and the aux meter
+                drains, then refills. No "No aux power" line in chat.
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
+            title="Aux without HEV: on, Progressive Aux Power still caps it",
+            map="d2_coast_01", take=["HEV Suit"],
+            snapshot={"allow_aux_without_hev": True, "randomize_aux_power": True},
+            counts={"Progressive Aux Power": 1},
+            steps="""
+                No HEV Suit. Sprint until the meter empties, wait: it refills only to
+                a quarter.
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
+            title="Aux without HEV: off, no suit means no aux",
+            map="d2_coast_01", take=["HEV Suit"],
+            steps="""
+                No HEV Suit. Sprint: it does not start, and chat says once: No aux
+                power until the HEV Suit item arrives.
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
+            title="Closed captions scale with the screen",
+            map="d1_canals_01",
+            steps="""
+                In the console: cc_subtitles 0; closecaption 1. Wait for a line of
+                dialogue or a sound with a caption: the text is about the size of
+                the HUD numbers, not tiny. Change resolution: it scales with it.
+                !pass or !fail <what happened>.
+            """,
+        ),
     ]
 
 

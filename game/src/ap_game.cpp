@@ -1239,7 +1239,7 @@ void GravityGunRefused(const char* what) {
 }
 
 bool SuitPowerAllowed() {
-    if (Holds(kSuitItem)) {
+    if (Holds(kSuitItem) || State().OptionBool("allow_aux_without_hev", false)) {
         return true;
     }
     if (Debounced("suit_power")) {

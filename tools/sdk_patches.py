@@ -24,6 +24,7 @@ DEFAULT_SDK = REPO.parent / "source-sdk-2013"
 HOOK_FILES = [
     "src/game/client/clientmode_shared.cpp",
     "src/game/client/hud_basechat.cpp",
+    "src/game/client/hud_closecaption.cpp",
     "src/game/server/EnvMessage.cpp",
     "src/game/server/ai_networkmanager.cpp",
     "src/game/server/basecombatcharacter.cpp",

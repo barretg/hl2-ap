@@ -38,6 +38,30 @@ index 69d67862..84de0c5d 100644
  ConVar cl_showtextmsg( "cl_showtextmsg", "1", 0, "Enable/disable text messages printing on the screen." );
  ConVar cl_chatfilters( "cl_chatfilters", "63", FCVAR_CLIENTDLL | FCVAR_ARCHIVE, "Stores the chat filter settings " );
  ConVar cl_chatfilter_version( "cl_chatfilter_version", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE | FCVAR_HIDDEN, "Stores the chat filter version" );
+diff --git a/src/game/client/hud_closecaption.cpp b/src/game/client/hud_closecaption.cpp
+index f72b9fc1..d366c795 100644
+--- a/src/game/client/hud_closecaption.cpp
++++ b/src/game/client/hud_closecaption.cpp
+@@ -1575,13 +1575,15 @@ void CHudCloseCaption::CreateFonts( void )
+ {
+ 	vgui::IScheme *pScheme = vgui::scheme()->GetIScheme( GetScheme() );
+ 
+-	m_hFonts[CCFONT_NORMAL] = pScheme->GetFont( "CloseCaption_Normal" );
++	// hl2ap: the anniversary scheme sizes these once, for 480 lines, and
++	// expects them scaled to the screen like the rest of the HUD.
++	m_hFonts[CCFONT_NORMAL] = pScheme->GetFont( "CloseCaption_Normal", true );
+ 
+ 	if ( IsPC() )
+ 	{
+-		m_hFonts[CCFONT_BOLD] = pScheme->GetFont( "CloseCaption_Bold" );
+-		m_hFonts[CCFONT_ITALIC] = pScheme->GetFont( "CloseCaption_Italic" );
+-		m_hFonts[CCFONT_ITALICBOLD] = pScheme->GetFont( "CloseCaption_BoldItalic" );
++		m_hFonts[CCFONT_BOLD] = pScheme->GetFont( "CloseCaption_Bold", true );
++		m_hFonts[CCFONT_ITALIC] = pScheme->GetFont( "CloseCaption_Italic", true );
++		m_hFonts[CCFONT_ITALICBOLD] = pScheme->GetFont( "CloseCaption_BoldItalic", true );
+ 	}
+ 	else
+ 	{
 diff --git a/src/game/server/EnvMessage.cpp b/src/game/server/EnvMessage.cpp
 index a22dfc11..6b6776d4 100644
 --- a/src/game/server/EnvMessage.cpp

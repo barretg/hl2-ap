@@ -47,6 +47,7 @@ from .items import (
 )
 from .locations import location_name_groups, location_name_to_id
 from .options import (
+    AllowAuxWithoutHev,
     ButterfingersReissue,
     Chargesanity,
     DeathLinkAmnesty,
@@ -100,8 +101,8 @@ class HalfLife2Web(WebWorld):
     option_groups = [
         OptionGroup("Goal and Logic", [MissionsRequired, LogicDifficulty]),
         OptionGroup("Locations", [Chargesanity]),
-        OptionGroup("Equipment", [ShuffleHevSuit, ShuffleFlashlight, RandomizeAuxPower,
-                                  StartingAuxPower]),
+        OptionGroup("Equipment", [ShuffleHevSuit, AllowAuxWithoutHev, ShuffleFlashlight,
+                                  RandomizeAuxPower, StartingAuxPower]),
         OptionGroup("Gameplay", [MeleeThrow]),
         OptionGroup("DeathLink", [DeathLink, DeathLinkAmnesty]),
         OptionGroup("Traps", [TrapPercentage, ButterfingersReissue]),
@@ -313,6 +314,7 @@ class HalfLife2World(World):
             "butterfingers_reissue": bool(self.options.butterfingers_reissue),
             "randomize_aux_power": bool(self.options.randomize_aux_power),
             "starting_aux_power": self.options.starting_aux_power.value,
+            "allow_aux_without_hev": bool(self.options.allow_aux_without_hev),
             "death_link": bool(self.options.death_link),
             "death_link_amnesty": self.options.death_link_amnesty.value,
         }

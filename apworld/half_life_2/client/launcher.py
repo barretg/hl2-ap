@@ -45,6 +45,8 @@ from .bridge import Bridge, store_dir
 GAME_NAME = "Half-Life 2"
 HALF_LIFE_2 = "hl2"
 POLL_INTERVAL = 0.2
+# Slot data toggles the game acts on itself, passed through as snapshot options.
+GAME_OPTIONS = ("randomize_aux_power", "allow_aux_without_hev", "butterfingers_reissue")
 
 # Typed in the game, not here; printed on connect because they are easy to
 # forget between sessions. Chat (Y) or the console (`ap <command>`).
@@ -161,6 +163,7 @@ class HalfLife2Context(SuperContext):
         self.excluded_chapters: set[str] = set()
         self.starting_items: list[str] = []
         self.melee_throw = False
+        self.game_options: dict[str, bool] = {}
         self.death_link_enabled = False
         self.death_link_amnesty = 4
 
@@ -251,6 +254,7 @@ class HalfLife2Context(SuperContext):
         }
         self.starting_items = list(slot_data.get("starting_items", ()))
         self.melee_throw = bool(slot_data.get("melee_throw", False))
+        self.game_options = {key: bool(slot_data.get(key, False)) for key in GAME_OPTIONS}
         self.death_link_enabled = bool(slot_data.get("death_link", False))
         self.death_link_amnesty = int(slot_data.get("death_link_amnesty", 4))
 
@@ -421,7 +425,7 @@ def publish(ctx: HalfLife2Context, force: bool = False) -> None:
         counts=ctx.counts,
         checked=sorted(ctx.checked_locations),
         missing=sorted(ctx.missing_locations),
-        options={"melee_throw": ctx.melee_throw},
+        options={"melee_throw": ctx.melee_throw, **ctx.game_options},
         data_version=ctx.data_version,
         slot=ctx.slot_identity,
         force=force,
