@@ -61,7 +61,7 @@ index a22dfc11..6b6776d4 100644
  	
  	CBasePlayer *pPlayer = UTIL_GetLocalPlayer();
 diff --git a/src/game/server/ai_networkmanager.cpp b/src/game/server/ai_networkmanager.cpp
-index 21a6f9de..42b98892 100644
+index 21a6f9de..9d2ee1a3 100644
 --- a/src/game/server/ai_networkmanager.cpp
 +++ b/src/game/server/ai_networkmanager.cpp
 @@ -578,6 +578,10 @@ void CAI_NetworkManager::LoadNetworkGraph( void )
@@ -75,6 +75,25 @@ index 21a6f9de..42b98892 100644
  		
  		if ( !bOK )
  		{
+@@ -989,8 +993,17 @@ bool CAI_NetworkManager::IsAIFileCurrent ( const char *szMapName )
+ 			return true;
+ 		}
+ 	}
+-	
++
+ 	Q_snprintf( szBspFilename, sizeof( szBspFilename ), "maps/%s%s.bsp" ,szMapName, GetPlatformExt() );
++
++	// hl2ap: -game is a sourcemod path, so the check above never matches and
++	// every retail map rebuilt its shipped graph. Only our own maps (in the
++	// mod folder) need the timestamp check.
++	if ( !filesystem->FileExists( szBspFilename, "DEFAULT_WRITE_PATH" ) )
++	{
++		return true;
++	}
++
+ 	Q_snprintf( szGraphFilename, sizeof( szGraphFilename ), "maps/graphs/%s%s.ain", szMapName, GetPlatformExt() );
+ 	
+ 	int iCompare;
 diff --git a/src/game/server/basecombatcharacter.cpp b/src/game/server/basecombatcharacter.cpp
 index 9f6a8674..fad8e549 100644
 --- a/src/game/server/basecombatcharacter.cpp

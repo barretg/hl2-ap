@@ -191,6 +191,12 @@ class TestRegressions(ClientTest):
         self.ctx.slot, self.ctx.seed_name, self.ctx.server_seed_name = 3, None, "S1"
         self.assertEqual(self.ctx.slot_identity, "S1:3")
 
+    def test_slot_identity_without_server_seed_name(self) -> None:
+        # Released AP clients have no `server_seed_name`.
+        del self.ctx.server_seed_name
+        self.ctx.slot, self.ctx.seed_name = 3, "S1"
+        self.assertEqual(self.ctx.slot_identity, "S1:3")
+
     def test_launcher_links_connect(self) -> None:
         from CommonClient import handle_url_arg
 

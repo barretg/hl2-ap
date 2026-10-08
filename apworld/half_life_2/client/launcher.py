@@ -299,8 +299,10 @@ class HalfLife2Context(SuperContext):
         if self.slot is None:
             return ""
         # `server_seed_name` is what RoomInfo reported; `seed_name` is only
-        # set once a connection has been checked against it.
-        return f"{self.server_seed_name or self.seed_name or ''}:{self.slot}"
+        # set once a connection has been checked against it. Released AP
+        # clients lack `server_seed_name` and set `seed_name` from RoomInfo.
+        seed = getattr(self, "server_seed_name", None) or self.seed_name or ""
+        return f"{seed}:{self.slot}"
 
     def forget_other_slot(self) -> None:
         """A different slot connected: drop what was learned about the last."""
