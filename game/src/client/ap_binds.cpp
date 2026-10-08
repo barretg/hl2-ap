@@ -1,6 +1,6 @@
 // Key binds for the Archipelago commands, set once per game launch.
 //
-// The menu's bind is a default: set only where the player has not already
+// Each bind is a default: set only where the player has not already
 // chosen, so a player who moves the menu to another key keeps it there.
 //
 // 0 is forced to slot10, because the numbered menu's exit is item 10 and
@@ -23,6 +23,7 @@ struct DefaultBind {
 
 const DefaultBind kDefaults[] = {
     {KEY_MINUS, "-", "ap menu"},
+    {KEY_Y, "y", "messagemode"},  // chat, where the ! commands are typed
 };
 
 void Bind(const char* key_name, const char* command) {

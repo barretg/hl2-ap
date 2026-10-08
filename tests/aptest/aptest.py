@@ -196,6 +196,8 @@ class Harness:
         self.seq = self.last_seq()
         self.items: Counter[str] = Counter()
         self.seen: set[int] = set()
+        # Closed chapters !give has opened since the scenario started.
+        self.opened: set[str] = set()
         self.connected = True
         # Re-entrant: a verdict from the game arrives inside the poll and starts
         # the next scenario, which takes the lock again.
@@ -259,7 +261,8 @@ class Harness:
         self.bridge.write_snapshot(
             connected=self.connected,
             chapters=[c for c in chapters
-                      if s is None or (c not in s.closed and c not in s.excluded)],
+                      if s is None or c in self.opened
+                      or (c not in s.closed and c not in s.excluded)],
             excluded=sorted(s.excluded) if s is not None else [],
             items=[name for name, n in self.items.items() if n > 0],
             counts={name: n for name, n in self.items.items() if name in stages and n > 0},
@@ -300,6 +303,7 @@ class Harness:
             for name in s.give:
                 self.items[name] += 1
             self.seen = set()
+            self.opened = set()
             self.connected = s.connected
             self.publish(force=True)
             # The game loads the map when the sequence number moves, so a redo
@@ -471,6 +475,12 @@ class Harness:
                 self.bridge.queue_event("DEATHLINK", "APTest~a test DeathLink")
                 self.publish()
                 self.tell("[aptest] DeathLink sent.")
+            elif verb in ("give", "take") and self.chapter_named(arg) is not None:
+                # One of the scenario's closed chapters, opened or closed again.
+                chapter = self.chapter_named(arg)
+                (self.opened.add if verb == "give" else self.opened.discard)(chapter.key)
+                self.publish()
+                self.tell(f"[aptest] {verb}: chapter {chapter.name}")
             elif verb in ("give", "take") and arg:
                 # Chat is not careful about case; the snapshot is.
                 known = set(self.ctx.default_items) | set(self.items)
@@ -485,6 +495,15 @@ class Harness:
                 self.tell(f"[aptest] {verb}: {arg} (now {self.items.get(arg, 0)})")
             else:
                 self.tell(HELP)
+
+    def chapter_named(self, arg: str):
+        """A chapter of the scenario's `closed` list by key or name, else None."""
+        s = self.scenario()
+        data = self.ctx.checkdata
+        if s is None or data is None or not arg:
+            return None
+        return next((c for c in data.chapters if c.key in s.closed
+                     and arg.lower() in (c.key.lower(), c.name.lower())), None)
 
     # Game to us.
 

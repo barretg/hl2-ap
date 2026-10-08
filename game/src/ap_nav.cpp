@@ -41,6 +41,7 @@ const float kUnitsPerMetre = 39.37f;  // a unit is an inch
 const float kVerticalWeight = 3.0f;   // climbing counts for more than walking
 const float kTraceRefresh = 1.0f;     // seconds between beam redraws
 const int kTraceMaxBeams = 30;
+const float kBridgeWeight = 3.0f;    // a gap in the node graph counts for more than walking
 
 int g_beam_index = 0;
 
@@ -249,8 +250,91 @@ int NearestNode(CAI_Network* net, const Vector& at) {
     return nearest.front().second;
 }
 
+bool HumanLink(const CAI_Link* link) {
+    return link != nullptr && link->m_iAcceptedMoveTypes[HULL_HUMAN] != 0;
+}
+
+// HL2's node graphs come in pieces: vehicle stretches, scripted rooms and
+// closed doors leave parts of a level with no link between them. Each pair of
+// pieces gets one straight bridge at its closest ground nodes, dearer than a
+// walk, so a path always reaches the right level change and crosses a gap
+// only where the level has one. Built once per graph.
+using Bridges = std::vector<std::vector<std::pair<int, float>>>;
+const CAI_Network* g_bridged_net = nullptr;
+int g_bridged_nodes = 0;
+Bridges g_bridges;
+
+const Bridges& BridgesFor(CAI_Network* net) {
+    const int count = net->NumNodes();
+    if (net == g_bridged_net && count == g_bridged_nodes) {
+        return g_bridges;
+    }
+    g_bridged_net = net;
+    g_bridged_nodes = count;
+    g_bridges.assign(count, {});
+    std::vector<int> piece(count, -1);
+    int pieces = 0;
+    for (int seed = 0; seed < count; ++seed) {
+        if (piece[seed] != -1) {
+            continue;
+        }
+        std::vector<int> stack{seed};
+        piece[seed] = pieces;
+        while (!stack.empty()) {
+            const int id = stack.back();
+            stack.pop_back();
+            CAI_Node* node = net->GetNode(id, false);
+            for (int i = 0; node != nullptr && i < node->NumLinks(); ++i) {
+                CAI_Link* link = node->GetLinkByIndex(i);
+                if (!HumanLink(link)) {
+                    continue;
+                }
+                const int next = link->DestNodeID(id);
+                if (piece[next] == -1) {
+                    piece[next] = pieces;
+                    stack.push_back(next);
+                }
+            }
+        }
+        ++pieces;
+    }
+    struct Closest {
+        float score = FLT_MAX;
+        int a = NO_NODE;
+        int b = NO_NODE;
+    };
+    std::vector<Closest> closest(static_cast<size_t>(pieces) * pieces);
+    for (int a = 0; a < count; ++a) {
+        CAI_Node* first = net->GetNode(a, false);
+        if (first == nullptr || first->GetType() != NODE_GROUND) {
+            continue;
+        }
+        for (int b = a + 1; b < count; ++b) {
+            CAI_Node* second = net->GetNode(b, false);
+            if (second == nullptr || second->GetType() != NODE_GROUND || piece[a] == piece[b]) {
+                continue;
+            }
+            Closest& pair = closest[(std::min)(piece[a], piece[b]) * pieces +
+                                    (std::max)(piece[a], piece[b])];
+            const float score = WalkScore(first->GetOrigin(), second->GetOrigin());
+            if (score < pair.score) {
+                pair = {score, a, b};
+            }
+        }
+    }
+    for (const Closest& pair : closest) {
+        if (pair.a != NO_NODE) {
+            g_bridges[pair.a].emplace_back(pair.b, kBridgeWeight * pair.score);
+            g_bridges[pair.b].emplace_back(pair.a, kBridgeWeight * pair.score);
+        }
+    }
+    return g_bridges;
+}
+
 // Node path from near `from` to near `to` over the AI node graph, walkable by
-// a human hull. Empty when there is no graph or no way.
+// a human hull, bridged where the graph has gaps. Links switched off count:
+// they are mostly doors the route goes through once they open. Empty when
+// there is no graph.
 std::vector<Vector> NodePath(const Vector& from, const Vector& to) {
     std::vector<Vector> path;
     CAI_Network* net = g_pBigAINet;
@@ -262,6 +346,7 @@ std::vector<Vector> NodePath(const Vector& from, const Vector& to) {
     if (start == NO_NODE || goal == NO_NODE) {
         return path;
     }
+    const Bridges& bridges = BridgesFor(net);
     const int count = net->NumNodes();
     std::vector<float> cost(count, FLT_MAX);
     std::vector<int> previous(count, NO_NODE);
@@ -269,6 +354,13 @@ std::vector<Vector> NodePath(const Vector& from, const Vector& to) {
     std::priority_queue<Entry, std::vector<Entry>, std::greater<Entry>> open;
     cost[start] = 0.0f;
     open.push({0.0f, start});
+    auto relax = [&](int id, int next, float step) {
+        if (step < cost[next]) {
+            cost[next] = step;
+            previous[next] = id;
+            open.push({step, next});
+        }
+    };
     while (!open.empty()) {
         const Entry top = open.top();
         open.pop();
@@ -285,21 +377,17 @@ std::vector<Vector> NodePath(const Vector& from, const Vector& to) {
         }
         for (int i = 0; i < node->NumLinks(); ++i) {
             CAI_Link* link = node->GetLinkByIndex(i);
-            if (link == nullptr || (link->m_LinkInfo & bits_LINK_OFF) ||
-                link->m_iAcceptedMoveTypes[HULL_HUMAN] == 0) {
+            if (!HumanLink(link)) {
                 continue;
             }
             const int next = link->DestNodeID(id);
             CAI_Node* other = net->GetNode(next, false);
-            if (other == nullptr) {
-                continue;
+            if (other != nullptr) {
+                relax(id, next, cost[id] + WalkScore(node->GetOrigin(), other->GetOrigin()));
             }
-            const float step = cost[id] + WalkScore(node->GetOrigin(), other->GetOrigin());
-            if (step < cost[next]) {
-                cost[next] = step;
-                previous[next] = id;
-                open.push({step, next});
-            }
+        }
+        for (const auto& bridge : bridges[id]) {
+            relax(id, bridge.first, cost[id] + bridge.second);
         }
     }
     if (cost[goal] == FLT_MAX) {
@@ -933,6 +1021,7 @@ void NavLevelStart() {
     g_page = Page::kNone;
     g_selected = 0;
     g_tracing = false;
+    g_bridged_net = nullptr;  // the next map's graph may land at the same address
 }
 
 void NavFrame() {

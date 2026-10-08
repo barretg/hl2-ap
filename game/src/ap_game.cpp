@@ -97,6 +97,7 @@ std::set<std::string> g_last_items;
 // it is gone before the screen draws.
 std::string g_hub_reason;
 std::map<std::string, int> g_last_counts;
+std::set<std::string> g_last_chapters;
 bool g_have_items = false;
 bool g_version_warned = false;
 // Our own grants pass the gate.
@@ -860,10 +861,24 @@ void GameSnapshotChanged() {
                 Notify("Received: " + item);
             }
         }
+        // A finale opens by completions, not an item, but it is news all the same.
+        for (const std::string& key : state.open_chapters) {
+            if (g_last_chapters.count(key) != 0) {
+                continue;
+            }
+            const Chapter* chapter = Data().ChapterByKey(key);
+            const std::string name = chapter != nullptr ? chapter->name : key;
+            if (chapter != nullptr && chapter->is_goal) {
+                Notify(name + " is open. Finish it to win.");
+            } else {
+                Notify(name + " unlocked. !warp " + name + " to travel there.");
+            }
+        }
     }
     if (!state.session.empty()) {
         g_last_items = state.held_items;
         g_last_counts = state.counts;
+        g_last_chapters = state.open_chapters;
         g_have_items = true;
     }
     Judge();

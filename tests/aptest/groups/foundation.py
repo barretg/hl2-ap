@@ -16,7 +16,7 @@ def build(ctx) -> list[Scenario]:
             map="d1_canals_01",
             steps="""
                 The map loaded and these steps appeared once you were placed.
-                Verbs go in chat (bind a key with: bind y messagemode) or in the
+                Verbs go in chat (Y opens it) or in the
                 console as ap_test <verb>, e.g. ap_test info.
                 Type !info to show them again and !status for the counts.
                 !pass if both work, else !fail <what happened>.
