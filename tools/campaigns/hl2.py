@@ -147,7 +147,11 @@ HL2 = Campaign(
                                  "d2_coast_11": {"items": {"RPG": 1}}}},
         "d2_prison_02": {"entry": {"strict": ["heavy"]}},
         "d2_prison_06": {"entry": {"strict": ["heavy"]}},
-        "d3_c17_02": {"entry": {"strict": ["heavy"]}},
+        # d3_c17_04's metal panel over the hopper pit is frozen until the
+        # gravity gun grabs it (spawnflags 72); the map's only check is
+        # reaching it (2026-10-08).
+        "d3_c17_02": {"entry": {"strict": ["heavy"]},
+                      "maps": {"d3_c17_05": {"items": {"Progressive Gravity Gun": 1}}}},
         # Gunships and the striders at the end.
         "d3_c17_09": {"entry": {"strict": ["heavy"]},
                       "maps": {"d3_c17_11": {"items": {"RPG": 1}}}},

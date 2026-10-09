@@ -718,6 +718,13 @@
     "strict": [
      "heavy"
     ]
+   },
+   "map_gates": {
+    "d3_c17_05": {
+     "items": {
+      "Progressive Gravity Gun": 1
+     }
+    }
    }
   },
   {
