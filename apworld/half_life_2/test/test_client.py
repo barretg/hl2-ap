@@ -9,6 +9,8 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
+from NetUtils import NetworkItem
+
 from ..client import launcher
 from ..client.launcher import HalfLife2Context, outgoing_chat, publish, pump
 from ..data import CHAPTERS, ITEMS, LOCATIONS
@@ -170,6 +172,22 @@ class TestPump(ClientTest):
         self.write_game("DEATH|Freeman|a hunter|1", "DEATH|Freeman|a hunter|0")
         self.run_pump()
         self.assertEqual(len(deaths), 1)
+
+    def test_sent_line_from_the_scout(self) -> None:
+        mine, theirs = LOCATIONS[0]["id"], LOCATIONS[1]["id"]
+        self.ctx.missing_locations = {mine, theirs}
+        self.ctx.checked_locations = set()
+        self.ctx.slot = 1
+        self.ctx.player_names = {1: "Gordon", 2: "Al|yx~V"}
+        self.ctx.locations_info = {mine: NetworkItem(10, mine, 1, 0),
+                                   theirs: NetworkItem(20, theirs, 2, 0)}
+        self.ctx.item_names = SimpleNamespace(
+            lookup_in_slot=lambda code, slot: {10: "Shotgun", 20: "Hook~shot"}[code])
+        self.write_game(f"CHECK|{mine}", f"CHECK|{theirs}")
+        self.run_pump()
+        self.write_game(f"CHECK|{mine}")  # resent before the server confirmed
+        self.run_pump()
+        self.assertEqual(self.events(), ["SENT|yourself~Shotgun", "SENT|Al/yx-V~Hook-shot"])
 
 
 class TestChat(unittest.TestCase):

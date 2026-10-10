@@ -523,6 +523,15 @@ void DeathLinkArrived(const PendingEvent& event) {
     player->CommitSuicide(false, true);
 }
 
+// What a check held, `<player>~<item>`, said under its "Found:" line.
+void SentArrived(const PendingEvent& event) {
+    const size_t tilde = event.payload.find('~');
+    if (tilde == std::string::npos) {
+        return;
+    }
+    Notify("Sent " + event.payload.substr(tilde + 1) + " to " + event.payload.substr(0, tilde));
+}
+
 void ReportDeath(const std::string& cause) {
     if (!Gating() || Now() < g_immune_until) {
         return;
@@ -893,6 +902,8 @@ void GameEvent(const PendingEvent& event) {
         DeathLinkArrived(event);
     } else if (event.kind == "TRAP") {
         QueueTrap(event.payload);
+    } else if (event.kind == "SENT") {
+        SentArrived(event);
     }
 }
 

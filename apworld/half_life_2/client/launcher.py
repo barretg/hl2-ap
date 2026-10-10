@@ -64,6 +64,11 @@ IN_GAME_COMMANDS = (
 )
 
 
+def payload_field(text: str) -> str:
+    """Operator-controlled text made safe for one field of an event payload."""
+    return str(text).replace("|", "/").replace("~", "-").replace("\n", " ")
+
+
 class HalfLife2CommandProcessor(ClientCommandProcessor):
     def _cmd_moddir(self, path: str = "") -> bool:
         """Show or set the installed mod folder (normally found by itself)."""
@@ -174,6 +179,8 @@ class HalfLife2Context(SuperContext):
         self.goal_sent = False
         self.state_slot = ""
         self.chat_relay = True
+        # Checks already given a "Sent" line: the game resends until confirmed.
+        self.announced: set[int] = set()
         self.bridge_failures = 0
         # How far through the server's item history this run has got, and
         # whether the backlog the server resends on connect is in yet. Filler
@@ -222,6 +229,11 @@ class HalfLife2Context(SuperContext):
             self.forget_other_slot()
             self.items_synced = False
             self.apply_slot_data(args.get("slot_data", {}))
+            # What each location holds, for the "Sent" line after a check.
+            if self.missing_locations:
+                asyncio.create_task(self.send_msgs([{
+                    "cmd": "LocationScouts", "locations": sorted(self.missing_locations),
+                    "create_as_hint": 0}]), name="ScoutLocations")
             if self.death_link_enabled:
                 asyncio.create_task(self.update_death_link(True), name="UpdateDeathLink")
             for key in self.campaigns:
@@ -268,6 +280,19 @@ class HalfLife2Context(SuperContext):
         text = text.replace("|", "/").replace("\n", " ").strip()
         if text:
             self.bridge.queue_event("CHAT", text)  # the game prefixes "[AP] " itself
+
+    def announce_sent(self, location_id: int) -> None:
+        """Tell the game what a check held, from the scout taken on connect."""
+        found = self.locations_info.get(location_id)
+        if found is None or self.bridge is None or location_id in self.announced:
+            return
+        self.announced.add(location_id)
+        if found.player == self.slot:
+            player = "yourself"
+        else:
+            player = self.player_names.get(found.player, f"Player {found.player}")
+        item_name = self.item_names.lookup_in_slot(found.item, found.player)
+        self.bridge.queue_event("SENT", f"{payload_field(player)}~{payload_field(item_name)}")
 
     def receive_items(self, args: dict) -> None:
         """Apply an item packet. Unlocks are rebuilt from the full history the
@@ -318,6 +343,7 @@ class HalfLife2Context(SuperContext):
             return
         self.state_slot = identity
         self.completed.clear()
+        self.announced.clear()
         self.goal_sent = False
 
     def sync_completed(self) -> None:
@@ -483,6 +509,8 @@ async def pump(ctx: HalfLife2Context) -> None:
             logger.info(f"Check: {ctx.location_name_by_id.get(location_id, location_id)}")
         if unseen:
             await ctx.send_msgs([{"cmd": "LocationChecks", "locations": unseen}])
+            for location_id in unseen:
+                ctx.announce_sent(location_id)
     ctx.sync_completed()
     publish(ctx)
 

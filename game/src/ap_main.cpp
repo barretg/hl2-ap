@@ -180,7 +180,7 @@ void ApplyEvent(const PendingEvent& event) {
     if (event.kind == "CHAT") {
         Notify(event.payload);
     } else {
-        // ITEM, TRAP and DEATHLINK. ACKed by the caller whatever happens:
+        // ITEM, TRAP, DEATHLINK and SENT. ACKed by the caller whatever happens:
         // holding one would stall the client's whole event window.
         GameEvent(event);
     }

@@ -39,9 +39,10 @@ STORE_SUBDIR = "archipelago"
 # bridge. The rest wait in a backlog and drain a window at a time.
 MAX_PENDING_IN_SNAPSHOT = 16
 
-# Kinds that bypass the window. Both are time-sensitive and tiny: the game
-# discards a DeathLink older than ten seconds, and late chat is useless.
-PRIORITY_KINDS = frozenset({"DEATHLINK", "CHAT"})
+# Kinds that bypass the window. All are time-sensitive and tiny: the game
+# discards a DeathLink older than ten seconds, and late chat or a late "Sent"
+# line is useless.
+PRIORITY_KINDS = frozenset({"DEATHLINK", "CHAT", "SENT"})
 
 # How hard to try the atomic rename before writing in place instead.
 REPLACE_ATTEMPTS = 5

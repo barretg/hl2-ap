@@ -47,7 +47,7 @@ Rewriting every poll with hundreds of pending filler items made the game reparse
 and re-ACK them several times a second and starved the bridge.
 
 **At most 16 events are in flight.** The rest wait in a backlog and drain as the
-game acknowledges. Nothing is dropped. `DEATHLINK` and `CHAT` bypass the window.
+game acknowledges. Nothing is dropped. `DEATHLINK`, `CHAT` and `SENT` bypass the window.
 
 ## `ap_out.txt`, game to client
 
@@ -118,6 +118,7 @@ event=5|DEATHLINK|PlayerTwo~a hunter|1786000001
 | `TRAP` | trap name, sprung once the level has settled |
 | `DEATHLINK` | `<source>~<cause>` |
 | `CHAT` | a line of multiworld chat to print in game |
+| `SENT` | `<player>~<item>`: what a check just sent held, from the client's scout of the seed on connect. Printed as `Sent <item> to <player>`; `player` is `yourself` for the slot's own items |
 
 Player names and chat are the only operator-controlled text; both sides strip `|`
 and line breaks from them. Compound payloads join fields with `~`.
