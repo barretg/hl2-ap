@@ -62,9 +62,29 @@ const int kNoticesPerFrame = 4;
 // the chat panel is narrow, so long lines are wrapped at a space.
 const size_t kChatWidth = 120;
 
-void Queue(const std::string& text) {
-    // The console always, at once: Msg is a local print and safe from any hook.
-    Msg("[AP] %s\n", text.c_str());
+// One Msg per block, not per line: a reply's lines reached some players'
+// consoles interleaved, its two halves shuffled together and the "N lines in
+// the console" line partway through. A block cannot be split. Each stays well
+// under tier0's spew buffer.
+const size_t kConsoleBlockBytes = 1024;
+
+void ConsoleBlock(const std::vector<std::string>& lines) {
+    std::string block;
+    for (const std::string& line : lines) {
+        const std::string out = "[AP] " + line + "\n";
+        if (!block.empty() && block.size() + out.size() > kConsoleBlockBytes) {
+            Msg("%s", block.c_str());
+            block.clear();
+        }
+        block += out;
+    }
+    if (!block.empty()) {
+        Msg("%s", block.c_str());
+    }
+}
+
+// Chat only; the caller has put `text` on the console.
+void QueueChat(const std::string& text) {
     // Wrapped here so the per-frame budget counts what is actually sent.
     std::string rest = text;
     for (char& c : rest) {
@@ -96,6 +116,12 @@ void Queue(const std::string& text) {
     while (g_notices.size() > kMaxHeldNotices) {
         g_notices.pop_front();
     }
+}
+
+void Queue(const std::string& text) {
+    // The console always, at once: Msg is a local print and safe from any hook.
+    Msg("[AP] %s\n", text.c_str());
+    QueueChat(text);
 }
 
 // The client formats a TextMsg with printf and looks up a leading '#' as a
@@ -397,19 +423,19 @@ void EndReply() {
     g_collecting = false;
     const size_t lines = g_reply.size();
     if (lines > 0 && lines <= kReplyHudMaxLines) {
+        ConsoleBlock(g_reply);
         for (const std::string& line : g_reply) {
-            Queue(line);
+            QueueChat(line);
         }
     } else {
-        for (const std::string& line : g_reply) {
-            Msg("[AP] %s\n", line.c_str());
-        }
         char line[128];
         Q_snprintf(line, sizeof(line),
                    lines == 0 ? "%s: nothing to report." : "%s: %d lines in the console (~).",
                    g_reply_label.empty() ? "That command" : g_reply_label.c_str(),
                    static_cast<int>(lines));
-        Queue(line);
+        g_reply.push_back(line);
+        ConsoleBlock(g_reply);
+        QueueChat(line);
     }
     g_reply.clear();
     g_reply_label.clear();
