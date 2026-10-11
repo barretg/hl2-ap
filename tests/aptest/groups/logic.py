@@ -63,6 +63,16 @@ def build(ctx) -> list[Scenario]:
         claim("Follow Freeman's striders need the RPG", "d3_c17_11", """
             Without the RPG, can you get from d3_c17_11 to the Citadel?
         """, take=["RPG"]),
+        claim("Anticitizen One's generator needs a punt", "d3_c17_07", """
+            With gravity gun stage 1 only (no punt), can you shut down the
+            generator in d3_c17_07 so the barricade gate opens, and go on to
+            d3_c17_08?
+        """, counts={GUN: 1}),
+        claim("Follow Freeman's Nexus generators need a punt", "d3_c17_10b", """
+            With gravity gun stage 1 only (no punt), can you shut down the
+            three generators in d3_c17_10b, or reach Health Charger 3,
+            Health Charger 5 or Suit Charger 2 there, or go on to d3_c17_11?
+        """, counts={GUN: 1}),
         claim("Our Benefactors needs stage 3 past the first ball gate", "d3_citadel_03", """
             With gravity gun stage 2 only, can you get past the first energy-ball
             gate (around x 3500, the shield wall fed by an energy ball) to the

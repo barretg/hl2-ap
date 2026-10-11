@@ -150,11 +150,17 @@ HL2 = Campaign(
         # d3_c17_04's metal panel over the hopper pit is frozen until the
         # gravity gun grabs it (spawnflags 72); the map's only check is
         # reaching it (2026-10-08).
+        # d3_c17_07's barricade gate opens once its generator is shut down,
+        # which takes a punt: stage 2 for d3_c17_08 (2026-10-10).
         "d3_c17_02": {"entry": {"strict": ["heavy"]},
-                      "maps": {"d3_c17_05": {"items": {"Progressive Gravity Gun": 1}}}},
-        # Gunships and the striders at the end.
+                      "maps": {"d3_c17_05": {"items": {"Progressive Gravity Gun": 1}},
+                               "d3_c17_08": {"items": {"Progressive Gravity Gun": 2}}}},
+        # Gunships and the striders at the end. d3_c17_10b's three Nexus
+        # generators are punted off to drop its forcefields: stage 2 for
+        # d3_c17_11 (2026-10-10).
         "d3_c17_09": {"entry": {"strict": ["heavy"]},
-                      "maps": {"d3_c17_11": {"items": {"RPG": 1}}}},
+                      "maps": {"d3_c17_11": {"items": {"RPG": 1,
+                                                       "Progressive Gravity Gun": 2}}}},
         # Past the confiscation field only the supercharged gun works.
         "d3_citadel_01": {"maps": {"d3_citadel_04": {"items": {"Progressive Gravity Gun": 3}}}},
         "d3_breen_01": {"entry": {"items": {"Progressive Gravity Gun": 3}}},
@@ -167,5 +173,10 @@ HL2 = Campaign(
     check_gates={
         "Our Benefactors: Suit Charger 2 (Part 3)": {"items": {"Progressive Gravity Gun": 3}},
         "Our Benefactors: Suit Charger 3 (Part 3)": {"items": {"Progressive Gravity Gun": 3}},
+        # Past d3_c17_10b's forcefields (y -20 and y 59), which drop only once
+        # all three generators are punted off (2026-10-10).
+        "Follow Freeman!: Health Charger 3 (Part 3)": {"items": {"Progressive Gravity Gun": 2}},
+        "Follow Freeman!: Health Charger 5 (Part 3)": {"items": {"Progressive Gravity Gun": 2}},
+        "Follow Freeman!: Suit Charger 2 (Part 3)": {"items": {"Progressive Gravity Gun": 2}},
     },
 )

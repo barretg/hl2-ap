@@ -724,6 +724,11 @@
      "items": {
       "Progressive Gravity Gun": 1
      }
+    },
+    "d3_c17_08": {
+     "items": {
+      "Progressive Gravity Gun": 2
+     }
     }
    }
   },
@@ -780,7 +785,8 @@
    "map_gates": {
     "d3_c17_11": {
      "items": {
-      "RPG": 1
+      "RPG": 1,
+      "Progressive Gravity Gun": 2
      }
     }
    }
@@ -3264,7 +3270,12 @@
     2568,
     300,
     564
-   ]
+   ],
+   "gates": {
+    "items": {
+     "Progressive Gravity Gun": 2
+    }
+   }
   },
   {
    "id": 8830128,
@@ -3302,7 +3313,12 @@
     2816,
     172,
     308
-   ]
+   ],
+   "gates": {
+    "items": {
+     "Progressive Gravity Gun": 2
+    }
+   }
   },
   {
    "id": 8830130,
@@ -3321,7 +3337,12 @@
     2816,
     140,
     308
-   ]
+   ],
+   "gates": {
+    "items": {
+     "Progressive Gravity Gun": 2
+    }
+   }
   },
   {
    "id": 8830131,
