@@ -30,6 +30,23 @@ trap_weights: list[int] = [e.get("weight", 1) for e in ITEMS if e["classificatio
 weapon_items: list[str] = [e["name"] for e in ITEMS if e.get("group") == "weapon"]
 equipment_items: list[str] = [e["name"] for e in ITEMS if e.get("group") == "equipment"]
 vehicle_key_items: list[str] = [e["name"] for e in ITEMS if e.get("group") == "vehicle_key"]
+chapter_weapon_items: list[str] = [e["name"] for e in ITEMS if e.get("group") == "chapter_weapon"]
+
+# `weapons_per_level`: (chapter key, weapon item) -> that chapter's item.
+# A weapon named here is held per chapter; a chapter missing for it never
+# holds it.
+chapter_weapon_item: dict[tuple[str, str], str] = {
+    (e["chapter"], e["weapon"]): e["name"] for e in ITEMS if e.get("group") == "chapter_weapon"
+}
+per_level_weapons: frozenset[str] = frozenset(weapon for _, weapon in chapter_weapon_item)
+
+# Without `vehicle_keys_per_level`: a chapter's key -> the vehicle's one key.
+universal_key_for: dict[str, str] = {
+    e["name"]: u["name"]
+    for e in ITEMS if e.get("group") == "vehicle_key" and "chapter" in e
+    for u in ITEMS if u.get("group") == "vehicle_key" and "chapter" not in u
+    and u["vehiclescript"] == e["vehiclescript"]
+}
 
 # Chapter key -> the item that unlocks it. Finales have none: they open once
 # enough chapters are done.
@@ -38,7 +55,7 @@ unlock_item_for_chapter: dict[str, str] = {
 }
 
 item_name_groups: dict[str, set[str]] = {
-    "Weapons": set(weapon_items),
+    "Weapons": set(weapon_items) | set(chapter_weapon_items),
     "Chapter Unlocks": set(unlock_item_for_chapter.values()),
     "Equipment": set(equipment_items),
     "Vehicle Keys": set(vehicle_key_items),

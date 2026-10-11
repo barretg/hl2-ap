@@ -45,8 +45,15 @@ from .bridge import Bridge, store_dir
 GAME_NAME = "Half-Life 2"
 HALF_LIFE_2 = "hl2"
 POLL_INTERVAL = 0.2
-# Slot data toggles the game acts on itself, passed through as snapshot options.
-GAME_OPTIONS = ("randomize_aux_power", "allow_aux_without_hev", "butterfingers_reissue")
+# Slot data toggles the game acts on itself, passed through as snapshot
+# options, each with its value for a seed whose slot data predates it.
+GAME_OPTIONS = {
+    "randomize_aux_power": False,
+    "allow_aux_without_hev": False,
+    "butterfingers_reissue": False,
+    "vehicle_keys_per_level": True,
+    "weapons_per_level": False,
+}
 
 # Typed in the game, not here; printed on connect because they are easy to
 # forget between sessions. Chat (Y) or the console (`ap <command>`).
@@ -266,7 +273,8 @@ class HalfLife2Context(SuperContext):
         }
         self.starting_items = list(slot_data.get("starting_items", ()))
         self.melee_throw = bool(slot_data.get("melee_throw", False))
-        self.game_options = {key: bool(slot_data.get(key, False)) for key in GAME_OPTIONS}
+        self.game_options = {key: bool(slot_data.get(key, default))
+                             for key, default in GAME_OPTIONS.items()}
         self.death_link_enabled = bool(slot_data.get("death_link", False))
         self.death_link_amnesty = int(slot_data.get("death_link_amnesty", 4))
 

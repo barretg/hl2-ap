@@ -51,6 +51,11 @@ HEADER = """\
 #   P|<item name>|<stages>|<classname>   a progressive item and its stage count
 #                                          (classname empty for a non-weapon)
 #   H|<chapter key>|<vehiclescript>|<item name>   the key a chapter's vehicle needs
+#   J|<vehiclescript>|<item name>    the one key every chapter's such vehicle needs
+#                                    when vehicle_keys_per_level is off
+#   W|<chapter key>|<classname>|<item name>   the weapon item for one chapter when
+#                                    weapons_per_level is on; a classname with any W
+#                                    record is refused in chapters it has none for
 #   U|<item name>|<map,map,...>      a vehicle upgrade and the maps that enable it
 #   X|<map>|<targetname,...>         a cold-load kit's pickups: never checks
 # A charger's position is its rounded origin. The game matches the unit a
@@ -105,8 +110,13 @@ def render(data: dict) -> str:
         if group in ("weapon", "equipment"):
             for classname in item["classnames"]:
                 lines.append(f"K|{classname}|{item['name']}")
-        elif group == "vehicle_key":
+        elif group == "vehicle_key" and "chapter" in item:
             lines.append(f"H|{item['chapter']}|{item['vehiclescript']}|{item['name']}")
+        elif group == "vehicle_key":
+            lines.append(f"J|{item['vehiclescript']}|{item['name']}")
+        elif group == "chapter_weapon":
+            for classname in item["classnames"]:
+                lines.append(f"W|{item['chapter']}|{classname}|{item['name']}")
         elif group == "vehicle_upgrade":
             lines.append(f"U|{item['name']}|{','.join(item['maps'])}")
     return "\n".join(lines) + "\n"

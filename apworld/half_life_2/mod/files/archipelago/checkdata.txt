@@ -22,12 +22,17 @@
 #   P|<item name>|<stages>|<classname>   a progressive item and its stage count
 #                                          (classname empty for a non-weapon)
 #   H|<chapter key>|<vehiclescript>|<item name>   the key a chapter's vehicle needs
+#   J|<vehiclescript>|<item name>    the one key every chapter's such vehicle needs
+#                                    when vehicle_keys_per_level is off
+#   W|<chapter key>|<classname>|<item name>   the weapon item for one chapter when
+#                                    weapons_per_level is on; a classname with any W
+#                                    record is refused in chapters it has none for
 #   U|<item name>|<map,map,...>      a vehicle upgrade and the maps that enable it
 #   X|<map>|<targetname,...>         a cold-load kit's pickups: never checks
 # A charger's position is its rounded origin. The game matches the unit a
 # player used by nearest same-class entity within a radius, never by rounding.
 V|1
-D|245de306087d
+D|9ac70eb29c03
 B|alpha_hub
 N|hl2|hl2|Half-Life 2|d3_breen_01
 C|0|d1_trainstation_01|1|Point Insertion|d1_trainstation_01,d1_trainstation_02,d1_trainstation_03,d1_trainstation_04|0|hl2|forward_exit|d1_trainstation_04>d1_trainstation_05
@@ -346,6 +351,59 @@ H|d1_canals_01|scripts/vehicles/airboat.txt|Route Kanal Boat Keys
 H|d1_canals_06|scripts/vehicles/airboat.txt|Water Hazard Boat Keys
 H|d2_coast_01|scripts/vehicles/jeep_test.txt|Highway 17 Buggy Keys
 H|d2_coast_09|scripts/vehicles/jeep_test.txt|Sandtraps Buggy Keys
+J|scripts/vehicles/airboat.txt|Airboat Keys
+J|scripts/vehicles/jeep_test.txt|Buggy Keys
 U|Airboat Gun|d1_canals_11,d1_canals_13
 U|Buggy Gun|d2_coast_01,d2_coast_03,d2_coast_04,d2_coast_05,d2_coast_07,d2_coast_08,d2_coast_09,d2_coast_10
+W|d1_trainstation_05|weapon_pistol|A Red Letter Day Pistol
+W|d1_canals_01|weapon_pistol|Route Kanal Pistol
+W|d1_canals_01|weapon_smg1|Route Kanal SMG
+W|d1_canals_01|weapon_frag|Route Kanal Grenade
+W|d1_canals_06|weapon_pistol|Water Hazard Pistol
+W|d1_canals_06|weapon_357|Water Hazard .357 Magnum
+W|d1_canals_06|weapon_smg1|Water Hazard SMG
+W|d1_canals_06|weapon_frag|Water Hazard Grenade
+W|d1_town_01|weapon_pistol|We Don't Go to Ravenholm... Pistol
+W|d1_town_01|weapon_357|We Don't Go to Ravenholm... .357 Magnum
+W|d1_town_01|weapon_smg1|We Don't Go to Ravenholm... SMG
+W|d1_town_01|weapon_ar2|We Don't Go to Ravenholm... Pulse Rifle
+W|d1_town_01|weapon_shotgun|We Don't Go to Ravenholm... Shotgun
+W|d1_town_01|weapon_frag|We Don't Go to Ravenholm... Grenade
+W|d2_coast_01|weapon_357|Highway 17 .357 Magnum
+W|d2_coast_01|weapon_smg1|Highway 17 SMG
+W|d2_coast_01|weapon_ar2|Highway 17 Pulse Rifle
+W|d2_coast_01|weapon_shotgun|Highway 17 Shotgun
+W|d2_coast_01|weapon_crossbow|Highway 17 Crossbow
+W|d2_coast_01|weapon_frag|Highway 17 Grenade
+W|d2_coast_01|weapon_rpg|Highway 17 RPG
+W|d2_coast_09|weapon_smg1|Sandtraps SMG
+W|d2_coast_09|weapon_ar2|Sandtraps Pulse Rifle
+W|d2_coast_09|weapon_shotgun|Sandtraps Shotgun
+W|d2_coast_09|weapon_crossbow|Sandtraps Crossbow
+W|d2_coast_09|weapon_frag|Sandtraps Grenade
+W|d2_coast_09|weapon_rpg|Sandtraps RPG
+W|d2_coast_09|weapon_bugbait|Sandtraps Bugbait
+W|d2_prison_02|weapon_357|Nova Prospekt .357 Magnum
+W|d2_prison_02|weapon_smg1|Nova Prospekt SMG
+W|d2_prison_02|weapon_ar2|Nova Prospekt Pulse Rifle
+W|d2_prison_02|weapon_shotgun|Nova Prospekt Shotgun
+W|d2_prison_02|weapon_crossbow|Nova Prospekt Crossbow
+W|d2_prison_02|weapon_frag|Nova Prospekt Grenade
+W|d2_prison_06|weapon_smg1|Entanglement SMG
+W|d2_prison_06|weapon_ar2|Entanglement Pulse Rifle
+W|d2_prison_06|weapon_shotgun|Entanglement Shotgun
+W|d2_prison_06|weapon_frag|Entanglement Grenade
+W|d3_c17_02|weapon_pistol|Anticitizen One Pistol
+W|d3_c17_02|weapon_357|Anticitizen One .357 Magnum
+W|d3_c17_02|weapon_smg1|Anticitizen One SMG
+W|d3_c17_02|weapon_ar2|Anticitizen One Pulse Rifle
+W|d3_c17_02|weapon_shotgun|Anticitizen One Shotgun
+W|d3_c17_02|weapon_frag|Anticitizen One Grenade
+W|d3_c17_09|weapon_357|Follow Freeman! .357 Magnum
+W|d3_c17_09|weapon_smg1|Follow Freeman! SMG
+W|d3_c17_09|weapon_ar2|Follow Freeman! Pulse Rifle
+W|d3_c17_09|weapon_shotgun|Follow Freeman! Shotgun
+W|d3_c17_09|weapon_crossbow|Follow Freeman! Crossbow
+W|d3_c17_09|weapon_frag|Follow Freeman! Grenade
+W|d3_c17_09|weapon_rpg|Follow Freeman! RPG
 P|Progressive Aux Power|4|

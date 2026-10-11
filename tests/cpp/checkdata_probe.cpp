@@ -56,6 +56,10 @@ int main(int argc, char** argv) {
     } else if (query == "key") {
         const ap::VehicleKey* k = data.KeyFor(a);
         std::printf("%s\n", k ? (k->vehiclescript + "|" + k->item).c_str() : "");
+    } else if (query == "vehicle_key") {
+        std::printf("%s\n", data.VehicleKeyItem(a).c_str());
+    } else if (query == "chapter_weapon") {
+        std::printf("%d|%s\n", data.PerChapter(b) ? 1 : 0, data.ChapterWeapon(a, b).c_str());
     } else if (query == "kit") {
         std::printf("%d\n", data.IsKit(a, b) ? 1 : 0);
     } else if (query == "upgrade") {

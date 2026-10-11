@@ -104,6 +104,17 @@ class TestSnapshot(ClientTest):
         self.assertEqual(fields["death_link"], "1")
         self.assertEqual(fields["death_link_amnesty"], "3")
 
+    def test_item_split_options(self) -> None:
+        # Slot data without them: keys per chapter, weapons everywhere.
+        fields = self.snapshot()
+        self.assertEqual(fields["vehicle_keys_per_level"], "1")
+        self.assertEqual(fields["weapons_per_level"], "0")
+        self.ctx.apply_slot_data({**SLOT_DATA, "vehicle_keys_per_level": False,
+                                  "weapons_per_level": True})
+        fields = self.snapshot()
+        self.assertEqual(fields["vehicle_keys_per_level"], "0")
+        self.assertEqual(fields["weapons_per_level"], "1")
+
     def test_resync_rebuilds_rather_than_doubles(self) -> None:
         batch = {"index": 0, "items": [item("Progressive Gravity Gun")]}
         self.ctx.receive_items(batch)

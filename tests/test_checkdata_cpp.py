@@ -91,6 +91,21 @@ def test_pickups_and_gates(probe: Path) -> None:
     assert "d2_coast_09" in ask(probe, "upgrade", "Buggy Gun")
 
 
+def test_item_split_records(probe: Path) -> None:
+    assert ask(probe, "vehicle_key", "scripts/vehicles/airboat.txt") == ["Airboat Keys"]
+    assert ask(probe, "vehicle_key", "scripts/vehicles/jeep_test.txt") == ["Buggy Keys"]
+    assert ask(probe, "vehicle_key", "scripts/vehicles/nothing.txt") == [""]
+    assert ask(probe, "chapter_weapon", "d2_coast_09", "weapon_rpg") == ["1|Sandtraps RPG"]
+    assert ask(probe, "chapter_weapon", "d1_canals_01", "weapon_rpg") == ["1|"]
+    # Progressive and starting weapons stay one item.
+    assert ask(probe, "chapter_weapon", "d1_town_01", "weapon_physcannon") == ["0|"]
+    assert ask(probe, "chapter_weapon", "d1_town_01", "weapon_crowbar") == ["0|"]
+    for item in CAMPAIGN["items"]:
+        if item["group"] == "chapter_weapon":
+            assert ask(probe, "chapter_weapon", item["chapter"], item["classnames"][0]) == \
+                [f"1|{item['name']}"]
+
+
 def test_cold_load_kits(probe: Path) -> None:
     # d1_canals_01's suit and crowbar spawn only on a direct load; a template
     # copy carries an `&NNNN` suffix.

@@ -1,6 +1,6 @@
 {
  "format": 1,
- "data_version": "245de306087d",
+ "data_version": "9ac70eb29c03",
  "hub_map": "alpha_hub",
  "campaigns": [
   {
@@ -1220,6 +1220,22 @@
    "vehiclescript": "scripts/vehicles/jeep_test.txt"
   },
   {
+   "id": 8820049,
+   "name": "Airboat Keys",
+   "classification": "progression",
+   "group": "vehicle_key",
+   "campaign": "hl2",
+   "vehiclescript": "scripts/vehicles/airboat.txt"
+  },
+  {
+   "id": 8820050,
+   "name": "Buggy Keys",
+   "classification": "progression",
+   "group": "vehicle_key",
+   "campaign": "hl2",
+   "vehiclescript": "scripts/vehicles/jeep_test.txt"
+  },
+  {
    "id": 8820029,
    "name": "Airboat Gun",
    "classification": "progression",
@@ -1245,6 +1261,618 @@
     "d2_coast_08",
     "d2_coast_09",
     "d2_coast_10"
+   ]
+  },
+  {
+   "id": 8820051,
+   "name": "A Red Letter Day Pistol",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "weapon": "Pistol",
+   "classnames": [
+    "weapon_pistol"
+   ]
+  },
+  {
+   "id": 8820052,
+   "name": "Route Kanal Pistol",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "weapon": "Pistol",
+   "classnames": [
+    "weapon_pistol"
+   ]
+  },
+  {
+   "id": 8820053,
+   "name": "Route Kanal SMG",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "weapon": "SMG",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820054,
+   "name": "Route Kanal Grenade",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "weapon": "Grenade",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820055,
+   "name": "Water Hazard Pistol",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "weapon": "Pistol",
+   "classnames": [
+    "weapon_pistol"
+   ]
+  },
+  {
+   "id": 8820056,
+   "name": "Water Hazard .357 Magnum",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "weapon": ".357 Magnum",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
+   "id": 8820057,
+   "name": "Water Hazard SMG",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "weapon": "SMG",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820058,
+   "name": "Water Hazard Grenade",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "weapon": "Grenade",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820059,
+   "name": "We Don't Go to Ravenholm... Pistol",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "weapon": "Pistol",
+   "classnames": [
+    "weapon_pistol"
+   ]
+  },
+  {
+   "id": 8820060,
+   "name": "We Don't Go to Ravenholm... .357 Magnum",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "weapon": ".357 Magnum",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
+   "id": 8820061,
+   "name": "We Don't Go to Ravenholm... SMG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "weapon": "SMG",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820062,
+   "name": "We Don't Go to Ravenholm... Pulse Rifle",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "weapon": "Pulse Rifle",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820063,
+   "name": "We Don't Go to Ravenholm... Shotgun",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "weapon": "Shotgun",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820064,
+   "name": "We Don't Go to Ravenholm... Grenade",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "weapon": "Grenade",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820065,
+   "name": "Highway 17 .357 Magnum",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "weapon": ".357 Magnum",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
+   "id": 8820066,
+   "name": "Highway 17 SMG",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "weapon": "SMG",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820067,
+   "name": "Highway 17 Pulse Rifle",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "weapon": "Pulse Rifle",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820068,
+   "name": "Highway 17 Shotgun",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "weapon": "Shotgun",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820069,
+   "name": "Highway 17 Crossbow",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "weapon": "Crossbow",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
+   "id": 8820070,
+   "name": "Highway 17 Grenade",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "weapon": "Grenade",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820071,
+   "name": "Highway 17 RPG",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "weapon": "RPG",
+   "classnames": [
+    "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820072,
+   "name": "Sandtraps SMG",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "weapon": "SMG",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820073,
+   "name": "Sandtraps Pulse Rifle",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "weapon": "Pulse Rifle",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820074,
+   "name": "Sandtraps Shotgun",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "weapon": "Shotgun",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820075,
+   "name": "Sandtraps Crossbow",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "weapon": "Crossbow",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
+   "id": 8820076,
+   "name": "Sandtraps Grenade",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "weapon": "Grenade",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820077,
+   "name": "Sandtraps RPG",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "weapon": "RPG",
+   "classnames": [
+    "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820078,
+   "name": "Sandtraps Bugbait",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "weapon": "Bugbait",
+   "classnames": [
+    "weapon_bugbait"
+   ]
+  },
+  {
+   "id": 8820079,
+   "name": "Nova Prospekt .357 Magnum",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "weapon": ".357 Magnum",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
+   "id": 8820080,
+   "name": "Nova Prospekt SMG",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "weapon": "SMG",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820081,
+   "name": "Nova Prospekt Pulse Rifle",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "weapon": "Pulse Rifle",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820082,
+   "name": "Nova Prospekt Shotgun",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "weapon": "Shotgun",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820083,
+   "name": "Nova Prospekt Crossbow",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "weapon": "Crossbow",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
+   "id": 8820084,
+   "name": "Nova Prospekt Grenade",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "weapon": "Grenade",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820085,
+   "name": "Entanglement SMG",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "weapon": "SMG",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820086,
+   "name": "Entanglement Pulse Rifle",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "weapon": "Pulse Rifle",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820087,
+   "name": "Entanglement Shotgun",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "weapon": "Shotgun",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820088,
+   "name": "Entanglement Grenade",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "weapon": "Grenade",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820089,
+   "name": "Anticitizen One Pistol",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "weapon": "Pistol",
+   "classnames": [
+    "weapon_pistol"
+   ]
+  },
+  {
+   "id": 8820090,
+   "name": "Anticitizen One .357 Magnum",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "weapon": ".357 Magnum",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
+   "id": 8820091,
+   "name": "Anticitizen One SMG",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "weapon": "SMG",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820092,
+   "name": "Anticitizen One Pulse Rifle",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "weapon": "Pulse Rifle",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820093,
+   "name": "Anticitizen One Shotgun",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "weapon": "Shotgun",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820094,
+   "name": "Anticitizen One Grenade",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "weapon": "Grenade",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820095,
+   "name": "Follow Freeman! .357 Magnum",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "weapon": ".357 Magnum",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
+   "id": 8820096,
+   "name": "Follow Freeman! SMG",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "weapon": "SMG",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820097,
+   "name": "Follow Freeman! Pulse Rifle",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "weapon": "Pulse Rifle",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820098,
+   "name": "Follow Freeman! Shotgun",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "weapon": "Shotgun",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820099,
+   "name": "Follow Freeman! Crossbow",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "weapon": "Crossbow",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
+   "id": 8820100,
+   "name": "Follow Freeman! Grenade",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "weapon": "Grenade",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820101,
+   "name": "Follow Freeman! RPG",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "weapon": "RPG",
+   "classnames": [
+    "weapon_rpg"
    ]
   },
   {

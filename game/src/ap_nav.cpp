@@ -534,26 +534,31 @@ std::string Count(const std::vector<const Location*>& checks) {
     return std::to_string(found) + "/" + std::to_string(checks.size());
 }
 
-std::string ItemsLine() {
+// Weapons as `chapter` holds them (per chapter under `weapons_per_level`).
+std::string ItemsLine(const Chapter* chapter) {
     int weapons = 0;
     int weapons_held = 0;
     for (const auto& gate : Data().Gates()) {
-        if (gate.first.compare(0, 7, "weapon_") == 0) {
+        const std::string item = WeaponItemIn(gate.first, chapter);
+        if (gate.first.compare(0, 7, "weapon_") == 0 && !item.empty()) {
             ++weapons;
-            weapons_held += HeldItem(gate.second) ? 1 : 0;
+            weapons_held += HeldItem(item) ? 1 : 0;
         }
     }
-    int keys = 0;
-    int keys_held = 0;
+    // One per vehicle unless keys are per chapter.
+    std::set<std::string> keys;
     for (const Chapter& c : Data().Chapters()) {
         const VehicleKey* key = Data().KeyFor(c.key);
         if (key != nullptr && !State().ChapterExcluded(c.key)) {
-            ++keys;
-            keys_held += HeldItem(key->item) ? 1 : 0;
+            keys.insert(KeyItem(*key));
         }
     }
+    int keys_held = 0;
+    for (const std::string& key : keys) {
+        keys_held += HeldItem(key) ? 1 : 0;
+    }
     return "Weapons held " + std::to_string(weapons_held) + "/" + std::to_string(weapons) +
-           ", keys " + std::to_string(keys_held) + "/" + std::to_string(keys);
+           ", keys " + std::to_string(keys_held) + "/" + std::to_string(keys.size());
 }
 
 const Chapter* TrackedChapter() {
@@ -882,10 +887,11 @@ void Build(Page page) {
             }
             const std::string here = CurrentMap();
             g_header = "Tracker: " + chapter->name + " [" + ChapterStatusText(*chapter) + "]\n" +
-                       ItemsLine();
+                       ItemsLine(chapter);
             if (const VehicleKey* key = Data().KeyFor(chapter->key)) {
-                g_header += std::string("\n") + key->item + ": " +
-                            (HeldItem(key->item) ? "held" : "not yet");
+                const std::string item = KeyItem(*key);
+                g_header += std::string("\n") + item + ": " +
+                            (HeldItem(item) ? "held" : "not yet");
             }
             for (size_t p = 1; p <= chapter->maps.size(); ++p) {
                 const int part = static_cast<int>(p);

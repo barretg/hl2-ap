@@ -635,6 +635,13 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
             add_item(campaign.vehicle_key_name.format(chapter=names[chapter.key],
                                                       vehicle=campaign.vehicles[script]),
                      "progression", "vehicle_key", chapter=chapter.key, vehiclescript=script)
+    driven = {script for scripts in vehicles.values() for script in scripts}
+    for script, name in campaign.vehicle_keys.items():
+        if script in driven:
+            add_item(campaign.display(name), "progression", "vehicle_key", vehiclescript=script)
+    unkeyed = driven - set(campaign.vehicle_keys)
+    if unkeyed:
+        raise ScanError(f"no vehicle_keys item for {sorted(unkeyed)}")
     gun_maps = airboat_gun_maps(order, maps)
     if gun_maps:
         add_item(campaign.display("Airboat Gun"), "progression", "vehicle_upgrade",
@@ -653,6 +660,7 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
         for c in chapters
     ]
     apply_logic(campaign, chapter_entries, items, locations)
+    add_chapter_weapons(campaign, chapter_entries, items, locations, add_item)
     return {
         "campaign": {
             "key": campaign.key, "name": campaign.name, "short": campaign.short,
@@ -742,6 +750,65 @@ def apply_logic(campaign: Campaign, chapters: list[dict], items: list[dict],
         if entry is None:
             raise ScanError(f"check gates for unknown check {name}")
         entry["gates"] = check_gate(campaign, gate, item_names, name)
+
+
+def chapter_gates(chapter: dict, locations: list[dict]) -> list[dict]:
+    """Every gate that applies inside one chapter: its own, its maps', and
+    those of the checks and pickup sources in its maps."""
+    maps = set(chapter["maps"])
+    gates = [chapter.get("gates", {}), chapter.get("complete_gates", {}),
+             *chapter.get("map_gates", {}).values()]
+    for location in locations:
+        if "sources" in location:
+            gates += [s.get("gates", {}) for s in location["sources"] if s["map"] in maps]
+        elif location["map"] in maps:
+            gates.append(location.get("gates", {}))
+    return [g for g in gates if g]
+
+
+def add_chapter_weapons(campaign: Campaign, chapters: list[dict], items: list[dict],
+                        locations: list[dict], add_item) -> None:
+    """Each weapon's item for one chapter, used when `weapons_per_level` is on.
+
+    A chapter gets one wherever the weapon has a copy, and wherever its logic
+    names the weapon outright (Sandtraps' gunship needs the RPG it never
+    hands out). Progressive and starting weapons stay one item. Progression
+    only where the chapter's logic names the weapon at all."""
+    starting = {campaign.display(n) for n in campaign.starting_items}
+    weapons = {i["name"]: i for i in items
+               if i["group"] == "weapon" and "count" not in i and i["name"] not in starting}
+    by_classname = {w["classnames"][0]: name for name, w in weapons.items()}
+    copies: dict[str, set[str]] = {name: set() for name in weapons}
+    for location in locations:
+        trigger = location["trigger"]
+        weapon = by_classname.get(trigger.get("classnames", [""])[0])
+        if trigger["type"] == "weapon_pickup" and weapon is not None:
+            copies[weapon].update(s["chapter"] for s in location["sources"])
+    groups = {k: [[campaign.display(n) for n in o] if isinstance(o, list)
+                  else [campaign.display(o)] for o in v]
+              for k, v in campaign.requirement_groups.items()}
+    for chapter in chapters:
+        gates = chapter_gates(chapter, locations)
+        needed = {n for g in gates for n in g.get("items", {})} & set(weapons)
+        used = {group for g in gates for group in g.get("strict", []) + g.get("any", [])}
+        named = needed | ({n for group in used for o in groups[group] for n in o} & set(weapons))
+        given = set()
+        for name, weapon in weapons.items():
+            if chapter["key"] not in copies[name] and name not in needed:
+                continue
+            classification = weapon["classification"]
+            if classification == "progression" and name not in named:
+                classification = "useful"
+            add_item(campaign.chapter_weapon_name.format(chapter=chapter["name"], weapon=name),
+                     classification, "chapter_weapon", chapter=chapter["key"], weapon=name,
+                     classnames=weapon["classnames"])
+            given.add(name)
+        # A group a chapter's logic uses must keep an option it can hold, or
+        # per-level logic would drop the gate instead of keeping it.
+        for group in sorted(used):
+            if not any(all(n in given or n not in weapons for n in o) for o in groups[group]):
+                raise ScanError(f"{chapter['key']}: no option of {group!r} has a "
+                                "per-level weapon item there")
 
 
 def kit_names(data: MapData) -> list[str]:

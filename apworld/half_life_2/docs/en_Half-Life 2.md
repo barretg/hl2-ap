@@ -15,16 +15,19 @@ Finishing a chapter returns you to the hub.
 
 Weapons are locked too. Every weapon but the crowbar has to be received before
 you can pick one up: walking over a shotgun you have not been sent leaves it
-where it is. The check for finding it still fires.
+where it is. The check for finding it still fires. With `weapons_per_level`
+on, each chapter has its own item for each weapon (Highway 17 SMG), and a
+weapon is only in your hands in chapters whose item for it has arrived.
 
 Dark Energy has no unlock item. It opens once you have finished a configurable
 number of other chapters.
 
 ## What items and locations get shuffled?
 
-**Items:** one unlock per chapter, one per weapon, the gravity gun as four
-Progressive Gravity Guns, keys for the airboat and the buggy in each chapter
-that drives one, the Airboat and Buggy Guns, optionally the HEV suit, the
+**Items:** one unlock per chapter, one per weapon (or one per weapon per
+chapter with `weapons_per_level`), the gravity gun as four Progressive Gravity
+Guns, Airboat Keys and Buggy Keys (or keys for each chapter that drives one
+with `vehicle_keys_per_level`), the Airboat and Buggy Guns, optionally the HEV suit, the
 flashlight, Progressive Aux Power and an added melee throw (very fun, highly recommend), 
 plus filler (ammo, medkits, batteries) and traps.
 

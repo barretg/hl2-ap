@@ -57,6 +57,10 @@ class CheckData:
     stages: dict[str, int] = field(default_factory=dict)
     # Chapter key -> the vehicle key item its vehicle needs.
     keys: dict[str, str] = field(default_factory=dict)
+    # Vehicle script -> its one key when keys are not per chapter.
+    vehicle_keys: dict[str, str] = field(default_factory=dict)
+    # (chapter key, classname) -> that chapter's weapon item.
+    chapter_weapons: dict[tuple[str, str], str] = field(default_factory=dict)
     # Vehicle upgrade item -> the maps that enable it.
     upgrades: dict[str, list[str]] = field(default_factory=dict)
     hub: str = ""
@@ -108,6 +112,10 @@ def parse(path: Path) -> CheckData:
             data.stages[f[1]] = int(f[2])
         elif kind == "H":
             data.keys[f[1]] = f[3]
+        elif kind == "J":
+            data.vehicle_keys[f[1]] = f[2]
+        elif kind == "W":
+            data.chapter_weapons[(f[1], f[2])] = f[3]
         elif kind == "U":
             data.upgrades[f[1]] = f[2].split(",")
         elif kind == "B":

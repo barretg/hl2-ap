@@ -50,7 +50,7 @@ def create_regions(world: "HalfLife2World") -> None:
                 if trigger == "chapter_complete" and finish is not None:
                     location.access_rule = finish
                 elif "gates" in entry:
-                    rule = gate_rule(world, entry["gates"])
+                    rule = gate_rule(world, entry["gates"], chapter["key"])
                     if rule is not None:
                         location.access_rule = rule
                 region.locations.append(location)

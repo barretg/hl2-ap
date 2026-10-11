@@ -64,6 +64,12 @@ class Campaign:
     # vehicle's word from here).
     vehicles: dict[str, str] = field(default_factory=dict)
     vehicle_key_name: str = "{chapter} {vehicle} Keys"
+    # One key per vehicle for every chapter, `{vehiclescript: item}`, used
+    # unless `vehicle_keys_per_level` is on.
+    vehicle_keys: dict[str, str] = field(default_factory=dict)
+    # A weapon's item for one chapter under `weapons_per_level` (`{chapter}`
+    # the chapter's display name, `{weapon}` the weapon item's).
+    chapter_weapon_name: str = "{chapter} {weapon}"
     # Inputs whose game code spawns an item no entity names: `{input: classname}`
     # (a vortigaunt sent `ExtractBugbait` creates `weapon_bugbait`). The source
     # is placed at the entity receiving the input.

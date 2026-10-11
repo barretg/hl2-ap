@@ -20,6 +20,7 @@ namespace ap {
 
 struct PendingEvent;
 struct Chapter;
+struct VehicleKey;
 
 // --- from ap_main --------------------------------------------------------
 
@@ -47,6 +48,12 @@ bool PartOpen(const Chapter& chapter, int part);
 // The player's named warp points: label and map.
 std::vector<std::pair<std::string, std::string>> WarpPoints();
 bool HeldItem(const std::string& item);
+// The item a gated weapon needs in a chapter (null: the hub): its own, or
+// that chapter's under `weapons_per_level`, empty when the chapter has none.
+std::string WeaponItemIn(const std::string& classname, const Chapter* chapter);
+// The item a chapter's vehicle key record asks for under this seed's
+// `vehicle_keys_per_level` (absent: per chapter, as older seeds were).
+std::string KeyItem(const VehicleKey& key);
 
 // --- hooks in the SDK ----------------------------------------------------
 

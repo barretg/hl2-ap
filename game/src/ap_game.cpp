@@ -132,6 +132,12 @@ bool Holds(const std::string& item) {
     return State().Count(item) >= 1;
 }
 
+const Chapter* CurrentChapter() { return Data().ChapterOfMap(CurrentMap()); }
+
+bool PerLevelWeapon(const std::string& classname) {
+    return State().OptionBool("weapons_per_level", false) && Data().PerChapter(classname);
+}
+
 bool ClassnameHeld(const std::string& classname) {
     const std::string item = ItemOf(classname);
     if (item.empty() || State().Ungated(classname)) {
@@ -142,15 +148,32 @@ bool ClassnameHeld(const std::string& classname) {
             return true;
         }
     }
+    if (PerLevelWeapon(classname)) {
+        const std::string own = WeaponItemIn(classname, CurrentChapter());
+        return own.empty() ? !Gating() : Holds(own);
+    }
     return Holds(item);
+}
+
+// Chat when a weapon is refused: the item that would let it through here.
+std::string Refusal(const std::string& classname, const std::string& left) {
+    if (PerLevelWeapon(classname)) {
+        const Chapter* chapter = CurrentChapter();
+        const std::string own = WeaponItemIn(classname, chapter);
+        if (own.empty()) {
+            return ItemOf(classname) + " has no item for " +
+                   (chapter ? chapter->name : std::string("the hub")) +
+                   " in this seed; left where it is.";
+        }
+        return own + " not received yet; " + left;
+    }
+    return ItemOf(classname) + " not received yet; " + left;
 }
 
 std::string LocationName(long id) {
     const Location* location = Data().LocationById(id);
     return location ? location->name : std::to_string(id);
 }
-
-const Chapter* CurrentChapter() { return Data().ChapterOfMap(CurrentMap()); }
 
 bool IsHub() { return !Data().Hub().empty() && CurrentMap() == Data().Hub(); }
 
@@ -819,6 +842,23 @@ std::vector<std::pair<std::string, std::string>> WarpPoints() {
 
 bool HeldItem(const std::string& item) { return Holds(item); }
 
+std::string WeaponItemIn(const std::string& classname, const Chapter* chapter) {
+    if (!PerLevelWeapon(classname)) {
+        return ItemOf(classname);
+    }
+    return chapter ? Data().ChapterWeapon(chapter->key, classname) : std::string();
+}
+
+std::string KeyItem(const VehicleKey& key) {
+    if (!State().OptionBool("vehicle_keys_per_level", true)) {
+        const std::string shared = Data().VehicleKeyItem(key.vehiclescript);
+        if (!shared.empty()) {
+            return shared;
+        }
+    }
+    return key.item;
+}
+
 void GameLevelStart() {
     Data().Load(StoreDir() + "/checkdata.txt");
     g_owed.clear();
@@ -1012,7 +1052,7 @@ Touch WeaponTouch(CBasePlayer* player, CBaseCombatWeapon* weapon) {
         return Touch::kAllow;
     }
     if (Debounced("refuse:" + classname)) {
-        Notify(ItemOf(classname) + " not received yet; left where it is.");
+        Notify(Refusal(classname, "left where it is."));
     }
     return Touch::kRefuse;
 }
@@ -1072,7 +1112,7 @@ bool RefuseGive(CBasePlayer* player, const char* classname) {
         return false;
     }
     if (Debounced(std::string("refuse:") + classname)) {
-        Notify(ItemOf(classname) + " not received yet; left on the floor for when it does.");
+        Notify(Refusal(classname, "left on the floor for when it does."));
     }
     DropForLater(player, classname);
     return true;
@@ -1177,11 +1217,12 @@ bool CanEnterVehicle(CBasePlayer* player, CBaseEntity* vehicle) {
             keyed = true;
         }
     }
-    if (!keyed || Holds(key->item)) {
+    const std::string item = KeyItem(*key);
+    if (!keyed || Holds(item)) {
         return true;
     }
-    if (Debounced("vehicle:" + key->item)) {
-        Notify("You need " + key->item + " to drive here.");
+    if (Debounced("vehicle:" + item)) {
+        Notify("You need " + item + " to drive here.");
     }
     return false;
 }

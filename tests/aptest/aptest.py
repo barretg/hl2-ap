@@ -646,6 +646,8 @@ def default_items(data: checkdata_module.CheckData) -> dict[str, int]:
     items = {name: 1 for name in data.lockable.values()}
     items.update(data.stages)
     items.update({name: 1 for name in data.keys.values()})
+    items.update({name: 1 for name in data.vehicle_keys.values()})
+    items.update({name: 1 for name in data.chapter_weapons.values()})
     items.update({name: 1 for name in data.upgrades})
     items.update({name: 1 for name in EXTRA_DEFAULT_ITEMS})
     return items

@@ -41,7 +41,9 @@ from .items import (
     item_name_groups,
     item_name_to_id,
     trap_items,
+    per_level_weapons as per_level_weapon_names,
     trap_weights,
+    universal_key_for,
     unlock_item_for_chapter,
     weapon_items,
 )
@@ -61,6 +63,8 @@ from .options import (
     ShuffleHevSuit,
     StartingAuxPower,
     TrapPercentage,
+    VehicleKeysPerLevel,
+    WeaponsPerLevel,
 )
 from .regions import create_regions
 from .rules import chapter_is_startable
@@ -101,6 +105,7 @@ class HalfLife2Web(WebWorld):
     option_groups = [
         OptionGroup("Goal and Logic", [MissionsRequired, LogicDifficulty]),
         OptionGroup("Locations", [Chargesanity]),
+        OptionGroup("Items", [VehicleKeysPerLevel, WeaponsPerLevel]),
         OptionGroup("Equipment", [ShuffleHevSuit, AllowAuxWithoutHev, ShuffleFlashlight,
                                   RandomizeAuxPower, StartingAuxPower]),
         OptionGroup("Gameplay", [MeleeThrow]),
@@ -183,6 +188,11 @@ class HalfLife2World(World):
                 c["key"] for c in CHAPTERS if campaign_of(c) not in self.campaigns
             }
             self.excluded_triggers = set(passthrough.get("excluded_triggers", ()))
+            # They name the seed's items. Older seeds' keys were per chapter.
+            self.options.vehicle_keys_per_level.value = int(
+                passthrough.get("vehicle_keys_per_level", True))
+            self.options.weapons_per_level.value = int(
+                passthrough.get("weapons_per_level", False))
 
         included = {c["key"] for c in self.included_chapters}
         included_maps = {m for c in self.included_chapters for m in c["maps"]}
@@ -193,8 +203,11 @@ class HalfLife2World(World):
                 if name not in self.starting_items:
                     self.starting_items.append(name)
 
+        per_level_weapons = bool(self.options.weapons_per_level)
+        per_level_keys = bool(self.options.vehicle_keys_per_level)
         pool = {name for name in weapon_items
-                if campaign_of(items_by_name[name]) in self.campaigns}
+                if campaign_of(items_by_name[name]) in self.campaigns
+                and not (per_level_weapons and name in per_level_weapon_names)}
         for name, option in OPTIONAL_ITEM_NAMES.items():
             if getattr(self.options, option):
                 pool.add(name)
@@ -208,8 +221,12 @@ class HalfLife2World(World):
             group = entry.get("group")
             if group == "chapter" and entry["chapter"] in included:
                 pool.add(entry["name"])
-            elif group == "vehicle_key" and entry["chapter"] in included:
+            elif group == "chapter_weapon" and per_level_weapons and entry["chapter"] in included:
                 pool.add(entry["name"])
+            elif group == "vehicle_key" and entry.get("chapter") in included:
+                # A vehicle's one key is in the seed while any chapter it drives is.
+                name = entry["name"]
+                pool.add(name if per_level_keys else universal_key_for[name])
             elif group == "vehicle_upgrade" and set(entry.get("maps", ())) & included_maps:
                 pool.add(entry["name"])
         self.pool_item_names = pool - set(self.starting_items)
@@ -311,6 +328,8 @@ class HalfLife2World(World):
             "shuffle_hev_suit": bool(self.options.shuffle_hev_suit),
             "shuffle_flashlight": bool(self.options.shuffle_flashlight),
             "melee_throw": bool(self.options.melee_throw),
+            "vehicle_keys_per_level": bool(self.options.vehicle_keys_per_level),
+            "weapons_per_level": bool(self.options.weapons_per_level),
             "butterfingers_reissue": bool(self.options.butterfingers_reissue),
             "randomize_aux_power": bool(self.options.randomize_aux_power),
             "starting_aux_power": self.options.starting_aux_power.value,

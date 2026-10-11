@@ -96,6 +96,14 @@ public:
     int Stages(const std::string& item) const;
     // The key a chapter's vehicle needs, or null.
     const VehicleKey* KeyFor(const std::string& chapter_key) const;
+    // The one key every chapter's vehicle of this script needs when keys are
+    // not per chapter, or empty.
+    std::string VehicleKeyItem(const std::string& vehiclescript) const;
+    // Under `weapons_per_level`: whether a classname is held per chapter, and
+    // its item in one chapter (empty when that chapter has none).
+    bool PerChapter(const std::string& classname) const;
+    std::string ChapterWeapon(const std::string& chapter_key,
+                              const std::string& classname) const;
     // Maps that enable a vehicle upgrade (the Airboat Gun).
     const std::vector<std::string>* UpgradeMaps(const std::string& item) const;
     // Whether an entity of this targetname on this map is a cold-load kit
@@ -113,6 +121,9 @@ private:
     std::map<std::string, std::string> gates_;
     std::map<std::string, int> stages_;
     std::map<std::string, VehicleKey> keys_;
+    std::map<std::string, std::string> vehicle_keys_;
+    // classname -> chapter key -> item.
+    std::map<std::string, std::map<std::string, std::string>> chapter_weapons_;
     std::map<std::string, std::vector<std::string>> upgrades_;
     std::map<std::string, std::set<std::string>> kits_;
     std::map<std::string, size_t> chapter_of_map_;

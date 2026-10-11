@@ -122,6 +122,31 @@ class MeleeThrow(Toggle):
     display_name = "Add Melee Throw"
 
 
+class VehicleKeysPerLevel(Toggle):
+    """Split the vehicle keys by chapter.
+
+    When off, one Airboat Keys item drives the airboat in Route Kanal and
+    Water Hazard, and one Buggy Keys item drives the buggy in Highway 17 and
+    Sandtraps. When on, each of those chapters has its own keys (Route Kanal
+    Boat Keys, Sandtraps Buggy Keys, and so on).
+    """
+
+    display_name = "Vehicle Keys Per Level"
+
+
+class WeaponsPerLevel(Toggle):
+    """Split the weapons by chapter.
+
+    When off, a weapon's item lets you hold it everywhere. When on, a weapon
+    is held only in chapters whose own item for it has arrived (Highway 17
+    SMG, Follow Freeman! RPG). A chapter has an item for a weapon where the
+    weapon can be found, or where the chapter cannot be finished without
+    it. The Crowbar and the Progressive Gravity Gun stay one item.
+    """
+
+    display_name = "Weapons Per Level"
+
+
 class DeathLinkAmnesty(Range):
     """How many deaths are forgiven before one is sent to the multiworld.
 
@@ -215,6 +240,8 @@ class HalfLife2Options(PerGameCommonOptions):
     randomize_aux_power: RandomizeAuxPower
     starting_aux_power: StartingAuxPower
     melee_throw: MeleeThrow
+    vehicle_keys_per_level: VehicleKeysPerLevel
+    weapons_per_level: WeaponsPerLevel
     trap_percentage: TrapPercentage
     butterfingers_reissue: ButterfingersReissue
     mega_bot_swarm_trap_weight: MegaBotSwarmTrapWeight

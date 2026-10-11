@@ -93,17 +93,28 @@ class TestDefaults(HalfLife2TestBase):
         self.assertFalse(self.can_reach_region("d2_coast_01"))
 
     def test_vehicle_keys(self) -> None:
-        everything_but(self, "Water Hazard Boat Keys", "Highway 17 Buggy Keys",
-                       "Route Kanal Boat Keys")
+        everything_but(self, "Airboat Keys", "Buggy Keys")
         self.assertFalse(self.can_reach_region("d1_canals_06"))
         self.assertTrue(self.can_reach_region("d2_coast_01"))
         self.assertFalse(self.can_reach_region("d2_coast_03"))
         self.assertTrue(self.can_reach_region("d1_canals_05"))
         self.assertFalse(self.can_reach_location("Route Kanal: Complete"))
+        self.collect_by_name("Airboat Keys")
+        self.assertTrue(self.can_reach_region("d1_canals_06"))
+        self.assertTrue(self.can_reach_location("Route Kanal: Complete"))
+
+    def test_one_key_per_vehicle(self) -> None:
+        names = [i.name for i in self.multiworld.itempool]
+        self.assertEqual(names.count("Airboat Keys"), 1)
+        self.assertEqual(names.count("Buggy Keys"), 1)
+        self.assertFalse({"Route Kanal Boat Keys", "Sandtraps Buggy Keys"} & set(names))
 
     def test_car_keys_strict(self) -> None:
-        everything_but(self, "Sandtraps Buggy Keys")
+        everything_but(self, "Buggy Keys")
+        self.assertFalse(self.can_reach_region("d2_coast_03"))
         self.assertFalse(self.can_reach_region("d2_coast_10"))
+        self.collect_by_name("Buggy Keys")
+        self.assertTrue(self.can_reach_region("d2_coast_10"))
 
     def test_airboat_gun(self) -> None:
         everything_but(self, "Airboat Gun")
@@ -124,11 +135,11 @@ class TestDefaults(HalfLife2TestBase):
         self.assertTrue(self.can_reach_region("d2_coast_10"))
 
     def test_buggy_gun_needs_its_buggy(self) -> None:
-        rule = gate_rule(self.world, {"any": ["sandtraps battery"]})
+        rule = gate_rule(self.world, {"any": ["sandtraps battery"]}, "d2_coast_09")
         state = CollectionState(self.multiworld)
         state.collect(self.get_item_by_name("Buggy Gun"), True)
         self.assertFalse(rule(state))
-        state.collect(self.get_item_by_name("Sandtraps Buggy Keys"), True)
+        state.collect(self.get_item_by_name("Buggy Keys"), True)
         self.assertTrue(rule(state))
 
     def test_ravenholm_firepower(self) -> None:
@@ -148,7 +159,7 @@ class TestLoose(HalfLife2TestBase):
         self.assertTrue(self.can_reach_region("d3_c17_02"))
 
     def test_car_keys_dropped(self) -> None:
-        everything_but(self, "Highway 17 Buggy Keys", "Sandtraps Buggy Keys")
+        everything_but(self, "Buggy Keys")
         self.assertTrue(self.can_reach_region("d2_coast_03"))
         self.assertTrue(self.can_reach_region("d2_coast_10"))
 
@@ -182,6 +193,101 @@ class TestLoose(HalfLife2TestBase):
         self.assertTrue(self.can_reach_region("d1_canals_13"))
         self.remove(self.get_items_by_name("RPG"))
         self.assertFalse(self.can_reach_region("d1_canals_13"))
+
+
+class TestVehicleKeysPerLevel(HalfLife2TestBase):
+    options = {"vehicle_keys_per_level": True}
+
+    def test_keys_per_chapter(self) -> None:
+        names = {i.name for i in self.multiworld.itempool}
+        self.assertFalse({"Airboat Keys", "Buggy Keys"} & names)
+        self.assertTrue({"Route Kanal Boat Keys", "Water Hazard Boat Keys",
+                         "Highway 17 Buggy Keys", "Sandtraps Buggy Keys"} <= names)
+
+    def test_vehicle_keys(self) -> None:
+        everything_but(self, "Water Hazard Boat Keys", "Highway 17 Buggy Keys",
+                       "Route Kanal Boat Keys")
+        self.assertFalse(self.can_reach_region("d1_canals_06"))
+        self.assertTrue(self.can_reach_region("d2_coast_01"))
+        self.assertFalse(self.can_reach_region("d2_coast_03"))
+        self.assertTrue(self.can_reach_region("d1_canals_05"))
+        self.assertFalse(self.can_reach_location("Route Kanal: Complete"))
+        self.assertTrue(self.can_reach_region("d2_coast_10"))
+
+    def test_car_keys_strict(self) -> None:
+        everything_but(self, "Sandtraps Buggy Keys")
+        self.assertTrue(self.can_reach_region("d2_coast_03"))
+        self.assertFalse(self.can_reach_region("d2_coast_10"))
+
+    def test_buggy_gun_needs_its_buggy(self) -> None:
+        rule = gate_rule(self.world, {"any": ["sandtraps battery"]}, "d2_coast_09")
+        state = CollectionState(self.multiworld)
+        state.collect(self.get_item_by_name("Buggy Gun"), True)
+        state.collect(self.get_item_by_name("Highway 17 Buggy Keys"), True)
+        self.assertFalse(rule(state))
+        state.collect(self.get_item_by_name("Sandtraps Buggy Keys"), True)
+        self.assertTrue(rule(state))
+
+
+class TestWeaponsPerLevel(HalfLife2TestBase):
+    options = {"weapons_per_level": True}
+
+    def test_pool(self) -> None:
+        names = [i.name for i in self.multiworld.itempool]
+        self.assertFalse({"Pistol", "SMG", "Shotgun", "RPG", "Bugbait"} & set(names))
+        self.assertTrue({"Route Kanal SMG", "Sandtraps RPG", "Sandtraps Bugbait",
+                         "Follow Freeman! RPG"} <= set(names))
+        self.assertEqual(names.count(GRAVITY_GUN), 4)
+        self.assertNotIn("Crowbar", names)
+
+    def test_ravenholm_needs_its_own_weapons(self) -> None:
+        own = ["We Don't Go to Ravenholm... Shotgun", "We Don't Go to Ravenholm... .357 Magnum",
+               "We Don't Go to Ravenholm... Pulse Rifle"]
+        everything_but(self, *own)
+        self.assertFalse(self.can_reach_region("d1_town_01"))
+        self.assertTrue(self.can_reach_region("d2_coast_01"))
+        self.collect_by_name(own[0])
+        self.assertTrue(self.can_reach_region("d1_town_01"))
+
+    def test_sandtraps_gunship_needs_sandtraps_rpg(self) -> None:
+        everything_but(self, "Sandtraps RPG")
+        self.assertTrue(self.can_reach_region("d2_coast_10"))
+        self.assertFalse(self.can_reach_region("d2_coast_11"))
+        self.assertTrue(self.can_reach_region("d3_c17_11"))
+        self.collect_by_name("Sandtraps RPG")
+        self.assertTrue(self.can_reach_region("d2_coast_11"))
+
+    def test_sandtraps_bugbait(self) -> None:
+        everything_but(self, "Sandtraps Bugbait")
+        self.assertTrue(self.can_reach_location("First Bugbait"))
+        self.assertFalse(self.can_reach_region("d2_coast_12"))
+        self.collect_by_name("Sandtraps Bugbait")
+        self.assertTrue(self.can_reach_region("d2_coast_12"))
+
+    def test_unused_weapon_not_progression(self) -> None:
+        crossbow = self.get_item_by_name("Highway 17 Crossbow")
+        self.assertFalse(crossbow.advancement)
+        self.assertTrue(self.get_item_by_name("Highway 17 RPG").advancement)
+
+
+class TestWeaponsPerLevelLoose(HalfLife2TestBase):
+    options = {"weapons_per_level": True, "logic_difficulty": "loose"}
+
+    def test_chopper_has_no_rpg_in_water_hazard(self) -> None:
+        everything_but(self, "Airboat Gun")
+        self.assertFalse(self.can_reach_region("d1_canals_13"))
+
+
+class TestEverythingPerLevelNoChargers(HalfLife2TestBase):
+    """The biggest pool against the fewest locations."""
+    options = {"weapons_per_level": True, "vehicle_keys_per_level": True,
+               "chargesanity": False, "shuffle_hev_suit": True, "shuffle_flashlight": True,
+               "melee_throw": True, "randomize_aux_power": True}
+
+    def test_pool_matches_locations(self) -> None:
+        unfilled = [l for l in self.multiworld.get_locations(self.player) if l.item is None]
+        pool = [i for i in self.multiworld.itempool if i.player == self.player]
+        self.assertEqual(len(unfilled), len(pool))
 
 
 class TestEverythingShuffled(HalfLife2TestBase):

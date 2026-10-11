@@ -47,8 +47,8 @@ def test_every_vehicle_key_gates_its_chapter() -> None:
     campaign = json.loads(DATA.read_text())
     chapters = {c["key"]: c for c in campaign["chapters"]}
     for item in campaign["items"]:
-        if item["group"] != "vehicle_key":
-            continue
+        if item["group"] != "vehicle_key" or "chapter" not in item:
+            continue  # the shared keys stand in for these in logic
         chapter = chapters[item["chapter"]]
         named = [g for key in ("gates", "complete_gates") for g in [chapter.get(key, {})]]
         named += list(chapter.get("map_gates", {}).values())

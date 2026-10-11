@@ -65,8 +65,11 @@ def test_pickup_checks_anchored_at_a_direct_source() -> None:
 
 
 def test_vehicle_keys_name_vehicle_chapters() -> None:
-    keys = {i["chapter"] for i in ITEMS if i["group"] == "vehicle_key"}
+    keys = {i["chapter"] for i in ITEMS if i["group"] == "vehicle_key" and "chapter" in i}
     assert keys == {c["key"] for c in CHAPTERS if c["vehicles"]}
+    # And one shared key per vehicle any chapter drives.
+    shared = {i["vehiclescript"] for i in ITEMS if i["group"] == "vehicle_key" and "chapter" not in i}
+    assert shared == {v for c in CHAPTERS for v in c["vehicles"]}
 
 
 def test_checkdata_is_current() -> None:
@@ -77,7 +80,7 @@ def test_checkdata_is_current() -> None:
 def test_checkdata_records_parse() -> None:
     lines = [l for l in gen_checkdata.OUT_PATH.read_text(encoding="utf-8").splitlines()
              if l and not l.startswith("#")]
-    widths = {"V": 2, "D": 2, "B": 2, "N": 5, "C": 10, "K": 3, "P": 4, "H": 4, "U": 3, "F": 7, "X": 3}
+    widths = {"V": 2, "D": 2, "B": 2, "N": 5, "C": 10, "K": 3, "P": 4, "H": 4, "J": 3, "W": 4, "U": 3, "F": 7, "X": 3}
     for line in lines:
         fields = line.split("|")
         if fields[0] == "L":

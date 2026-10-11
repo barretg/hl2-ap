@@ -6,6 +6,8 @@ Half-Life 2:
   missions_required: 12
   logic_difficulty: strict
   chargesanity: true
+  vehicle_keys_per_level: false
+  weapons_per_level: false
   shuffle_hev_suit: false
   shuffle_flashlight: false
   melee_throw: true

@@ -128,8 +128,15 @@ is, and the check for it still fires. A weapon a character hands you, such as
 Odessa's RPG, is taken so the scene goes on, and left on the floor for when the
 item arrives.
 
-The airboat and the buggy need their chapter's keys before you can drive them,
-and their mounted guns need the Airboat Gun and the Buggy Gun.
+The airboat needs Airboat Keys and the buggy Buggy Keys before you can drive
+them (with `vehicle_keys_per_level`, that chapter's own keys), and their
+mounted guns need the Airboat Gun and the Buggy Gun.
+
+With `weapons_per_level`, a weapon is held only in chapters whose own item for
+it has arrived: Highway 17 SMG gives you the SMG in Highway 17 and nowhere
+else. A chapter has an item for a weapon where the weapon can be found in it,
+or where the chapter cannot be finished without it. The crowbar and the
+gravity gun stay one item.
 
 The gravity gun comes as four Progressive Gravity Guns: hold and drop, then
 punts, then the Citadel's supercharge (organics refused), then the full super
@@ -153,6 +160,8 @@ server.
 | `missions_required` | all of them | how many chapters open Dark Energy |
 | `logic_difficulty` | strict | strict: a chapter is only expected once you own what makes it reasonable. Loose: only what a chapter cannot be crossed without |
 | `chargesanity` | on | every health charger and suit charger is a check |
+| `vehicle_keys_per_level` | off | each chapter that drives the airboat or the buggy has its own keys, instead of one Airboat Keys and one Buggy Keys |
+| `weapons_per_level` | off | each weapon has an item per chapter, held only in that chapter, instead of one item for everywhere |
 | `shuffle_hev_suit` | off | no armour and no aux power until the HEV Suit arrives |
 | `shuffle_flashlight` | off | the flashlight key does nothing until the Flashlight arrives |
 | `randomize_aux_power` | off | four Progressive Aux Power items; each lets the aux meter fill another quarter |

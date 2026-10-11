@@ -91,6 +91,10 @@ bool CheckData::Load(const std::string& path) {
             parsed.stages_[f[1]] = static_cast<int>(ParseLong(f[2]));
         } else if (kind == "H" && f.size() >= 4) {
             parsed.keys_[f[1]] = VehicleKey{f[2], f[3]};
+        } else if (kind == "J" && f.size() >= 3) {
+            parsed.vehicle_keys_[f[1]] = f[2];
+        } else if (kind == "W" && f.size() >= 4) {
+            parsed.chapter_weapons_[f[2]][f[1]] = f[3];
         } else if (kind == "U" && f.size() >= 3) {
             parsed.upgrades_[f[1]] = List(f[2], ',');
         } else if (kind == "X" && f.size() >= 3) {
@@ -228,6 +232,25 @@ int CheckData::Stages(const std::string& item) const {
 const VehicleKey* CheckData::KeyFor(const std::string& chapter_key) const {
     const auto it = keys_.find(chapter_key);
     return it == keys_.end() ? nullptr : &it->second;
+}
+
+std::string CheckData::VehicleKeyItem(const std::string& vehiclescript) const {
+    const auto it = vehicle_keys_.find(vehiclescript);
+    return it == vehicle_keys_.end() ? std::string() : it->second;
+}
+
+bool CheckData::PerChapter(const std::string& classname) const {
+    return chapter_weapons_.find(classname) != chapter_weapons_.end();
+}
+
+std::string CheckData::ChapterWeapon(const std::string& chapter_key,
+                                     const std::string& classname) const {
+    const auto it = chapter_weapons_.find(classname);
+    if (it == chapter_weapons_.end()) {
+        return std::string();
+    }
+    const auto item = it->second.find(chapter_key);
+    return item == it->second.end() ? std::string() : item->second;
 }
 
 const std::vector<std::string>* CheckData::UpgradeMaps(const std::string& item) const {

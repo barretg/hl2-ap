@@ -52,6 +52,8 @@ HL2 = Campaign(
     input_gives={"ExtractBugbait": "weapon_bugbait"},
     vehicles={"scripts/vehicles/airboat.txt": "Boat",
               "scripts/vehicles/jeep_test.txt": "Buggy"},
+    vehicle_keys={"scripts/vehicles/airboat.txt": "Airboat Keys",
+                  "scripts/vehicles/jeep_test.txt": "Buggy Keys"},
     # Found unreachable in play (2026-10-07).
     unreachable_chargers={
         "d1_trainstation_01": {("item_suitcharger", (-3649, -425, 24))},
