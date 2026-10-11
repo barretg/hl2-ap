@@ -170,6 +170,13 @@ class TestLoose(HalfLife2TestBase):
         self.assertTrue(self.can_reach_region("d2_coast_10"))
         self.assertFalse(self.can_reach_region("d2_coast_11"))
 
+    def test_sandtraps_bugbait(self) -> None:
+        everything_but(self, "Bugbait")
+        self.assertTrue(self.can_reach_location("First Bugbait"))
+        self.assertFalse(self.can_reach_region("d2_coast_12"))
+        self.collect_by_name("Bugbait")
+        self.assertTrue(self.can_reach_region("d2_coast_12"))
+
     def test_chopper_airboat_gun_or_rpg(self) -> None:
         everything_but(self, "Airboat Gun")
         self.assertTrue(self.can_reach_region("d1_canals_13"))
