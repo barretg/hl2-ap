@@ -475,6 +475,11 @@
      "items": {
       "RPG": 1
      }
+    },
+    "d2_coast_12": {
+     "items": {
+      "Bugbait": 1
+     }
     }
    }
   },
@@ -1153,7 +1158,7 @@
   {
    "id": 8820023,
    "name": "Bugbait",
-   "classification": "useful",
+   "classification": "progression",
    "group": "weapon",
    "campaign": "hl2",
    "classnames": [

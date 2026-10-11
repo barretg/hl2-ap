@@ -46,8 +46,7 @@ HL2 = Campaign(
     confiscating_upgrade="Super Gravity Gun",
     # The flashlight has no pickup: the item lets the flashlight key work.
     equipment={"HEV Suit": ["item_suit"], "Flashlight": []},
-    # Nova Prospekt can be done without the Bugbait (2026-10-06).
-    item_classification={"Flashlight": "useful", "Bugbait": "useful"},
+    item_classification={"Flashlight": "useful"},
     enemy_npcs=frozenset({"npc_combine_s", "npc_metropolice"}),
     ally_npcs=frozenset({"npc_citizen", "npc_barney", "npc_alyx", "npc_monk"}),
     input_gives={"ExtractBugbait": "weapon_bugbait"},
@@ -144,7 +143,10 @@ HL2 = Campaign(
                         # on, at any difficulty (2026-10-06).
                         "maps": {"d2_coast_10": {"strict": ["sandtraps buggy",
                                                           "sandtraps battery"]},
-                                 "d2_coast_11": {"items": {"RPG": 1}}}},
+                                 "d2_coast_11": {"items": {"RPG": 1}},
+                                 # The Bugbait is required from its "First
+                                 # Bugbait" check on (2026-10-11).
+                                 "d2_coast_12": {"items": {"Bugbait": 1}}}},
         "d2_prison_02": {"entry": {"strict": ["heavy"]}},
         "d2_prison_06": {"entry": {"strict": ["heavy"]}},
         # d3_c17_04's metal panel over the hopper pit is frozen until the

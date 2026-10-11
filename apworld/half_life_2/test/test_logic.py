@@ -22,12 +22,16 @@ class TestDefaults(HalfLife2TestBase):
         pool = [i for i in self.multiworld.itempool if i.player == self.player]
         self.assertEqual(len(unfilled), len(pool))
 
-    def test_bugbait_not_required(self) -> None:
+    def test_bugbait_required_after_sandtraps_check(self) -> None:
         bugbait = [i for i in self.multiworld.itempool if i.name == "Bugbait"]
         self.assertTrue(bugbait)
-        self.assertFalse(any(i.advancement for i in bugbait))
+        self.assertTrue(all(i.advancement for i in bugbait))
         everything_but(self, "Bugbait")
-        self.assertTrue(self.can_reach_location("Dark Energy: Complete"))
+        self.assertTrue(self.can_reach_location("First Bugbait"))
+        self.assertFalse(self.can_reach_region("d2_coast_12"))
+        self.assertTrue(self.can_reach_region("d2_prison_02"))
+        self.collect(bugbait[0])
+        self.assertTrue(self.can_reach_region("d2_coast_12"))
 
     def test_four_gravity_gun_stages(self) -> None:
         names = [i.name for i in self.multiworld.itempool]
