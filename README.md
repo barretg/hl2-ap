@@ -14,14 +14,6 @@ generators and the scenario harness are ported from it; what is new is the
 chapter layout against Half-Life 2's own maps and the game side, which is a
 Source SDK 2013 server and client dll.
 
-**Status: feature complete for 0.1.0.** Every feature has passed its in-game
-scenarios: chapters warp, checks fire, items arrive, pickups are refused until
-the multiworld sends them, chapter exits return to the hub, Dark Energy's
-credits send the goal, and DeathLink and the traps work. A full seed in a live
-multiworld is the last step before release. See [game/README.md](game/README.md)
-for how the game side is built and [docs/playtest.md](docs/playtest.md) for how
-it is tested.
-
 ## The target
 
 Retail Half-Life 2 on Steam, current build. Episode One and Episode Two are
@@ -177,6 +169,14 @@ and loads the next. `!redo`, `!prev`, `!go <n>`, `!tp`, `!info`, `!list`,
 `!give` and `!take` do what they say. Verdicts go to
 `hl2ap/archipelago/aptest_results.txt`. [docs/playtest.md](docs/playtest.md)
 has the full session.
+
+## **Status: feature complete for 0.1.0.** 
+Every feature has passed its in-game scenarios: chapters warp, checks fire, items arrive, pickups are refused until
+the multiworld sends them, chapter exits return to the hub, Dark Energy's
+credits send the goal, and DeathLink and the traps work. A full seed in a live
+multiworld is the last step before release. See [game/README.md](game/README.md)
+for how the game side is built and [docs/playtest.md](docs/playtest.md) for how
+it is tested.
 
 ## AI Usage Disclosure
 
