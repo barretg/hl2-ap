@@ -73,12 +73,10 @@ class TestDefaults(HalfLife2TestBase):
         self.assertTrue(self.can_reach_location("Our Benefactors: Suit Charger 2 (Part 3)"))
         self.assertBeatable(True)
 
-    def test_super_gravity_gun_check_needs_stage_three(self) -> None:
+    def test_super_gravity_gun_check_below_stage_three(self) -> None:
         everything_but(self, GRAVITY_GUN)
-        self.collect(self.get_item_by_name(GRAVITY_GUN))
-        self.collect(self.get_item_by_name(GRAVITY_GUN))
-        self.assertFalse(self.can_reach_location("First Super Gravity Gun"))
-        self.collect(self.get_item_by_name(GRAVITY_GUN))
+        for _ in range(2):
+            self.collect(self.get_item_by_name(GRAVITY_GUN))
         self.assertTrue(self.can_reach_location("First Super Gravity Gun"))
 
     def test_gravity_gun_strict_from_ravenholm(self) -> None:

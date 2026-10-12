@@ -962,7 +962,9 @@ void GameFrame() {
     if (Gating() && !Holds(kSuitItem) && player->ArmorValue() > 0) {
         player->SetArmorValue(0);
     }
-    if (!g_upgrade_sent && Gating() && PlayerHasMegaPhysCannon() &&
+    // Sent at any stage once the field has charged the gun; only its
+    // supercharged behaviour waits for stage 3.
+    if (!g_upgrade_sent && Gating() && Confiscated() &&
         Owned(player, kPhyscannon) != nullptr) {
         g_upgrade_sent = true;
         Found(Data().Pickup("weapon_upgrade", kPhyscannon));

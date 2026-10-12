@@ -49,12 +49,12 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
-            title="Stage 2 at the Citadel field: no supercharge",
-            map=field.map, pos=field.position, counts={GUN: 2},
+            title="Stage 2 at the Citadel field: no supercharge, check still sent",
+            map=field.map, pos=field.position, counts={GUN: 2}, expect=[upgrade.id],
             steps="""
                 Walk through the confiscation field. Your other weapons dissolve; the
-                gravity gun stays the normal orange one (not supercharged), and First
-                Super Gravity Gun is not sent. Once past the field your other weapons
+                gravity gun stays the normal orange one (not supercharged), but First
+                Super Gravity Gun is sent. Once past the field your other weapons
                 come back, as at every stage.
                 !pass or !fail <what happened>.
             """,

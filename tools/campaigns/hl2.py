@@ -169,8 +169,6 @@ HL2 = Campaign(
         "d3_citadel_01": {"maps": {"d3_citadel_04": {"items": {"Progressive Gravity Gun": 3}}}},
         "d3_breen_01": {"entry": {"items": {"Progressive Gravity Gun": 3}}},
     },
-    # The supercharge is withheld below stage 3.
-    source_gates={"Super Gravity Gun": {"items": {"Progressive Gravity Gun": 3}}},
     # d3_citadel_03 runs from the field (x 7700) to the exit (x 720); its
     # first energy-ball gate (x 3500) needs the supercharged gun, so the
     # chargers past it do too (2026-10-06).

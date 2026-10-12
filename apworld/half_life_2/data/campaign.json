@@ -5229,12 +5229,7 @@
       7725,
       -1321,
       2209
-     ],
-     "gates": {
-      "items": {
-       "Progressive Gravity Gun": 3
-      }
-     }
+     ]
     },
     {
      "chapter": "d3_breen_01",
@@ -5246,12 +5241,7 @@
       1350
      ],
      "spawner": "spawner_physgun,ForceSpawn",
-     "confirmed": true,
-     "gates": {
-      "items": {
-       "Progressive Gravity Gun": 3
-      }
-     }
+     "confirmed": true
     }
    ],
    "position": [
