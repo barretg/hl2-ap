@@ -118,6 +118,7 @@ class TestDefaults(HalfLife2TestBase):
         everything_but(self, "Airboat Gun")
         self.assertTrue(self.can_reach_region("d1_canals_12"))
         self.assertFalse(self.can_reach_region("d1_canals_13"))
+        self.assertFalse(self.can_reach_location("Water Hazard: Complete"))
 
     def test_strict_firepower(self) -> None:
         firearms = ["Pistol", ".357 Magnum", "SMG", "Pulse Rifle", "Shotgun", "Crossbow"]
