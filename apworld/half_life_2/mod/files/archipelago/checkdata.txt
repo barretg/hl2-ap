@@ -32,7 +32,7 @@
 # A charger's position is its rounded origin. The game matches the unit a
 # player used by nearest same-class entity within a radius, never by rounding.
 V|1
-D|9ac70eb29c03
+D|8b84615fdb73
 B|alpha_hub
 N|hl2|hl2|Half-Life 2|d3_breen_01
 C|0|d1_trainstation_01|1|Point Insertion|d1_trainstation_01,d1_trainstation_02,d1_trainstation_03,d1_trainstation_04|0|hl2|forward_exit|d1_trainstation_04>d1_trainstation_05
@@ -258,8 +258,7 @@ L|8830144|d3_citadel_03|charger|item_suitcharger@787 -253 2416|Our Benefactors: 
 L|8830145|d3_citadel_03|charger|item_suitcharger@2766 257 2367|Our Benefactors: Suit Charger 3 (Part 3)|2766 257 2367
 L|8830146|d3_citadel_04|charger|item_suitcharger@-1359 -2034 6448|Our Benefactors: Suit Charger 1 (Part 4)|-1359 -2034 6448
 L|8830147|d3_citadel_04|charger|item_suitcharger@316 1822 2352|Our Benefactors: Suit Charger 2 (Part 4)|316 1822 2352
-L|8830148|d3_citadel_04|charger|item_suitcharger@-1228 -8896 6064|Our Benefactors: Suit Charger 3 (Part 4)|-1228 -8896 6064
-L|8830149|d3_citadel_04|charger|item_suitcharger@512 -416 6448|Our Benefactors: Suit Charger 4 (Part 4)|512 -416 6448
+L|8830149|d3_citadel_04|charger|item_suitcharger@512 -416 6448|Our Benefactors: Suit Charger 3 (Part 4)|512 -416 6448
 L|8830150|d3_citadel_05|charger|item_suitcharger@-1036 -64 -3024|Our Benefactors: Suit Charger (Part 5)|-1036 -64 -3024
 L|8830151|d3_citadel_05|chapter_complete|d3_citadel_01|Our Benefactors: Complete
 L|8830152|d3_breen_01|map_reached||Dark Energy: Part 1 Reached

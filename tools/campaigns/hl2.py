@@ -57,6 +57,8 @@ HL2 = Campaign(
     # Found unreachable in play (2026-10-07).
     unreachable_chargers={
         "d1_trainstation_01": {("item_suitcharger", (-3649, -425, 24))},
+        # Past the exit to d3_citadel_05 (2026-10-14).
+        "d3_citadel_04": {("item_suitcharger", (-1228, -8896, 6064))},
     },
     # Verdicts from the `sources` harness group (2026-10-04) unless noted.
     unreachable_copies={

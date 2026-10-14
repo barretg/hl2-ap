@@ -162,6 +162,10 @@ class HalfLife2Context(SuperContext):
             if e["trigger"]["type"] == "chapter_complete"
         }
         self.data_version = str(self.campaign.get("data_version", ""))
+        # Locations older seeds may hold that the game no longer fires; each
+        # is sent with the check standing in for it.
+        self.retired_locations = {int(k): v for k, v
+                                  in self.campaign.get("retired_locations", {}).items()}
 
         self.mod_dir = ""
         self.bridge: Bridge | None = None
@@ -188,6 +192,8 @@ class HalfLife2Context(SuperContext):
         self.chat_relay = True
         # Checks already given a "Sent" line: the game resends until confirmed.
         self.announced: set[int] = set()
+        # Retired locations already sent, so a poll does not resend them.
+        self.retired_sent: set[int] = set()
         self.bridge_failures = 0
         # How far through the server's item history this run has got, and
         # whether the backlog the server resends on connect is in yet. Filler
@@ -352,6 +358,7 @@ class HalfLife2Context(SuperContext):
         self.state_slot = identity
         self.completed.clear()
         self.announced.clear()
+        self.retired_sent.clear()
         self.goal_sent = False
 
     def sync_completed(self) -> None:
@@ -508,6 +515,13 @@ async def pump(ctx: HalfLife2Context) -> None:
         elif event.kind == "HELLO":
             logger.info(f"Game is on {event.arg}.")
             publish(ctx, force=True)
+    if connected:
+        reached = set(new_checks) | ctx.checked_locations
+        retired = [old for old, stand_in in ctx.retired_locations.items()
+                   if stand_in in reached and old in ctx.missing_locations
+                   and old not in ctx.retired_sent]
+        ctx.retired_sent.update(retired)
+        new_checks += retired
     if new_checks and connected:
         # The game fires every check checkdata knows; send only the seed's.
         in_seed = ctx.missing_locations | ctx.checked_locations

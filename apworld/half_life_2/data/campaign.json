@@ -1,6 +1,6 @@
 {
  "format": 1,
- "data_version": "9ac70eb29c03",
+ "data_version": "8b84615fdb73",
  "hub_map": "alpha_hub",
  "campaigns": [
   {
@@ -4270,28 +4270,9 @@
    ]
   },
   {
-   "id": 8830148,
-   "key": "hl2|d3_citadel_01|d3_citadel_04|charger|item_suitcharger@-1228 -8896 6064",
-   "name": "Our Benefactors: Suit Charger 3 (Part 4)",
-   "campaign": "hl2",
-   "chapter": "d3_citadel_01",
-   "map": "d3_citadel_04",
-   "trigger": {
-    "type": "charger",
-    "map": "d3_citadel_04",
-    "classname": "item_suitcharger",
-    "at": "-1228 -8896 6064"
-   },
-   "position": [
-    -1228,
-    -8896,
-    6064
-   ]
-  },
-  {
    "id": 8830149,
    "key": "hl2|d3_citadel_01|d3_citadel_04|charger|item_suitcharger@512 -416 6448",
-   "name": "Our Benefactors: Suit Charger 4 (Part 4)",
+   "name": "Our Benefactors: Suit Charger 3 (Part 4)",
    "campaign": "hl2",
    "chapter": "d3_citadel_01",
    "map": "d3_citadel_04",
@@ -5250,5 +5231,9 @@
     2209
    ]
   }
- ]
+ ],
+ "retired_locations": {
+  "8830004": 8830000,
+  "8830148": 8830141
+ }
 }

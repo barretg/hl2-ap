@@ -167,6 +167,26 @@ class TestPump(ClientTest):
         self.run_pump()
         self.assertEqual(self.sent, [{"cmd": "LocationChecks", "locations": [LOCATIONS[0]["id"]]}])
 
+    def test_retired_location_goes_with_its_stand_in(self) -> None:
+        # Our Benefactors' unreachable Part 4 suit charger, in older seeds.
+        old, part_4 = 8830148, 8830141
+        self.assertEqual(self.ctx.retired_locations[old], part_4)
+        self.ctx.missing_locations = {old, part_4}
+        self.ctx.checked_locations = set()
+        self.run_pump()
+        self.assertEqual(self.sent, [])
+        self.write_game(f"CHECK|{part_4}")
+        self.run_pump()
+        self.run_pump()
+        self.assertEqual(self.sent, [{"cmd": "LocationChecks", "locations": [part_4, old]}])
+
+    def test_retired_location_after_its_stand_in(self) -> None:
+        old, part_4 = 8830148, 8830141
+        self.ctx.missing_locations = {old}
+        self.ctx.checked_locations = {part_4}
+        self.run_pump()
+        self.assertEqual(self.sent, [{"cmd": "LocationChecks", "locations": [old]}])
+
     def test_goal_when_every_finale_is_done(self) -> None:
         self.write_game("GOAL|d3_breen_01")
         self.run_pump()

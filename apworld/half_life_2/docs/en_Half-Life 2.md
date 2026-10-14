@@ -31,10 +31,10 @@ with `vehicle_keys_per_level`), the Airboat and Buggy Guns, optionally the HEV s
 flashlight, Progressive Aux Power and an added melee throw (very fun, highly recommend), 
 plus filler (ammo, medkits, batteries) and traps.
 
-**Locations:** 168.
+**Locations:** 167.
 
 - reaching each part of a chapter, and finishing the chapter
-- pressing use on each of the 41 health chargers and 32 suit chargers, empty or
+- pressing use on each of the 41 health chargers and 31 suit chargers, empty or
   not; these can be switched off with `chargesanity`
 - the first pickup of each weapon, of the HEV suit, and of the super gravity gun
 

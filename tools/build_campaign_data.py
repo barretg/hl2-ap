@@ -856,7 +856,25 @@ def build(game_root: Path, registry: Registry) -> dict:
         raise ScanError(f"hub map maps/{HUB_MAP}.bsp is missing; compile maps/{HUB_MAP}.vmf")
     return {"format": FORMAT_VERSION, "data_version": data_version(items, locations),
             "hub_map": HUB_MAP, "campaigns": campaigns, "chapters": chapters,
-            "requirement_groups": groups, "items": items, "locations": locations}
+            "requirement_groups": groups, "items": items, "locations": locations,
+            "retired_locations": retired_locations(registry, locations)}
+
+
+def retired_locations(registry: Registry, locations: list[dict]) -> dict[str, int]:
+    """`{retired id: stand-in id}`: a location dropped since an older seed was
+    made (an unreachable charger) is sent with its map's `map_reached` check, so
+    those seeds can still finish it."""
+    live = {entry["key"]: entry["id"] for entry in locations}
+    retired = {}
+    for key, location_id in sorted(registry.locations.items(), key=lambda kv: kv[1]):
+        if key in live:
+            continue
+        campaign, chapter, map_name = key.split("|")[:3]
+        stand_in = live.get(f"{campaign}|{chapter}|{map_name}|map_reached")
+        if stand_in is None:
+            raise ScanError(f"retired location {key!r} has no map_reached check to stand in")
+        retired[str(location_id)] = stand_in
+    return retired
 
 
 def default_game_root() -> Path | None:
