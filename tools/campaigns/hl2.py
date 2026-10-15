@@ -111,8 +111,8 @@ HL2 = Campaign(
         # neither it cannot (confirmed in play, 2026-10-06).
         "chopper killer": ["Airboat Gun", "RPG"],
         "explosives": ["Grenade", "RPG"],
-        "ranged": ["Pistol", ".357 Magnum", "SMG", "Pulse Rifle", "Shotgun", "Crossbow",
-                   "RPG"],
+        # Rockets do not pass d3_c17_10a's shield gate (2026-10-15).
+        "ranged": ["Pistol", ".357 Magnum", "SMG", "Pulse Rifle", "Shotgun", "Crossbow"],
         # Sandtraps' battery is reached by blasting its way with the buggy's
         # cannon or the RPG (2026-10-06).
         # The gun only counts with the buggy it is mounted on.
@@ -189,8 +189,9 @@ HL2 = Campaign(
         "Follow Freeman!: Suit Charger 2 (Part 3)": {"items": {"Progressive Gravity Gun": 2}},
     },
     map_check_gates={
-        # Everything in d3_c17_10b past arriving takes grenades, its RPG and
-        # Shotgun pickups included (2026-10-15).
+        # Everything in d3_c17_10b past arriving takes grenades for its
+        # turrets, its RPG and Shotgun pickups included; the RPG does not do
+        # (confirmed in play, 2026-10-15).
         "d3_c17_10b": {"items": {"Grenade": 1}},
     },
 )
