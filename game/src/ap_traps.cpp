@@ -837,7 +837,17 @@ void TrapsLevelStart() {
     }
 }
 
-void QueueTrap(const std::string& name) { g_queue.push_back({name, kTrapDelaySeconds}); }
+void QueueTrap(const std::string& name) {
+    // Joins any trap still counting down, so a batch the client hands over a
+    // window at a time (traps received while offline) springs all at once.
+    float wait = kTrapDelaySeconds;
+    for (const Queued& queued : g_queue) {
+        if (queued.remaining < 0 && queued.wait < wait) {
+            wait = queued.wait;
+        }
+    }
+    g_queue.push_back({name, wait});
+}
 
 void TrapsFrame() {
     CBasePlayer* player = Player();

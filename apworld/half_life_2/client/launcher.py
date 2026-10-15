@@ -12,6 +12,7 @@ cannot desync the two.
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import sys
 from pathlib import Path
@@ -45,6 +46,9 @@ from .bridge import Bridge, store_dir
 GAME_NAME = "Half-Life 2"
 HALF_LIFE_2 = "hl2"
 POLL_INTERVAL = 0.2
+# In the bridge directory: per slot, how much of its item history has been
+# handed to the game. Survives client restarts and reinstalls.
+RECEIVED_NAME = "ap_received.json"
 # Slot data toggles the game acts on itself, passed through as snapshot
 # options, each with its value for a seed whose slot data predates it.
 GAME_OPTIONS = {
@@ -195,11 +199,11 @@ class HalfLife2Context(SuperContext):
         # Retired locations already sent, so a poll does not resend them.
         self.retired_sent: set[int] = set()
         self.bridge_failures = 0
-        # How far through the server's item history this run has got, and
-        # whether the backlog the server resends on connect is in yet. Filler
-        # is a one-shot effect and must never be redelivered from it.
-        self.items_seen = 0
-        self.items_synced = False
+        # How far through the connected slot's item history the game has been
+        # handed filler and traps, kept per slot in RECEIVED_NAME so a restart
+        # never replays them and a slot change never inherits another's count.
+        # None from a connect that found a run under way with no record.
+        self.items_seen: int | None = 0
 
         self.resolve_mod_dir(mod_dir)
 
@@ -240,7 +244,7 @@ class HalfLife2Context(SuperContext):
         super().on_package(cmd, args)
         if cmd == "Connected":
             self.forget_other_slot()
-            self.items_synced = False
+            self.resume_item_history()
             self.apply_slot_data(args.get("slot_data", {}))
             # What each location holds, for the "Sent" line after a check.
             if self.missing_locations:
@@ -310,18 +314,59 @@ class HalfLife2Context(SuperContext):
 
     def receive_items(self, args: dict) -> None:
         """Apply an item packet. Unlocks are rebuilt from the full history the
-        server resends on every connect; filler fires only for items that
-        arrive after it, never from that backlog."""
+        server resends on every connect; filler and traps fire once each, by
+        their index in that history, so ones received while offline still
+        arrive and a resend never repeats them."""
         start = int(args.get("index", 0))
+        end = start + len(args["items"])
         if start == 0:
             self.unlocked_chapters.clear()
             self.received_counts.clear()
-        backlog = not self.items_synced
+        if self.items_seen is None:
+            # A run under way with no record (a client from before the record
+            # existed): its history counts as delivered rather than replaying
+            # every filler and trap in it.
+            self.items_seen = end
         for offset, item in enumerate(args["items"]):
-            is_new = not backlog and (start + offset) >= self.items_seen
-            self.apply_item(item.item, deliver=is_new)
-        self.items_seen = max(self.items_seen, start + len(args["items"]))
-        self.items_synced = True
+            self.apply_item(item.item, deliver=start + offset >= self.items_seen)
+        if end > self.items_seen:
+            self.items_seen = end
+            self.save_items_seen()
+
+    def resume_item_history(self) -> None:
+        """On connect: pick up the slot's delivery count where it was left.
+        No record and no checks yet is a fresh run, where everything is new."""
+        seen = self.load_items_seen()
+        self.items_seen = 0 if seen is None and not self.checked_locations else seen
+
+    def received_path(self) -> Path | None:
+        return store_dir(self.mod_dir) / RECEIVED_NAME if self.mod_dir else None
+
+    def read_received(self) -> dict[str, int]:
+        path = self.received_path()
+        try:
+            data = json.loads(path.read_text(encoding="utf-8")) if path else {}
+        except (OSError, ValueError):
+            return {}
+        return data if isinstance(data, dict) else {}
+
+    def load_items_seen(self) -> int | None:
+        seen = self.read_received().get(self.slot_identity)
+        return seen if isinstance(seen, int) else None
+
+    def save_items_seen(self) -> None:
+        path = self.received_path()
+        if path is None or not self.slot_identity:
+            return
+        record = self.read_received()
+        record[self.slot_identity] = self.items_seen
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            temp = path.with_suffix(".tmp")
+            temp.write_text(json.dumps(record, indent=1), encoding="utf-8")
+            os.replace(temp, path)
+        except OSError as exc:
+            logger.warning(f"Could not save {path.name}: {exc}")
 
     def apply_item(self, item_id: int, deliver: bool = True) -> None:
         entry = self.item_by_id.get(item_id)

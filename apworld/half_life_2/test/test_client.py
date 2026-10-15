@@ -12,6 +12,7 @@ from types import SimpleNamespace
 from NetUtils import NetworkItem
 
 from ..client import launcher
+from ..client.bridge import Bridge
 from ..client.launcher import HalfLife2Context, outgoing_chat, publish, pump
 from ..data import CHAPTERS, ITEMS, LOCATIONS
 
@@ -121,7 +122,62 @@ class TestSnapshot(ClientTest):
         self.ctx.receive_items(batch)
         self.assertEqual(self.ctx.counts, {"Progressive Gravity Gun": 1})
 
-    def test_filler_never_from_the_backlog(self) -> None:
+    def connect(self, ctx: HalfLife2Context, seed: str = "A") -> None:
+        ctx.slot, ctx.seed_name = 1, seed
+        ctx.forget_other_slot()
+        ctx.resume_item_history()
+
+    def restart(self) -> HalfLife2Context:
+        async def make() -> HalfLife2Context:
+            return HalfLife2Context(None, None)
+
+        ctx = self.loop.run_until_complete(make())
+        ctx.apply_slot_data(SLOT_DATA)
+        self.ctx = ctx
+        return ctx
+
+    def test_first_item_of_a_fresh_slot_fires(self) -> None:
+        # The server sends no backlog to a slot with nothing yet, so the first
+        # packet is live and must not be taken for one.
+        self.connect(self.ctx)
+        self.ctx.receive_items({"index": 0, "items": [item("Headcrab Trap")]})
+        self.snapshot()
+        self.assertEqual(self.events(), ["TRAP|Headcrab Trap"])
+
+    def test_items_received_offline_fire_on_reconnect(self) -> None:
+        self.connect(self.ctx)
+        self.ctx.receive_items({"index": 0, "items": [item("Ammo Cache")]})
+        self.connect(self.ctx)
+        self.ctx.receive_items({"index": 0, "items": [
+            item("Ammo Cache"), item("Headcrab Trap"), item("Crow Trap")]})
+        self.snapshot()
+        self.assertEqual(self.events(), ["ITEM|Ammo Cache", "TRAP|Headcrab Trap",
+                                         "TRAP|Crow Trap"])
+
+    def test_restart_never_replays(self) -> None:
+        self.connect(self.ctx)
+        self.ctx.receive_items({"index": 0, "items": [item("Ammo Cache")]})
+        ctx = self.restart()
+        self.connect(ctx)
+        ctx.receive_items({"index": 0, "items": [item("Ammo Cache")]})
+        self.snapshot()
+        self.assertEqual(self.events(), [])
+        ctx.receive_items({"index": 1, "items": [item("Medkit")]})
+        self.snapshot()
+        self.assertEqual(self.events(), ["ITEM|Medkit"])
+
+    def test_a_different_slot_counts_from_zero(self) -> None:
+        self.connect(self.ctx, "A")
+        self.ctx.receive_items({"index": 0, "items": [item("Ammo Cache")] * 3})
+        self.ctx.bridge = Bridge(self.mod / "archipelago")  # drop A's events
+        self.connect(self.ctx, "B")
+        self.ctx.receive_items({"index": 0, "items": [item("Crow Trap")]})
+        self.snapshot()
+        self.assertEqual(self.events(), ["TRAP|Crow Trap"])
+
+    def test_run_under_way_without_a_record_skips_its_backlog(self) -> None:
+        self.ctx.checked_locations = {COMPLETE_ID["d1_canals_01"]}
+        self.connect(self.ctx)
         self.ctx.receive_items({"index": 0, "items": [item("Ammo Cache")]})
         self.snapshot()
         self.assertEqual(self.events(), [])

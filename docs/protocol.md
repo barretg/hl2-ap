@@ -115,7 +115,7 @@ event=5|DEATHLINK|PlayerTwo~a hunter|1786000001
 | Kind | Payload |
 | --- | --- |
 | `ITEM` | filler item name |
-| `TRAP` | trap name, sprung once the level has settled |
+| `TRAP` | trap name, sprung once the player has been up in a level for 5 s; one arriving while others count down joins them, so a batch springs together |
 | `DEATHLINK` | `<source>~<cause>` |
 | `CHAT` | a line of multiworld chat to print in game |
 | `SENT` | `<player>~<item>`: what a check just sent held, from the client's scout of the seed on connect. Printed as `Sent <item> to <player>`; `player` is `yourself` for the slot's own items |

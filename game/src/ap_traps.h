@@ -44,6 +44,7 @@ void TrapsLevelStart();
 
 // A TRAP delivery. Queued, and sprung once the player has been in the level
 // for a while: arriving during a load means spawning into an unsettled map.
+// One arriving while others still count down joins their countdown.
 void QueueTrap(const std::string& name);
 
 // Every frame, once the client is ready.
