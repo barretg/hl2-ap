@@ -164,12 +164,13 @@ HL2 = Campaign(
                       "maps": {"d3_c17_05": {"items": {"Progressive Gravity Gun": 1}},
                                "d3_c17_08": {"items": {"Progressive Gravity Gun": 2}}}},
         # Gunships and the striders at the end. The end of d3_c17_10a takes
-        # a ranged weapon or the gravity gun (2026-10-15). d3_c17_10b's three
-        # Nexus generators are punted off to drop its forcefields: stage 2 for
+        # a ranged weapon or the gravity gun, and everything past arriving in
+        # d3_c17_10b takes grenades (2026-10-15). d3_c17_10b's three Nexus
+        # generators are punted off to drop its forcefields: stage 2 for
         # d3_c17_11 (2026-10-10).
         "d3_c17_09": {"entry": {"strict": ["heavy"]},
                       "maps": {"d3_c17_10b": {"any": [["ranged", "gravity gun"]]},
-                               "d3_c17_11": {"items": {"RPG": 1,
+                               "d3_c17_11": {"items": {"RPG": 1, "Grenade": 1,
                                                        "Progressive Gravity Gun": 2}}}},
         # Past the confiscation field only the supercharged gun works.
         "d3_citadel_01": {"maps": {"d3_citadel_04": {"items": {"Progressive Gravity Gun": 3}}}},
@@ -186,5 +187,10 @@ HL2 = Campaign(
         "Follow Freeman!: Health Charger 3 (Part 3)": {"items": {"Progressive Gravity Gun": 2}},
         "Follow Freeman!: Health Charger 5 (Part 3)": {"items": {"Progressive Gravity Gun": 2}},
         "Follow Freeman!: Suit Charger 2 (Part 3)": {"items": {"Progressive Gravity Gun": 2}},
+    },
+    map_check_gates={
+        # Everything in d3_c17_10b past arriving takes grenades, its RPG and
+        # Shotgun pickups included (2026-10-15).
+        "d3_c17_10b": {"items": {"Grenade": 1}},
     },
 )

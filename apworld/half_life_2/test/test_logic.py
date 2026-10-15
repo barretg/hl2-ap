@@ -173,6 +173,21 @@ class TestLoose(HalfLife2TestBase):
         self.collect(self.get_item_by_name(GRAVITY_GUN))
         self.assertTrue(self.can_reach_region("d3_c17_10b"))
 
+    def test_nexus_past_arrival_needs_grenade(self) -> None:
+        everything_but(self, "Grenade")
+        self.assertTrue(self.can_reach_location("Follow Freeman!: Part 3 Reached"))
+        self.assertFalse(self.can_reach_location("Follow Freeman!: Health Charger 1 (Part 3)"))
+        self.assertFalse(self.can_reach_region("d3_c17_11"))
+        self.collect_by_name("Grenade")
+        self.assertTrue(self.can_reach_location("Follow Freeman!: Health Charger 1 (Part 3)"))
+        self.assertTrue(self.can_reach_region("d3_c17_11"))
+
+    def test_nexus_pickup_needs_grenade(self) -> None:
+        everything_but(self, "Grenade", "Highway 17 Unlock")
+        self.assertFalse(self.can_reach_location("First RPG"))
+        self.collect_by_name("Grenade")
+        self.assertTrue(self.can_reach_location("First RPG"))
+
     def test_car_keys_dropped(self) -> None:
         everything_but(self, "Buggy Keys")
         self.assertTrue(self.can_reach_region("d2_coast_03"))

@@ -799,6 +799,7 @@
     "d3_c17_11": {
      "items": {
       "RPG": 1,
+      "Grenade": 1,
       "Progressive Gravity Gun": 2
      }
     }
@@ -1871,7 +1872,7 @@
   {
    "id": 8820100,
    "name": "Follow Freeman! Grenade",
-   "classification": "useful",
+   "classification": "progression",
    "group": "chapter_weapon",
    "campaign": "hl2",
    "chapter": "d3_c17_09",
@@ -3863,7 +3864,12 @@
     2808,
     -1128,
     564
-   ]
+   ],
+   "gates": {
+    "items": {
+     "Grenade": 1
+    }
+   }
   },
   {
    "id": 8830125,
@@ -3882,7 +3888,12 @@
     3308,
     -576,
     564
-   ]
+   ],
+   "gates": {
+    "items": {
+     "Grenade": 1
+    }
+   }
   },
   {
    "id": 8830126,
@@ -3901,7 +3912,12 @@
     3288,
     -608,
     564
-   ]
+   ],
+   "gates": {
+    "items": {
+     "Grenade": 1
+    }
+   }
   },
   {
    "id": 8830127,
@@ -3923,7 +3939,8 @@
    ],
    "gates": {
     "items": {
-     "Progressive Gravity Gun": 2
+     "Progressive Gravity Gun": 2,
+     "Grenade": 1
     }
    }
   },
@@ -3944,7 +3961,12 @@
     2592,
     -1802,
     564
-   ]
+   ],
+   "gates": {
+    "items": {
+     "Grenade": 1
+    }
+   }
   },
   {
    "id": 8830129,
@@ -3966,7 +3988,8 @@
    ],
    "gates": {
     "items": {
-     "Progressive Gravity Gun": 2
+     "Progressive Gravity Gun": 2,
+     "Grenade": 1
     }
    }
   },
@@ -3990,7 +4013,8 @@
    ],
    "gates": {
     "items": {
-     "Progressive Gravity Gun": 2
+     "Progressive Gravity Gun": 2,
+     "Grenade": 1
     }
    }
   },
@@ -4911,7 +4935,12 @@
       824,
       289
      ],
-     "spawner": "soldiersquad_soldier_makers,Spawn"
+     "spawner": "soldiersquad_soldier_makers,Spawn",
+     "gates": {
+      "items": {
+       "Grenade": 1
+      }
+     }
     }
    ],
    "position": [
@@ -5129,7 +5158,12 @@
       2712,
       1016,
       265
-     ]
+     ],
+     "gates": {
+      "items": {
+       "Grenade": 1
+      }
+     }
     }
    ],
    "position": [

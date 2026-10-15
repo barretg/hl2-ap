@@ -703,6 +703,17 @@ def check_gate(campaign: Campaign, gate: dict, item_names: dict[str, str], where
     ) if v}
 
 
+def merge_gates(a: dict, b: dict) -> dict:
+    """Two gates as one that asks for everything either does."""
+    merged = {k: list(a.get(k, [])) + [e for e in b.get(k, []) if e not in a.get(k, [])]
+              for k in ("strict", "any")}
+    items = dict(a.get("items", {}))
+    for name, count in b.get("items", {}).items():
+        items[name] = max(items.get(name, 0), count)
+    merged["items"] = items
+    return {k: v for k, v in merged.items() if v}
+
+
 def apply_logic(campaign: Campaign, chapters: list[dict], items: list[dict],
                 locations: list[dict]) -> None:
     """Write the campaign's gates into its chapters and checks, failing on
@@ -756,6 +767,16 @@ def apply_logic(campaign: Campaign, chapters: list[dict], items: list[dict],
         if entry is None:
             raise ScanError(f"check gates for unknown check {name}")
         entry["gates"] = check_gate(campaign, gate, item_names, name)
+    all_maps = {m for c in chapters for m in c["maps"]}
+    for map_name, gate in campaign.map_check_gates.items():
+        if map_name not in all_maps:
+            raise ScanError(f"map check gates for unknown map {map_name}")
+        checked = check_gate(campaign, gate, item_names, f"{map_name} checks")
+        for location in locations:
+            for target in location.get("sources", [location]):
+                if target.get("map") != map_name or target.get("trigger", {}).get("type") == "map_reached":
+                    continue
+                target["gates"] = merge_gates(target.get("gates", {}), checked)
 
 
 def chapter_gates(chapter: dict, locations: list[dict]) -> list[dict]:

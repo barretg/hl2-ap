@@ -108,6 +108,9 @@ class Campaign:
     # `{check name: gate}` on one check that sits past a stretch its map
     # gate does not cover (a charger beyond a puzzle mid-map).
     check_gates: dict[str, dict] = field(default_factory=dict)
+    # `{map: gate}` on every check and pickup source in that map except
+    # arriving there (everything past an obstacle just inside it).
+    map_check_gates: dict[str, dict] = field(default_factory=dict)
     # Items every run opens with; never in the pool.
     starting_items: list[str] = field(default_factory=list)
     # Prefix on this campaign's location and item names. Empty for the base
