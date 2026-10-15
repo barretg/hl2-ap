@@ -9,6 +9,9 @@ Gates come from the campaign data (`tools/campaigns/<game>.py`, baked into
 * **any** groups are traversal with more than one way through (the Airboat
   Gun or the RPG for the hunter-chopper): one item from each, at every
   difficulty.
+
+Either list may hold a list of groups in place of one, met by any one of them
+(`["ranged", "gravity gun"]`).
 * **items** are traversal (boat keys, gravity gun stages, the RPG where a
   gunship bars the way): each at its count, at every difficulty.
 
@@ -54,6 +57,14 @@ def group_options(world: "HalfLife2World", group: str, chapter: str) -> list[lis
     return [o for o in named if all(n in world.obtainable_item_names for n in o)]
 
 
+def entry_options(world: "HalfLife2World", entry: str | list[str],
+                  chapter: str) -> list[list[str]]:
+    """The options of a gate entry: one group, or a list of groups any one
+    of which will do."""
+    names = [entry] if isinstance(entry, str) else entry
+    return [o for name in names for o in group_options(world, name, chapter)]
+
+
 def required_items(world: "HalfLife2World", gate: dict, chapter: str) -> dict[str, int]:
     """A gate's `items` as this seed names them in this chapter. Each must
     exist: dropping one would open what the chapter cannot be crossed
@@ -76,7 +87,7 @@ def gate_conditions(world: "HalfLife2World", gate: dict, chapter: str) -> list[R
     if world.options.logic_difficulty.value == LogicDifficulty.option_strict:
         groups += gate.get("strict", [])
     for group in groups:
-        options = group_options(world, group, chapter)
+        options = entry_options(world, group, chapter)
         if all(len(o) == 1 for o in options) and options:
             names = [o[0] for o in options]
             conditions.append(lambda state, names=names: state.has_any(names, player))
@@ -118,7 +129,7 @@ def chapter_is_startable(world: "HalfLife2World", chapter: dict) -> bool:
     if world.options.logic_difficulty.value == LogicDifficulty.option_strict:
         groups += gate.get("strict", [])
     for group in groups:
-        options = group_options(world, group, chapter["key"])
+        options = entry_options(world, group, chapter["key"])
         if options and not any(set(o) <= set(world.starting_items) for o in options):
             return False
     for name in required_items(world, gate, chapter["key"]):

@@ -111,6 +111,8 @@ HL2 = Campaign(
         # neither it cannot (confirmed in play, 2026-10-06).
         "chopper killer": ["Airboat Gun", "RPG"],
         "explosives": ["Grenade", "RPG"],
+        "ranged": ["Pistol", ".357 Magnum", "SMG", "Pulse Rifle", "Shotgun", "Crossbow",
+                   "RPG"],
         # Sandtraps' battery is reached by blasting its way with the buggy's
         # cannon or the RPG (2026-10-06).
         # The gun only counts with the buggy it is mounted on.
@@ -161,11 +163,13 @@ HL2 = Campaign(
         "d3_c17_02": {"entry": {"strict": ["heavy"]},
                       "maps": {"d3_c17_05": {"items": {"Progressive Gravity Gun": 1}},
                                "d3_c17_08": {"items": {"Progressive Gravity Gun": 2}}}},
-        # Gunships and the striders at the end. d3_c17_10b's three Nexus
-        # generators are punted off to drop its forcefields: stage 2 for
+        # Gunships and the striders at the end. The end of d3_c17_10a takes
+        # a ranged weapon or the gravity gun (2026-10-15). d3_c17_10b's three
+        # Nexus generators are punted off to drop its forcefields: stage 2 for
         # d3_c17_11 (2026-10-10).
         "d3_c17_09": {"entry": {"strict": ["heavy"]},
-                      "maps": {"d3_c17_11": {"items": {"RPG": 1,
+                      "maps": {"d3_c17_10b": {"any": [["ranged", "gravity gun"]]},
+                               "d3_c17_11": {"items": {"RPG": 1,
                                                        "Progressive Gravity Gun": 2}}}},
         # Past the confiscation field only the supercharged gun works.
         "d3_citadel_01": {"maps": {"d3_citadel_04": {"items": {"Progressive Gravity Gun": 3}}}},

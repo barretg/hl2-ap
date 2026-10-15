@@ -677,12 +677,18 @@ def build_campaign(campaign: Campaign, game_root: Path, registry: Registry) -> d
     }
 
 
+def gate_groups(gate: dict) -> list[str]:
+    """Every group a gate names, its lists of alternatives flattened."""
+    return [g for e in gate.get("strict", []) + gate.get("any", [])
+            for g in ([e] if isinstance(e, str) else e)]
+
+
 def check_gate(campaign: Campaign, gate: dict, item_names: dict[str, str], where: str) -> dict:
     """A gate record, checked against the campaign's items and groups."""
     unknown = set(gate) - {"strict", "any", "items"}
     if unknown:
         raise ScanError(f"{where}: unknown gate keys {sorted(unknown)}")
-    for group in gate.get("strict", []) + gate.get("any", []):
+    for group in gate_groups(gate):
         if group not in campaign.requirement_groups:
             raise ScanError(f"{where}: no requirement group {group!r}")
     for name, count in gate.get("items", {}).items():
@@ -790,7 +796,7 @@ def add_chapter_weapons(campaign: Campaign, chapters: list[dict], items: list[di
     for chapter in chapters:
         gates = chapter_gates(chapter, locations)
         needed = {n for g in gates for n in g.get("items", {})} & set(weapons)
-        used = {group for g in gates for group in g.get("strict", []) + g.get("any", [])}
+        used = {group for g in gates for group in gate_groups(g)}
         named = needed | ({n for group in used for o in groups[group] for n in o} & set(weapons))
         given = set()
         for name, weapon in weapons.items():

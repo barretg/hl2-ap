@@ -788,6 +788,14 @@
     ]
    },
    "map_gates": {
+    "d3_c17_10b": {
+     "any": [
+      [
+       "ranged",
+       "gravity gun"
+      ]
+     ]
+    },
     "d3_c17_11": {
      "items": {
       "RPG": 1,
@@ -939,6 +947,15 @@
   ],
   "explosives": [
    "Grenade",
+   "RPG"
+  ],
+  "ranged": [
+   "Pistol",
+   ".357 Magnum",
+   "SMG",
+   "Pulse Rifle",
+   "Shotgun",
+   "Crossbow",
    "RPG"
   ],
   "sandtraps battery": [
@@ -1794,7 +1811,7 @@
   {
    "id": 8820095,
    "name": "Follow Freeman! .357 Magnum",
-   "classification": "useful",
+   "classification": "progression",
    "group": "chapter_weapon",
    "campaign": "hl2",
    "chapter": "d3_c17_09",
@@ -1842,7 +1859,7 @@
   {
    "id": 8820099,
    "name": "Follow Freeman! Crossbow",
-   "classification": "useful",
+   "classification": "progression",
    "group": "chapter_weapon",
    "campaign": "hl2",
    "chapter": "d3_c17_09",

@@ -157,6 +157,22 @@ class TestLoose(HalfLife2TestBase):
                        "Crossbow")
         self.assertTrue(self.can_reach_region("d3_c17_02"))
 
+    def test_nexus_needs_ranged(self) -> None:
+        everything_but(self, "Pistol", ".357 Magnum", "SMG", "Pulse Rifle", "Shotgun",
+                       "Crossbow", "Grenade", "RPG", GRAVITY_GUN)
+        self.assertTrue(self.can_reach_region("d3_c17_10a"))
+        self.assertFalse(self.can_reach_region("d3_c17_10b"))
+        self.collect_by_name("Grenade")
+        self.assertFalse(self.can_reach_region("d3_c17_10b"))
+        self.collect_by_name("Pistol")
+        self.assertTrue(self.can_reach_region("d3_c17_10b"))
+
+    def test_nexus_gravity_gun_only(self) -> None:
+        everything_but(self, "Pistol", ".357 Magnum", "SMG", "Pulse Rifle", "Shotgun",
+                       "Crossbow", "Grenade", "RPG", GRAVITY_GUN)
+        self.collect(self.get_item_by_name(GRAVITY_GUN))
+        self.assertTrue(self.can_reach_region("d3_c17_10b"))
+
     def test_car_keys_dropped(self) -> None:
         everything_but(self, "Buggy Keys")
         self.assertTrue(self.can_reach_region("d2_coast_03"))

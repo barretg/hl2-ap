@@ -36,7 +36,8 @@ def test_gates_name_real_things() -> None:
     seen = 0
     for _, gate in gates_of(campaign):
         assert set(gate) <= {"strict", "any", "items"}
-        assert set(gate.get("strict", []) + gate.get("any", [])) <= set(groups)
+        entries = gate.get("strict", []) + gate.get("any", [])
+        assert {g for e in entries for g in ([e] if isinstance(e, str) else e)} <= set(groups)
         assert all(name in items and count >= 1 for name, count in gate.get("items", {}).items())
         seen += 1
     assert seen

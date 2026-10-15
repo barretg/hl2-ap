@@ -91,7 +91,8 @@ class Campaign:
     # Logic. A gate is `{"strict": [requirement group, ...], "any":
     # [requirement group, ...], "items": {item: count}}`: every strict group
     # needs one of its items (strict logic only), every any group one of its
-    # items (any difficulty), every item its count (any difficulty). Item and group names are the
+    # items (any difficulty), every item its count (any difficulty). A list of
+    # groups in place of one is met by any of them. Item and group names are the
     # display names the world uses. Validated by the data build.
     #
     # `{group: [option, ...]}`, "any one of these". An option is an item, or

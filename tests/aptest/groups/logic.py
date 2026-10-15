@@ -60,6 +60,12 @@ def build(ctx) -> list[Scenario]:
             Without the Airboat Gun but with the RPG, can you bring down the
             hunter-chopper in d1_canals_13 and go on to Black Mesa East?
         """, take=["Airboat Gun"], give=["RPG"]),
+        claim("Follow Freeman's Part 3 needs explosives", "d3_c17_10b", """
+            Without the Grenade or the RPG, can you reach every charger in
+            d3_c17_10b (Follow Freeman Part 3) and go on to d3_c17_11? !fail
+            only if all of it is reachable; otherwise !pass and !note which
+            charger or passage needed explosives.
+        """, take=["Grenade", "RPG"]),
         claim("Follow Freeman's striders need the RPG", "d3_c17_11", """
             Without the RPG, can you get from d3_c17_11 to the Citadel?
         """, take=["RPG"]),
