@@ -587,7 +587,7 @@ std::string ChapterStatus(const Chapter& chapter) {
     if (State().ChapterExcluded(chapter.key)) {
         return "not in this seed";
     }
-    if (ChapterDone(chapter)) {
+    if (ChapterDone(chapter) && !State().RemoteComplete(chapter.key)) {
         return "complete";
     }
     if (State().ChapterOpen(chapter.key)) {
@@ -611,8 +611,8 @@ void ListChapters() {
             continue;
         }
         char line[192];
-        Q_snprintf(line, sizeof(line), "  %3s. %-26s [%s]", chapter.number.c_str(),
-                   chapter.name.c_str(), ChapterStatus(chapter).c_str());
+        Q_snprintf(line, sizeof(line), "  %3s. %-26s %s", chapter.number.c_str(),
+                   chapter.name.c_str(), ChapterLabel(chapter).c_str());
         Say(line);
     }
     Say("!warp <number or name> to go, plus a part number to return to somewhere you "
@@ -822,6 +822,13 @@ bool Gating() {
 
 std::string ChapterStatusText(const Chapter& chapter) { return ChapterStatus(chapter); }
 
+// The status in brackets. A chapter the server counts but this machine never
+// finished reads as still to play, with a note that the server has it.
+std::string ChapterLabel(const Chapter& chapter) {
+    const bool remote = ChapterDone(chapter) && State().RemoteComplete(chapter.key);
+    return "[" + ChapterStatus(chapter) + "]" + (remote ? " (Remote Complete)" : "");
+}
+
 bool WarpOpen(const Chapter& chapter) { return !Gating() || ChapterAvailable(chapter); }
 
 bool PartOpen(const Chapter& chapter, int part) {
@@ -1017,7 +1024,7 @@ void GameHelp() {
 
 void GameStatus() {
     const Chapter* chapter = CurrentChapter();
-    Say(chapter ? "Chapter " + chapter->name + " [" + ChapterStatus(*chapter) + "]"
+    Say(chapter ? "Chapter " + chapter->name + " " + ChapterLabel(*chapter)
                 : std::string(IsHub() ? "In the hub" : "Not in a chapter"));
     if (Gating()) {
         Say("Aux power cap " + std::to_string(static_cast<int>(AuxPowerCap())) + "%");

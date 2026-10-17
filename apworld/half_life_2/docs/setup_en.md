@@ -115,6 +115,7 @@ Client-side commands, typed in the client rather than the game:
 | `/install`, `/uninstall` | add or remove the `hl2ap` mod |
 | `/moddir [path]` | show or set the installed mod folder |
 | `/chapters` | chapter unlock status |
+| `/newrun` | starting this slot over: forget which chapters were finished on this machine, so the server's completions show as "(Remote Complete)" until played again. Required if restarting on the same seed. |
 | `/commands` | the in-game commands |
 | `/deathlink` | toggle DeathLink |
 | `/chat` | toggle relaying chat between the game and the multiworld |

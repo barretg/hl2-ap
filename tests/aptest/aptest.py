@@ -200,6 +200,8 @@ class Harness:
         self.opened: set[str] = set()
         # Chapters completed since then: the game's COMPLETEs and !complete.
         self.completed: set[str] = set()
+        # Of those, the ones the game finished itself: the rest are remote.
+        self.played: set[str] = set()
         self.connected = True
         # Re-entrant: a verdict from the game arrives inside the poll and starts
         # the next scenario, which takes the lock again.
@@ -264,6 +266,9 @@ class Harness:
             connected=self.connected,
             chapters=[c for c in chapters if self.chapter_open(c)],
             excluded=sorted(s.excluded) if s is not None else [],
+            # A scenario's preset completions were never played here.
+            remote=[c.key for c in (data.chapters if data is not None else [])
+                    if data.complete_id(c.key) in checked and c.key not in self.played],
             items=[name for name, n in self.items.items() if n > 0],
             counts={name: n for name, n in self.items.items() if name in stages and n > 0},
             starting=STARTING,
@@ -305,6 +310,7 @@ class Harness:
             self.seen = set()
             self.opened = set()
             self.completed = set()
+            self.played = set()
             self.connected = s.connected
             self.publish(force=True)
             # The game loads the map when the sequence number moves, so a redo
@@ -572,6 +578,7 @@ class Harness:
             self.judge_complete(event.kind, event.arg)
             if event.kind == "COMPLETE" and not self.goal_named(event.arg):
                 self.completed.add(event.arg)
+                self.played.add(event.arg)
                 self.publish()
         elif event.kind == "DEATH":
             # The last field is the forgiven flag: say it in words, since a bare

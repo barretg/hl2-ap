@@ -80,6 +80,21 @@ class ClientTest(unittest.TestCase):
         return [line.split("|")[1] + "|" + line.split("|")[2]
                 for line in text.splitlines() if line.startswith("event=")]
 
+    def connect(self, ctx: HalfLife2Context, seed: str = "A") -> None:
+        ctx.slot, ctx.seed_name = 1, seed
+        ctx.forget_other_slot()
+        ctx.resume_item_history()
+        ctx.resume_played_chapters()
+
+    def restart(self) -> HalfLife2Context:
+        async def make() -> HalfLife2Context:
+            return HalfLife2Context(None, None)
+
+        ctx = self.loop.run_until_complete(make())
+        ctx.apply_slot_data(SLOT_DATA)
+        self.ctx = ctx
+        return ctx
+
 
 class TestSnapshot(ClientTest):
     def test_bridges_through_the_mod_folder(self) -> None:
@@ -121,20 +136,6 @@ class TestSnapshot(ClientTest):
         self.ctx.receive_items(batch)
         self.ctx.receive_items(batch)
         self.assertEqual(self.ctx.counts, {"Progressive Gravity Gun": 1})
-
-    def connect(self, ctx: HalfLife2Context, seed: str = "A") -> None:
-        ctx.slot, ctx.seed_name = 1, seed
-        ctx.forget_other_slot()
-        ctx.resume_item_history()
-
-    def restart(self) -> HalfLife2Context:
-        async def make() -> HalfLife2Context:
-            return HalfLife2Context(None, None)
-
-        ctx = self.loop.run_until_complete(make())
-        ctx.apply_slot_data(SLOT_DATA)
-        self.ctx = ctx
-        return ctx
 
     def test_first_item_of_a_fresh_slot_fires(self) -> None:
         # The server sends no backlog to a slot with nothing yet, so the first
@@ -242,6 +243,62 @@ class TestPump(ClientTest):
         self.ctx.checked_locations = {part_4}
         self.run_pump()
         self.assertEqual(self.sent, [{"cmd": "LocationChecks", "locations": [old]}])
+
+    def test_a_chapter_finished_here_is_not_remote(self) -> None:
+        canals = COMPLETE_ID["d1_canals_01"]
+        self.ctx.checked_locations = set()
+        self.connect(self.ctx)
+        self.write_game("COMPLETE|d1_canals_01")
+        self.run_pump()
+        self.ctx.checked_locations = {canals}
+        self.run_pump()
+        self.assertEqual(self.snapshot()["remote"], "")
+        ctx = self.restart()
+        ctx.checked_locations = {canals}
+        self.connect(ctx)
+        ctx.sync_completed()
+        self.assertEqual(self.snapshot()["remote"], "")
+
+    def test_a_collected_chapter_is_remote(self) -> None:
+        self.ctx.checked_locations = set()
+        self.connect(self.ctx)
+        self.ctx.checked_locations = {COMPLETE_ID["d1_canals_01"]}
+        self.run_pump()
+        self.assertEqual(self.snapshot()["remote"], "d1_canals_01")
+        # Played to its end after all: complete here too.
+        self.write_game("COMPLETE|d1_canals_01")
+        self.run_pump()
+        self.assertEqual(self.snapshot()["remote"], "")
+
+    def test_new_run_forgets_local_completions(self) -> None:
+        self.ctx.checked_locations = set()
+        self.connect(self.ctx)
+        self.write_game("COMPLETE|d1_canals_01")
+        self.run_pump()
+        self.ctx.checked_locations = {COMPLETE_ID["d1_canals_01"]}
+        self.assertTrue(launcher.HalfLife2CommandProcessor(self.ctx)._cmd_newrun())
+        self.assertEqual(self.snapshot()["remote"], "d1_canals_01")
+        ctx = self.restart()
+        ctx.checked_locations = {COMPLETE_ID["d1_canals_01"]}
+        self.connect(ctx)
+        ctx.sync_completed()
+        self.assertEqual(self.snapshot()["remote"], "d1_canals_01")
+
+    def test_run_under_way_without_a_record_counts_as_played(self) -> None:
+        self.ctx.checked_locations = {COMPLETE_ID["d1_canals_01"]}
+        self.connect(self.ctx)
+        self.assertEqual(self.snapshot()["remote"], "")
+
+    def test_completions_are_per_slot(self) -> None:
+        self.ctx.checked_locations = set()
+        self.connect(self.ctx, "A")
+        self.write_game("COMPLETE|d1_canals_01")
+        self.run_pump()
+        self.ctx.checked_locations = set()
+        self.connect(self.ctx, "B")
+        self.ctx.checked_locations = {COMPLETE_ID["d1_canals_01"]}
+        self.run_pump()
+        self.assertEqual(self.snapshot()["remote"], "d1_canals_01")
 
     def test_goal_when_every_finale_is_done(self) -> None:
         self.write_game("GOAL|d3_breen_01")

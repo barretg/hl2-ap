@@ -42,6 +42,8 @@ bool Gating();
 // --- for ap_nav ----------------------------------------------------------
 
 std::string ChapterStatusText(const Chapter& chapter);
+// The status in brackets, with "(Remote Complete)" after it when that applies.
+std::string ChapterLabel(const Chapter& chapter);
 // May a warp go to this chapter, and to this part of it (1-based)?
 bool WarpOpen(const Chapter& chapter);
 bool PartOpen(const Chapter& chapter, int part);

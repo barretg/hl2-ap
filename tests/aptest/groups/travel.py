@@ -40,11 +40,25 @@ def build(ctx) -> list[Scenario]:
                 Type !ap. Chat says "[AP] !ap: N lines in the console (~)." In the
                 console, one aligned line per chapter: "    1. Point Insertion ... [..]".
                 Point Insertion is not listed at all (not in this seed), Route Kanal
-                [complete], Highway 17 [locked], the rest [unlocked] and Dark Energy
+                [unlocked] (Remote Complete), since this run never finished it,
+                Highway 17 [locked], the rest [unlocked] and Dark Energy
                 [OPEN] (the harness opens every chapter), then a line on !warp and
                 !hub. Also !help: two aligned columns, as in HL1, and !warps: "Your
                 warp points:" or how to make one. Every chat line starts "[AP]".
                 !pass or !fail <what was wrong>.
+            """,
+        ),
+        Scenario(
+            title="A chapter complete only on the server is marked remote",
+            map=hub, closed=["d1_canals_01"],
+            checked=[data.complete("d1_canals_01"), data.complete("d1_canals_06")],
+            steps="""
+                Route Kanal (locked) and Water Hazard (open) were completed on the
+                server, not played here. Type !ap: in the console Route Kanal's line
+                ends "[locked] (Remote Complete)" and Water Hazard's "[unlocked]
+                (Remote Complete)". Open !menu and its chapter warps: Water Hazard's
+                entry ends "[unlocked] (Remote Complete)".
+                !pass or !fail <what was shown>.
             """,
         ),
         Scenario(

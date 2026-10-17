@@ -49,6 +49,9 @@ POLL_INTERVAL = 0.2
 # In the bridge directory: per slot, how much of its item history has been
 # handed to the game. Survives client restarts and reinstalls.
 RECEIVED_NAME = "ap_received.json"
+# In the bridge directory: per slot, the chapters finished on this machine, so
+# a completion the server reports and this machine never saw reads as remote.
+COMPLETED_NAME = "ap_completed.json"
 # Slot data toggles the game acts on itself, passed through as snapshot
 # options, each with its value for a seed whose slot data predates it.
 GAME_OPTIONS = {
@@ -125,6 +128,18 @@ class HalfLife2CommandProcessor(ClientCommandProcessor):
         self.ctx.print_chapters()
         return True
 
+    def _cmd_newrun(self) -> bool:
+        """Restarting this slot from scratch: forget the chapters finished here,
+        so the server's completions read as remote until played again."""
+        if not self.ctx.slot_identity:
+            logger.info("Connect to the slot first.")
+            return False
+        self.ctx.played_chapters.clear()
+        self.ctx.save_played_chapters()
+        logger.info("Forgot this slot's local completions. Every chapter the server counts "
+                    "now shows as (Remote Complete) until you finish it again.")
+        return True
+
     def _cmd_deathlink(self) -> bool:
         """Toggle DeathLink."""
         self.ctx.death_link_enabled = not self.ctx.death_link_enabled
@@ -191,6 +206,9 @@ class HalfLife2Context(SuperContext):
         self.unlocked_chapters: set[str] = set()
         self.received_counts: dict[str, int] = {}
         self.completed: set[str] = set()
+        # The completed chapters this machine finished itself, kept per slot in
+        # COMPLETED_NAME. The rest of `completed` came from the server alone.
+        self.played_chapters: set[str] = set()
         self.goal_sent = False
         self.state_slot = ""
         self.chat_relay = True
@@ -246,6 +264,7 @@ class HalfLife2Context(SuperContext):
             self.forget_other_slot()
             self.resume_item_history()
             self.apply_slot_data(args.get("slot_data", {}))
+            self.resume_played_chapters()
             # What each location holds, for the "Sent" line after a check.
             if self.missing_locations:
                 asyncio.create_task(self.send_msgs([{
@@ -339,11 +358,11 @@ class HalfLife2Context(SuperContext):
         seen = self.load_items_seen()
         self.items_seen = 0 if seen is None and not self.checked_locations else seen
 
-    def received_path(self) -> Path | None:
-        return store_dir(self.mod_dir) / RECEIVED_NAME if self.mod_dir else None
+    def record_path(self, name: str) -> Path | None:
+        return store_dir(self.mod_dir) / name if self.mod_dir else None
 
-    def read_received(self) -> dict[str, int]:
-        path = self.received_path()
+    def read_record(self, name: str) -> dict:
+        path = self.record_path(name)
         try:
             data = json.loads(path.read_text(encoding="utf-8")) if path else {}
         except (OSError, ValueError):
@@ -351,15 +370,34 @@ class HalfLife2Context(SuperContext):
         return data if isinstance(data, dict) else {}
 
     def load_items_seen(self) -> int | None:
-        seen = self.read_received().get(self.slot_identity)
+        seen = self.read_record(RECEIVED_NAME).get(self.slot_identity)
         return seen if isinstance(seen, int) else None
 
     def save_items_seen(self) -> None:
-        path = self.received_path()
+        self.save_record(RECEIVED_NAME, self.items_seen)
+
+    def resume_played_chapters(self) -> None:
+        """On connect: the slot's local completions, joined with any finished
+        before a slot was named. No record on a run under way (a client from
+        before the record existed) counts what the server has as played here,
+        rather than every completion reading as remote."""
+        saved = self.read_record(COMPLETED_NAME).get(self.slot_identity)
+        if isinstance(saved, list):
+            self.played_chapters |= {str(key) for key in saved}
+        elif self.checked_locations:
+            self.sync_completed()
+            self.played_chapters |= self.completed
+        self.save_played_chapters()
+
+    def save_played_chapters(self) -> None:
+        self.save_record(COMPLETED_NAME, sorted(self.played_chapters))
+
+    def save_record(self, name: str, value: object) -> None:
+        path = self.record_path(name)
         if path is None or not self.slot_identity:
             return
-        record = self.read_received()
-        record[self.slot_identity] = self.items_seen
+        record = self.read_record(name)
+        record[self.slot_identity] = value
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             temp = path.with_suffix(".tmp")
@@ -400,6 +438,9 @@ class HalfLife2Context(SuperContext):
         identity = self.slot_identity
         if identity == self.state_slot:
             return
+        # Chapters finished before any slot was named belong to the first one.
+        if self.state_slot:
+            self.played_chapters.clear()
         self.state_slot = identity
         self.completed.clear()
         self.announced.clear()
@@ -411,6 +452,11 @@ class HalfLife2Context(SuperContext):
         collected or released elsewhere counts as much as one played."""
         by_location = {v: k for k, v in self.complete_location.items()}
         self.completed |= {by_location[i] for i in self.checked_locations if i in by_location}
+
+    @property
+    def remote_completed(self) -> set[str]:
+        """Completed on the server, never finished on this machine."""
+        return self.completed - self.played_chapters
 
     def completed_in(self, campaign: str) -> int:
         finales = set(self.goal_chapters.values())
@@ -459,9 +505,12 @@ class HalfLife2Context(SuperContext):
             key = chapter["key"]
             if self.campaign_of_chapter.get(key) not in self.campaigns:
                 continue
+            # Complete on the server alone: listed as still to play, with a note.
+            remote = key in self.remote_completed
+            note = " (Remote Complete)" if remote else ""
             if key in self.excluded_chapters:
                 status = "not in this seed"
-            elif key in self.completed:
+            elif key in self.completed and not remote:
                 status = "complete"
             elif chapter["is_goal"]:
                 owner = self.campaign_of_chapter[key]
@@ -472,7 +521,7 @@ class HalfLife2Context(SuperContext):
                 status = "unlocked"
             else:
                 status = "locked"
-            logger.info(f"  {chapter['number']:>3}. {chapter['name']:30} [{status}]")
+            logger.info(f"  {chapter['number']:>3}. {chapter['name']:30} [{status}]{note}")
 
     @staticmethod
     def print_in_game_commands() -> None:
@@ -507,6 +556,7 @@ def publish(ctx: HalfLife2Context, force: bool = False) -> None:
         death_link=ctx.death_link_enabled,
         death_link_amnesty=ctx.death_link_amnesty,
         excluded=sorted(ctx.excluded_chapters),
+        remote=sorted(ctx.remote_completed),
         starting=ctx.starting_classnames,
         counts=ctx.counts,
         checked=sorted(ctx.checked_locations),
@@ -540,6 +590,9 @@ async def pump(ctx: HalfLife2Context) -> None:
             new_checks.append(int(event.arg))
         elif event.kind in ("COMPLETE", "GOAL"):
             ctx.completed.add(event.arg)
+            if event.arg not in ctx.played_chapters:
+                ctx.played_chapters.add(event.arg)
+                ctx.save_played_chapters()
             if event.kind == "GOAL" and ctx.run_complete and not ctx.goal_sent and connected:
                 ctx.goal_sent = True
                 await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])

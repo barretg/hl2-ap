@@ -826,8 +826,8 @@ void Build(Page page) {
                     continue;
                 }
                 const Chapter* c = &chapter;
-                g_entries.push_back({chapter.number + ". " + chapter.name + " [" +
-                                         ChapterStatusText(chapter) + "]",
+                g_entries.push_back({chapter.number + ". " + chapter.name + " " +
+                                         ChapterLabel(chapter),
                                      [c] {
                                          int reached = 0;
                                          for (size_t p = 1; p <= c->maps.size(); ++p) {
@@ -886,7 +886,7 @@ void Build(Page page) {
                 return;
             }
             const std::string here = CurrentMap();
-            g_header = "Tracker: " + chapter->name + " [" + ChapterStatusText(*chapter) + "]\n" +
+            g_header = "Tracker: " + chapter->name + " " + ChapterLabel(*chapter) + "\n" +
                        ItemsLine(chapter);
             if (const VehicleKey* key = Data().KeyFor(chapter->key)) {
                 const std::string item = KeyItem(*key);

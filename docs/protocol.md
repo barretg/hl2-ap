@@ -81,6 +81,7 @@ death_link=1
 death_link_amnesty=4
 chapters=d1_canals_01,d1_trainstation_01
 excluded=
+remote=
 items=Shotgun;Water Hazard Boat Keys
 ungated=item_battery
 starting=weapon_crowbar
@@ -100,6 +101,7 @@ event=5|DEATHLINK|PlayerTwo~a hunter|1786000001
 | `data_version` | fingerprint of the id map. If it disagrees with `checkdata.txt` the game stops sending checks |
 | `chapters` | open missions, comma separated. A game's finale is open when listed |
 | `excluded` | missions not in this seed at all, so the game says "not in this seed" instead of "locked" |
+| `remote` | missions complete on the server but never finished on this machine for this slot (collected, released, or played elsewhere). Listed as their open or locked status with "(Remote Complete)" after it. Absent (an older client) means none |
 | `items` | received item names, `;` separated (names may contain commas) |
 | `ungated` | classnames the seed does not gate: neither granted nor refused |
 | `starting` | classnames the run opens with and must never lose, in the seed's order. Empty means "use checkdata.txt", never "start with nothing" |

@@ -82,6 +82,11 @@ class CheckData:
         return next(l.id for l in self.locations.values()
                     if l.kind == "chapter_complete" and l.arg == chapter_key)
 
+    def complete_id(self, chapter_key: str) -> int | None:
+        """`complete`, or None for a chapter with no completion location."""
+        return next((l.id for l in self.locations.values()
+                     if l.kind == "chapter_complete" and l.arg == chapter_key), None)
+
     def part_of(self, map_name: str) -> int:
         return self.chapter_of(map_name).maps.index(map_name) + 1
 
