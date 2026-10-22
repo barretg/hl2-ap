@@ -60,6 +60,18 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
+            title="Stage 0 at the Citadel field: it still lets you out",
+            map=field.map, pos=field.position, counts={GUN: 0},
+            steps="""
+                Walk through the confiscation field with no gravity gun. Your other
+                weapons dissolve; a couple of seconds after the last one, the field
+                sparks and errors out as if it had charged a gun, and its exit opens.
+                Walk out: your loadout comes back, and First Super Gravity Gun is not
+                sent.
+                !pass or !fail <what happened>.
+            """,
+        ),
+        Scenario(
             title="The Citadel: your loadout comes back past the field",
             map=field.map, pos=field.position, counts={GUN: 4},
             steps="""

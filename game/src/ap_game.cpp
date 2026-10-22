@@ -9,6 +9,8 @@
 #include "prop_combine_ball.h"
 #include "basecombatweapon_shared.h"
 #include "ammodef.h"
+#include "triggers.h"
+#include "eventqueue.h"
 #include "filesystem.h"
 
 #include "ap_game.h"
@@ -76,6 +78,10 @@ bool g_stripped = false;
 // When the warp save for this map is due, or < 0.
 double g_save_due = -1.0;
 bool g_upgrade_sent = false;
+// The Citadel's field with no gravity gun to charge: when it was first seen
+// empty (< 0 not yet), and whether its exit was opened for the player.
+double g_field_empty_since = -1.0;
+bool g_field_opened = false;
 // Consumable weapons granted on this map: a thrown-away last grenade must not
 // come back every second.
 std::set<std::string> g_granted_here;
@@ -337,6 +343,57 @@ const NamedWarp* FindNamedWarp(const std::vector<NamedWarp>& warps, const std::s
 bool Confiscated() {
     // From the Citadel's field on (weapon drops dissolve on gravity gun kills).
     return GlobalEntity_GetState("super_phys_gun") == GLOBAL_ON;
+}
+
+// The Citadel's field opens its exit only once it charges a gravity gun
+// (OnChargingPhyscannon). A player without one would be shut in, so once the
+// field has dissolved everything and no gun exists anywhere, fire the relay
+// that output starts and mark the gun as supercharged, as the charge would.
+const char* const kFieldChargedRelay = "logic_weapon_strip_physcannon_start";
+const double kFieldEmptySeconds = 2.0;
+
+bool FieldStillWorking(CBaseTrigger* field) {
+    for (CBaseEntity* e = gEntList.FindEntityByClassname(nullptr, "weapon_*"); e != nullptr;
+         e = gEntList.FindEntityByClassname(e, "weapon_*")) {
+        CBaseCombatWeapon* weapon = e->MyCombatWeaponPointer();
+        if (weapon == nullptr) {
+            continue;
+        }
+        if (FClassnameIs(weapon, kPhyscannon)) {
+            return true;  // the field charges it the usual way
+        }
+        if (weapon->GetOwner() == nullptr && field->PointIsWithin(weapon->WorldSpaceCenter())) {
+            return true;  // still being dissolved
+        }
+    }
+    return false;
+}
+
+void FieldFrame() {
+    if (g_field_opened || !Gating() || Confiscated()) {
+        return;
+    }
+    CBaseEntity* found = gEntList.FindEntityByClassname(nullptr, "trigger_weapon_dissolve");
+    CBaseTrigger* field = dynamic_cast<CBaseTrigger*>(found);
+    if (field == nullptr || field->m_bDisabled || FieldStillWorking(field)) {
+        g_field_empty_since = -1.0;
+        return;
+    }
+    if (g_field_empty_since < 0) {
+        g_field_empty_since = Now();
+        return;
+    }
+    if (Now() - g_field_empty_since < kFieldEmptySeconds) {
+        return;
+    }
+    g_field_opened = true;
+    variant_t none;
+    g_EventQueue.AddEvent(kFieldChargedRelay, "Trigger", none, 0.0f, field, field);
+    if (!GlobalEntity_IsInTable("super_phys_gun")) {
+        GlobalEntity_Add(MAKE_STRING("super_phys_gun"), gpGlobals->mapname, GLOBAL_ON);
+    } else {
+        GlobalEntity_SetState(MAKE_STRING("super_phys_gun"), GLOBAL_ON);
+    }
 }
 
 // Weapons that leave the inventory when used up.
@@ -874,6 +931,8 @@ void GameLevelStart() {
     g_stripped = false;
     g_save_due = -1.0;
     g_upgrade_sent = false;
+    g_field_empty_since = -1.0;
+    g_field_opened = false;
     g_goal_sent = false;
     g_last_notice.clear();
     g_granted_here.clear();
@@ -962,6 +1021,7 @@ void GameFrame() {
     }
     TrapsFrame();
     NavFrame();
+    FieldFrame();
     static int frame = 0;
     if (++frame % 30 == 0) {
         ApplyLoadout();  // catches spawns and quickloads without a hook
