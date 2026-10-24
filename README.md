@@ -178,6 +178,11 @@ multiworld is the last step before release. See [game/README.md](game/README.md)
 for how the game side is built and [docs/playtest.md](docs/playtest.md) for how
 it is tested.
 
+## Credits
+
+Crowbar throw physics adapted from the knife throw in
+[Murder](https://github.com/MechanicalMind/murder) by MechanicalMind (Garry's Mod gamemode).
+
 ## AI Usage Disclosure
 
 Claude Code was used in the production of this apworld and client integrated into
