@@ -563,18 +563,46 @@ int SpringJunk(CBasePlayer* player, int want) {
     const Vector eye = player->EyePosition();
     trace_t tr;
     UTIL_TraceLine(eye, eye + Vector(0, 0, 200), MASK_SOLID, player, COLLISION_GROUP_NONE, &tr);
-    const float top = (std::max)(tr.endpos.z - 24.0f, eye.z + 24.0f);
+    const float ceiling = tr.endpos.z;
+    // Each prop in a space of its own: two spawned into one another (as a low
+    // ceiling once stacked all of them on one point) crash the physics engine.
+    std::vector<std::pair<Vector, float>> placed;
     int made = 0;
     for (int i = 0; i < want; ++i) {
-        const Vector above(eye.x, eye.y, top);
-        const Vector want = above + Vector(RandomFloat(-64, 64), RandomFloat(-64, 64), 0);
-        UTIL_TraceLine(above, want, MASK_SOLID, player, COLLISION_GROUP_NONE, &tr);
-        const Vector at = above + (want - above) * (std::max)(tr.fraction - 0.2f, 0.0f);
-        for (int tries = 0; tries < 3; ++tries) {
+        for (int tries = 0; tries < 6; ++tries) {
             if (models.empty()) {
                 break;
             }
             const std::string& model = models[RandomInt(0, static_cast<int>(models.size()) - 1)];
+            const int index = modelinfo->GetModelIndex(model.c_str());
+            const model_t* mdl = index >= 0 ? modelinfo->GetModel(index) : nullptr;
+            if (mdl == nullptr) {
+                continue;
+            }
+            Vector mins, maxs;
+            modelinfo->GetModelBounds(mdl, mins, maxs);
+            // Any rotation fits in the sphere around its origin.
+            const float r = (std::max)(mins.Length(), maxs.Length()) + 2.0f;
+            const Vector above(eye.x, eye.y, (std::max)(ceiling - r - 2.0f, eye.z + 24.0f));
+            const float spread = 64.0f + 16.0f * tries;
+            const Vector target =
+                above + Vector(RandomFloat(-spread, spread), RandomFloat(-spread, spread), 0);
+            UTIL_TraceHull(above, target, Vector(-r, -r, -r), Vector(r, r, r), MASK_SOLID, player,
+                           COLLISION_GROUP_NONE, &tr);
+            if (tr.startsolid || tr.allsolid) {
+                continue;  // no room over the player's head for this one
+            }
+            const Vector at = tr.endpos;
+            bool crowded = false;
+            for (const auto& other : placed) {
+                if ((other.first - at).Length() < other.second + r) {
+                    crowded = true;
+                    break;
+                }
+            }
+            if (crowded) {
+                continue;
+            }
             CBaseEntity* entity = CreateEntityByName("prop_physics");
             if (entity == nullptr) {
                 break;
@@ -596,6 +624,7 @@ int SpringJunk(CBasePlayer* player, int want) {
             entity->Activate();
             phys->Wake();
             entity->SUB_StartFadeOut(kJunkFadeSeconds, false);
+            placed.push_back({at, r});
             ++made;
             break;
         }
