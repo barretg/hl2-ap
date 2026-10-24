@@ -166,6 +166,25 @@ def build(ctx) -> list[Scenario]:
             """,
         ),
         Scenario(
+            title="Dark Energy starts at 100 health and 200 armour with the suit",
+            map="d3_breen_01",
+            steps="""
+                Within a second of arriving the HUD reads 100 health and 200 suit,
+                as retail arrives from the Citadel. Type sv_cheats 1, hurtme 30,
+                save hl2ap_topup, then load hl2ap_topup and wait: the hurt stays
+                (loading a save is not a fresh arrival).
+                !pass or !fail <what the HUD showed>.
+            """,
+        ),
+        Scenario(
+            title="Dark Energy without the suit: no armour top-up",
+            map="d3_breen_01", take=["HEV Suit"],
+            steps="""
+                Without the HEV Suit, suit armour stays at 0 after arriving.
+                !pass or !fail <what the HUD showed>.
+            """,
+        ),
+        Scenario(
             title="The main menu: no HUD over it",
             map=hub,
             steps="""

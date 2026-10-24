@@ -86,6 +86,8 @@ bool g_field_opened = false;
 // come back every second.
 std::set<std::string> g_granted_here;
 bool g_goal_sent = false;
+// Dark Energy entered fresh (not from a save): the suit's top-up is owed.
+bool g_finale_topup = false;
 // The hub's start was checked for the player being inside geometry.
 // Refusal notices, by what was refused, so one held trigger is one line.
 std::map<std::string, double> g_last_notice;
@@ -351,6 +353,23 @@ bool Confiscated() {
 // that output starts and mark the gun as supercharged, as the charge would.
 const char* const kFieldChargedRelay = "logic_weapon_strip_physcannon_start";
 const double kFieldEmptySeconds = 2.0;
+
+// Retail reaches Dark Energy with the Citadel's chargers having filled health
+// and armour to 100 and 200; a run gets there by any route, so with the suit
+// held it is topped up on arrival instead.
+const char* const kFinaleMap = "d3_breen_01";
+const int kFinaleArmor = 200;
+
+void FinaleTopUp(CBasePlayer* player) {
+    if (!g_finale_topup || !g_judged || !player->IsAlive()) {
+        return;
+    }
+    g_finale_topup = false;
+    if (Holds(kSuitItem)) {
+        player->SetHealth(Max(player->GetHealth(), player->GetMaxHealth()));
+        player->SetArmorValue(Max(player->ArmorValue(), kFinaleArmor));
+    }
+}
 
 bool FieldStillWorking(CBaseTrigger* field) {
     for (CBaseEntity* e = gEntList.FindEntityByClassname(nullptr, "weapon_*"); e != nullptr;
@@ -934,6 +953,8 @@ void GameLevelStart() {
     g_field_empty_since = -1.0;
     g_field_opened = false;
     g_goal_sent = false;
+    g_finale_topup = gpGlobals->eLoadType != MapLoad_LoadGame &&
+                     Lower(CurrentMap()) == kFinaleMap;
     g_last_notice.clear();
     g_granted_here.clear();
     TrapsLevelStart();
@@ -1022,6 +1043,7 @@ void GameFrame() {
     TrapsFrame();
     NavFrame();
     FieldFrame();
+    FinaleTopUp(player);
     static int frame = 0;
     if (++frame % 30 == 0) {
         ApplyLoadout();  // catches spawns and quickloads without a hook
