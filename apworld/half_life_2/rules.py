@@ -11,7 +11,8 @@ Gates come from the campaign data (`tools/campaigns/<game>.py`, baked into
   difficulty.
 
 Either list may hold a list of groups in place of one, met by any one of them
-(`["ranged", "gravity gun"]`).
+(`["ranged", "gravity gun"]`). A group option that is a list needs all its
+items, a name listed n times needing n copies.
 * **items** are traversal (boat keys, gravity gun stages, the RPG where a
   gunship bars the way): each at its count, at every difficulty.
 
@@ -25,6 +26,7 @@ one key unless `vehicle_keys_per_level`.
 
 from __future__ import annotations
 
+from collections import Counter
 from typing import TYPE_CHECKING, Callable
 
 from BaseClasses import CollectionState
@@ -92,8 +94,9 @@ def gate_conditions(world: "HalfLife2World", gate: dict, chapter: str) -> list[R
             names = [o[0] for o in options]
             conditions.append(lambda state, names=names: state.has_any(names, player))
         elif options:
-            conditions.append(lambda state, options=options: any(
-                state.has_all(o, player) for o in options))
+            counted = [Counter(o) for o in options]
+            conditions.append(lambda state, counted=counted: any(
+                all(state.has(n, player, c) for n, c in o.items()) for o in counted))
     for name, count in required_items(world, gate, chapter).items():
         if name in world.obtainable_item_names:
             conditions.append(

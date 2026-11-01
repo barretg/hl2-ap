@@ -32,7 +32,7 @@
 # A charger's position is its rounded origin. The game matches the unit a
 # player used by nearest same-class entity within a radius, never by rounding.
 V|1
-D|8b84615fdb73
+D|ae8de8a83654
 B|alpha_hub
 N|hl2|hl2|Half-Life 2|d3_breen_01
 C|0|d1_trainstation_01|1|Point Insertion|d1_trainstation_01,d1_trainstation_02,d1_trainstation_03,d1_trainstation_04|0|hl2|forward_exit|d1_trainstation_04>d1_trainstation_05
@@ -354,20 +354,61 @@ J|scripts/vehicles/airboat.txt|Airboat Keys
 J|scripts/vehicles/jeep_test.txt|Buggy Keys
 U|Airboat Gun|d1_canals_11,d1_canals_13
 U|Buggy Gun|d2_coast_01,d2_coast_03,d2_coast_04,d2_coast_05,d2_coast_07,d2_coast_08,d2_coast_09,d2_coast_10
+W|d1_trainstation_01|weapon_pistol|Point Insertion Pistol
+W|d1_trainstation_01|weapon_357|Point Insertion .357 Magnum
+W|d1_trainstation_01|weapon_smg1|Point Insertion SMG
+W|d1_trainstation_01|weapon_ar2|Point Insertion Pulse Rifle
+W|d1_trainstation_01|weapon_shotgun|Point Insertion Shotgun
+W|d1_trainstation_01|weapon_crossbow|Point Insertion Crossbow
+W|d1_trainstation_01|weapon_frag|Point Insertion Grenade
+W|d1_trainstation_01|weapon_rpg|Point Insertion RPG
+W|d1_trainstation_01|weapon_bugbait|Point Insertion Bugbait
 W|d1_trainstation_05|weapon_pistol|A Red Letter Day Pistol
+W|d1_trainstation_05|weapon_357|A Red Letter Day .357 Magnum
+W|d1_trainstation_05|weapon_smg1|A Red Letter Day SMG
+W|d1_trainstation_05|weapon_ar2|A Red Letter Day Pulse Rifle
+W|d1_trainstation_05|weapon_shotgun|A Red Letter Day Shotgun
+W|d1_trainstation_05|weapon_crossbow|A Red Letter Day Crossbow
+W|d1_trainstation_05|weapon_frag|A Red Letter Day Grenade
+W|d1_trainstation_05|weapon_rpg|A Red Letter Day RPG
+W|d1_trainstation_05|weapon_bugbait|A Red Letter Day Bugbait
 W|d1_canals_01|weapon_pistol|Route Kanal Pistol
+W|d1_canals_01|weapon_357|Route Kanal .357 Magnum
 W|d1_canals_01|weapon_smg1|Route Kanal SMG
+W|d1_canals_01|weapon_ar2|Route Kanal Pulse Rifle
+W|d1_canals_01|weapon_shotgun|Route Kanal Shotgun
+W|d1_canals_01|weapon_crossbow|Route Kanal Crossbow
 W|d1_canals_01|weapon_frag|Route Kanal Grenade
+W|d1_canals_01|weapon_rpg|Route Kanal RPG
+W|d1_canals_01|weapon_bugbait|Route Kanal Bugbait
 W|d1_canals_06|weapon_pistol|Water Hazard Pistol
 W|d1_canals_06|weapon_357|Water Hazard .357 Magnum
 W|d1_canals_06|weapon_smg1|Water Hazard SMG
+W|d1_canals_06|weapon_ar2|Water Hazard Pulse Rifle
+W|d1_canals_06|weapon_shotgun|Water Hazard Shotgun
+W|d1_canals_06|weapon_crossbow|Water Hazard Crossbow
 W|d1_canals_06|weapon_frag|Water Hazard Grenade
+W|d1_canals_06|weapon_rpg|Water Hazard RPG
+W|d1_canals_06|weapon_bugbait|Water Hazard Bugbait
+W|d1_eli_01|weapon_pistol|Black Mesa East Pistol
+W|d1_eli_01|weapon_357|Black Mesa East .357 Magnum
+W|d1_eli_01|weapon_smg1|Black Mesa East SMG
+W|d1_eli_01|weapon_ar2|Black Mesa East Pulse Rifle
+W|d1_eli_01|weapon_shotgun|Black Mesa East Shotgun
+W|d1_eli_01|weapon_crossbow|Black Mesa East Crossbow
+W|d1_eli_01|weapon_frag|Black Mesa East Grenade
+W|d1_eli_01|weapon_rpg|Black Mesa East RPG
+W|d1_eli_01|weapon_bugbait|Black Mesa East Bugbait
 W|d1_town_01|weapon_pistol|We Don't Go to Ravenholm... Pistol
 W|d1_town_01|weapon_357|We Don't Go to Ravenholm... .357 Magnum
 W|d1_town_01|weapon_smg1|We Don't Go to Ravenholm... SMG
 W|d1_town_01|weapon_ar2|We Don't Go to Ravenholm... Pulse Rifle
 W|d1_town_01|weapon_shotgun|We Don't Go to Ravenholm... Shotgun
+W|d1_town_01|weapon_crossbow|We Don't Go to Ravenholm... Crossbow
 W|d1_town_01|weapon_frag|We Don't Go to Ravenholm... Grenade
+W|d1_town_01|weapon_rpg|We Don't Go to Ravenholm... RPG
+W|d1_town_01|weapon_bugbait|We Don't Go to Ravenholm... Bugbait
+W|d2_coast_01|weapon_pistol|Highway 17 Pistol
 W|d2_coast_01|weapon_357|Highway 17 .357 Magnum
 W|d2_coast_01|weapon_smg1|Highway 17 SMG
 W|d2_coast_01|weapon_ar2|Highway 17 Pulse Rifle
@@ -375,6 +416,9 @@ W|d2_coast_01|weapon_shotgun|Highway 17 Shotgun
 W|d2_coast_01|weapon_crossbow|Highway 17 Crossbow
 W|d2_coast_01|weapon_frag|Highway 17 Grenade
 W|d2_coast_01|weapon_rpg|Highway 17 RPG
+W|d2_coast_01|weapon_bugbait|Highway 17 Bugbait
+W|d2_coast_09|weapon_pistol|Sandtraps Pistol
+W|d2_coast_09|weapon_357|Sandtraps .357 Magnum
 W|d2_coast_09|weapon_smg1|Sandtraps SMG
 W|d2_coast_09|weapon_ar2|Sandtraps Pulse Rifle
 W|d2_coast_09|weapon_shotgun|Sandtraps Shotgun
@@ -382,22 +426,34 @@ W|d2_coast_09|weapon_crossbow|Sandtraps Crossbow
 W|d2_coast_09|weapon_frag|Sandtraps Grenade
 W|d2_coast_09|weapon_rpg|Sandtraps RPG
 W|d2_coast_09|weapon_bugbait|Sandtraps Bugbait
+W|d2_prison_02|weapon_pistol|Nova Prospekt Pistol
 W|d2_prison_02|weapon_357|Nova Prospekt .357 Magnum
 W|d2_prison_02|weapon_smg1|Nova Prospekt SMG
 W|d2_prison_02|weapon_ar2|Nova Prospekt Pulse Rifle
 W|d2_prison_02|weapon_shotgun|Nova Prospekt Shotgun
 W|d2_prison_02|weapon_crossbow|Nova Prospekt Crossbow
 W|d2_prison_02|weapon_frag|Nova Prospekt Grenade
+W|d2_prison_02|weapon_rpg|Nova Prospekt RPG
+W|d2_prison_02|weapon_bugbait|Nova Prospekt Bugbait
+W|d2_prison_06|weapon_pistol|Entanglement Pistol
+W|d2_prison_06|weapon_357|Entanglement .357 Magnum
 W|d2_prison_06|weapon_smg1|Entanglement SMG
 W|d2_prison_06|weapon_ar2|Entanglement Pulse Rifle
 W|d2_prison_06|weapon_shotgun|Entanglement Shotgun
+W|d2_prison_06|weapon_crossbow|Entanglement Crossbow
 W|d2_prison_06|weapon_frag|Entanglement Grenade
+W|d2_prison_06|weapon_rpg|Entanglement RPG
+W|d2_prison_06|weapon_bugbait|Entanglement Bugbait
 W|d3_c17_02|weapon_pistol|Anticitizen One Pistol
 W|d3_c17_02|weapon_357|Anticitizen One .357 Magnum
 W|d3_c17_02|weapon_smg1|Anticitizen One SMG
 W|d3_c17_02|weapon_ar2|Anticitizen One Pulse Rifle
 W|d3_c17_02|weapon_shotgun|Anticitizen One Shotgun
+W|d3_c17_02|weapon_crossbow|Anticitizen One Crossbow
 W|d3_c17_02|weapon_frag|Anticitizen One Grenade
+W|d3_c17_02|weapon_rpg|Anticitizen One RPG
+W|d3_c17_02|weapon_bugbait|Anticitizen One Bugbait
+W|d3_c17_09|weapon_pistol|Follow Freeman! Pistol
 W|d3_c17_09|weapon_357|Follow Freeman! .357 Magnum
 W|d3_c17_09|weapon_smg1|Follow Freeman! SMG
 W|d3_c17_09|weapon_ar2|Follow Freeman! Pulse Rifle
@@ -405,4 +461,23 @@ W|d3_c17_09|weapon_shotgun|Follow Freeman! Shotgun
 W|d3_c17_09|weapon_crossbow|Follow Freeman! Crossbow
 W|d3_c17_09|weapon_frag|Follow Freeman! Grenade
 W|d3_c17_09|weapon_rpg|Follow Freeman! RPG
+W|d3_c17_09|weapon_bugbait|Follow Freeman! Bugbait
+W|d3_citadel_01|weapon_pistol|Our Benefactors Pistol
+W|d3_citadel_01|weapon_357|Our Benefactors .357 Magnum
+W|d3_citadel_01|weapon_smg1|Our Benefactors SMG
+W|d3_citadel_01|weapon_ar2|Our Benefactors Pulse Rifle
+W|d3_citadel_01|weapon_shotgun|Our Benefactors Shotgun
+W|d3_citadel_01|weapon_crossbow|Our Benefactors Crossbow
+W|d3_citadel_01|weapon_frag|Our Benefactors Grenade
+W|d3_citadel_01|weapon_rpg|Our Benefactors RPG
+W|d3_citadel_01|weapon_bugbait|Our Benefactors Bugbait
+W|d3_breen_01|weapon_pistol|Dark Energy Pistol
+W|d3_breen_01|weapon_357|Dark Energy .357 Magnum
+W|d3_breen_01|weapon_smg1|Dark Energy SMG
+W|d3_breen_01|weapon_ar2|Dark Energy Pulse Rifle
+W|d3_breen_01|weapon_shotgun|Dark Energy Shotgun
+W|d3_breen_01|weapon_crossbow|Dark Energy Crossbow
+W|d3_breen_01|weapon_frag|Dark Energy Grenade
+W|d3_breen_01|weapon_rpg|Dark Energy RPG
+W|d3_breen_01|weapon_bugbait|Dark Energy Bugbait
 P|Progressive Aux Power|4|

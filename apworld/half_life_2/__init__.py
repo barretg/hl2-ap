@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import Any, ClassVar
 
 from BaseClasses import Tutorial
-from Options import DeathLink, OptionGroup
+from Options import DeathLink, OptionError, OptionGroup
 from worlds.AutoWorld import WebWorld, World
 from worlds.LauncherComponents import Component, Type, components, launch_subprocess
 
@@ -180,6 +180,11 @@ class HalfLife2World(World):
             self.campaigns = list(passthrough.get("campaigns", self.campaigns))
 
         self.excluded_chapters = {c["key"] for c in CHAPTERS if campaign_of(c) not in self.campaigns}
+        if (self.options.weapons_per_level and not self.options.chargesanity
+                and not passthrough):
+            # Every chapter's item for every weapon outnumbers the checks
+            # left without the chargers.
+            raise OptionError(f"{self.player_name}: Weapons Per Level needs Chargesanity")
         if not self.options.chargesanity:
             self.excluded_triggers.add(CHARGER_TRIGGER)
         if passthrough:

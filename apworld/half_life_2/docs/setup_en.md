@@ -135,9 +135,9 @@ mounted guns need the Airboat Gun and the Buggy Gun.
 
 With `weapons_per_level`, a weapon is held only in chapters whose own item for
 it has arrived: Highway 17 SMG gives you the SMG in Highway 17 and nowhere
-else. A chapter has an item for a weapon where the weapon can be found in it,
-or where the chapter cannot be finished without it. The crowbar and the
-gravity gun stay one item.
+else. Every chapter has an item for every weapon. The crowbar and the gravity
+gun stay one item. It needs `chargesanity`, as without the chargers there are
+too few checks for all those items.
 
 The gravity gun comes as four Progressive Gravity Guns: hold and drop, then
 punts, then the Citadel's supercharge (organics refused), then the full super

@@ -1,6 +1,6 @@
 {
  "format": 1,
- "data_version": "8b84615fdb73",
+ "data_version": "ae8de8a83654",
  "hub_map": "alpha_hub",
  "campaigns": [
   {
@@ -885,6 +885,13 @@
    },
    "map_gates": {
     "d3_citadel_04": {
+     "strict": [
+      "suit",
+      [
+       "ranged",
+       "super gravity gun"
+      ]
+     ],
      "items": {
       "Progressive Gravity Gun": 3
      }
@@ -932,6 +939,17 @@
   ],
   "gravity gun": [
    "Progressive Gravity Gun"
+  ],
+  "super gravity gun": [
+   [
+    "Progressive Gravity Gun",
+    "Progressive Gravity Gun",
+    "Progressive Gravity Gun",
+    "Progressive Gravity Gun"
+   ]
+  ],
+  "suit": [
+   "HEV Suit"
   ],
   "highway 17 buggy": [
    "Highway 17 Buggy Keys"
@@ -1281,6 +1299,114 @@
    ]
   },
   {
+   "id": 8820102,
+   "name": "Point Insertion Pistol",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "weapon": "Pistol",
+   "classnames": [
+    "weapon_pistol"
+   ]
+  },
+  {
+   "id": 8820103,
+   "name": "Point Insertion .357 Magnum",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "weapon": ".357 Magnum",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
+   "id": 8820104,
+   "name": "Point Insertion SMG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "weapon": "SMG",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820105,
+   "name": "Point Insertion Pulse Rifle",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "weapon": "Pulse Rifle",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820106,
+   "name": "Point Insertion Shotgun",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "weapon": "Shotgun",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820107,
+   "name": "Point Insertion Crossbow",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "weapon": "Crossbow",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
+   "id": 8820108,
+   "name": "Point Insertion Grenade",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "weapon": "Grenade",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820109,
+   "name": "Point Insertion RPG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "weapon": "RPG",
+   "classnames": [
+    "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820110,
+   "name": "Point Insertion Bugbait",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_01",
+   "weapon": "Bugbait",
+   "classnames": [
+    "weapon_bugbait"
+   ]
+  },
+  {
    "id": 8820051,
    "name": "A Red Letter Day Pistol",
    "classification": "useful",
@@ -1290,6 +1416,102 @@
    "weapon": "Pistol",
    "classnames": [
     "weapon_pistol"
+   ]
+  },
+  {
+   "id": 8820111,
+   "name": "A Red Letter Day .357 Magnum",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "weapon": ".357 Magnum",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
+   "id": 8820112,
+   "name": "A Red Letter Day SMG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "weapon": "SMG",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820113,
+   "name": "A Red Letter Day Pulse Rifle",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "weapon": "Pulse Rifle",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820114,
+   "name": "A Red Letter Day Shotgun",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "weapon": "Shotgun",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820115,
+   "name": "A Red Letter Day Crossbow",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "weapon": "Crossbow",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
+   "id": 8820116,
+   "name": "A Red Letter Day Grenade",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "weapon": "Grenade",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820117,
+   "name": "A Red Letter Day RPG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "weapon": "RPG",
+   "classnames": [
+    "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820118,
+   "name": "A Red Letter Day Bugbait",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_trainstation_05",
+   "weapon": "Bugbait",
+   "classnames": [
+    "weapon_bugbait"
    ]
   },
   {
@@ -1305,6 +1527,18 @@
    ]
   },
   {
+   "id": 8820119,
+   "name": "Route Kanal .357 Magnum",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "weapon": ".357 Magnum",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
    "id": 8820053,
    "name": "Route Kanal SMG",
    "classification": "progression",
@@ -1317,6 +1551,42 @@
    ]
   },
   {
+   "id": 8820120,
+   "name": "Route Kanal Pulse Rifle",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "weapon": "Pulse Rifle",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820121,
+   "name": "Route Kanal Shotgun",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "weapon": "Shotgun",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820122,
+   "name": "Route Kanal Crossbow",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "weapon": "Crossbow",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
    "id": 8820054,
    "name": "Route Kanal Grenade",
    "classification": "useful",
@@ -1326,6 +1596,30 @@
    "weapon": "Grenade",
    "classnames": [
     "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820123,
+   "name": "Route Kanal RPG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "weapon": "RPG",
+   "classnames": [
+    "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820124,
+   "name": "Route Kanal Bugbait",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_01",
+   "weapon": "Bugbait",
+   "classnames": [
+    "weapon_bugbait"
    ]
   },
   {
@@ -1365,6 +1659,42 @@
    ]
   },
   {
+   "id": 8820125,
+   "name": "Water Hazard Pulse Rifle",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "weapon": "Pulse Rifle",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820126,
+   "name": "Water Hazard Shotgun",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "weapon": "Shotgun",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820127,
+   "name": "Water Hazard Crossbow",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "weapon": "Crossbow",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
    "id": 8820058,
    "name": "Water Hazard Grenade",
    "classification": "useful",
@@ -1374,6 +1704,138 @@
    "weapon": "Grenade",
    "classnames": [
     "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820128,
+   "name": "Water Hazard RPG",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "weapon": "RPG",
+   "classnames": [
+    "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820129,
+   "name": "Water Hazard Bugbait",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_canals_06",
+   "weapon": "Bugbait",
+   "classnames": [
+    "weapon_bugbait"
+   ]
+  },
+  {
+   "id": 8820130,
+   "name": "Black Mesa East Pistol",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_eli_01",
+   "weapon": "Pistol",
+   "classnames": [
+    "weapon_pistol"
+   ]
+  },
+  {
+   "id": 8820131,
+   "name": "Black Mesa East .357 Magnum",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_eli_01",
+   "weapon": ".357 Magnum",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
+   "id": 8820132,
+   "name": "Black Mesa East SMG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_eli_01",
+   "weapon": "SMG",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820133,
+   "name": "Black Mesa East Pulse Rifle",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_eli_01",
+   "weapon": "Pulse Rifle",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820134,
+   "name": "Black Mesa East Shotgun",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_eli_01",
+   "weapon": "Shotgun",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820135,
+   "name": "Black Mesa East Crossbow",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_eli_01",
+   "weapon": "Crossbow",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
+   "id": 8820136,
+   "name": "Black Mesa East Grenade",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_eli_01",
+   "weapon": "Grenade",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820137,
+   "name": "Black Mesa East RPG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_eli_01",
+   "weapon": "RPG",
+   "classnames": [
+    "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820138,
+   "name": "Black Mesa East Bugbait",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_eli_01",
+   "weapon": "Bugbait",
+   "classnames": [
+    "weapon_bugbait"
    ]
   },
   {
@@ -1437,6 +1899,18 @@
    ]
   },
   {
+   "id": 8820139,
+   "name": "We Don't Go to Ravenholm... Crossbow",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "weapon": "Crossbow",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
    "id": 8820064,
    "name": "We Don't Go to Ravenholm... Grenade",
    "classification": "useful",
@@ -1446,6 +1920,42 @@
    "weapon": "Grenade",
    "classnames": [
     "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820140,
+   "name": "We Don't Go to Ravenholm... RPG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "weapon": "RPG",
+   "classnames": [
+    "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820141,
+   "name": "We Don't Go to Ravenholm... Bugbait",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d1_town_01",
+   "weapon": "Bugbait",
+   "classnames": [
+    "weapon_bugbait"
+   ]
+  },
+  {
+   "id": 8820142,
+   "name": "Highway 17 Pistol",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "weapon": "Pistol",
+   "classnames": [
+    "weapon_pistol"
    ]
   },
   {
@@ -1533,6 +2043,42 @@
    ]
   },
   {
+   "id": 8820143,
+   "name": "Highway 17 Bugbait",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_01",
+   "weapon": "Bugbait",
+   "classnames": [
+    "weapon_bugbait"
+   ]
+  },
+  {
+   "id": 8820144,
+   "name": "Sandtraps Pistol",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "weapon": "Pistol",
+   "classnames": [
+    "weapon_pistol"
+   ]
+  },
+  {
+   "id": 8820145,
+   "name": "Sandtraps .357 Magnum",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_coast_09",
+   "weapon": ".357 Magnum",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
    "id": 8820072,
    "name": "Sandtraps SMG",
    "classification": "progression",
@@ -1617,6 +2163,18 @@
    ]
   },
   {
+   "id": 8820146,
+   "name": "Nova Prospekt Pistol",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "weapon": "Pistol",
+   "classnames": [
+    "weapon_pistol"
+   ]
+  },
+  {
    "id": 8820079,
    "name": "Nova Prospekt .357 Magnum",
    "classification": "useful",
@@ -1689,6 +2247,54 @@
    ]
   },
   {
+   "id": 8820147,
+   "name": "Nova Prospekt RPG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "weapon": "RPG",
+   "classnames": [
+    "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820148,
+   "name": "Nova Prospekt Bugbait",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_02",
+   "weapon": "Bugbait",
+   "classnames": [
+    "weapon_bugbait"
+   ]
+  },
+  {
+   "id": 8820149,
+   "name": "Entanglement Pistol",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "weapon": "Pistol",
+   "classnames": [
+    "weapon_pistol"
+   ]
+  },
+  {
+   "id": 8820150,
+   "name": "Entanglement .357 Magnum",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "weapon": ".357 Magnum",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
    "id": 8820085,
    "name": "Entanglement SMG",
    "classification": "progression",
@@ -1725,6 +2331,18 @@
    ]
   },
   {
+   "id": 8820151,
+   "name": "Entanglement Crossbow",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "weapon": "Crossbow",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
    "id": 8820088,
    "name": "Entanglement Grenade",
    "classification": "useful",
@@ -1734,6 +2352,30 @@
    "weapon": "Grenade",
    "classnames": [
     "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820152,
+   "name": "Entanglement RPG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "weapon": "RPG",
+   "classnames": [
+    "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820153,
+   "name": "Entanglement Bugbait",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d2_prison_06",
+   "weapon": "Bugbait",
+   "classnames": [
+    "weapon_bugbait"
    ]
   },
   {
@@ -1797,6 +2439,18 @@
    ]
   },
   {
+   "id": 8820154,
+   "name": "Anticitizen One Crossbow",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "weapon": "Crossbow",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
    "id": 8820094,
    "name": "Anticitizen One Grenade",
    "classification": "useful",
@@ -1806,6 +2460,42 @@
    "weapon": "Grenade",
    "classnames": [
     "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820155,
+   "name": "Anticitizen One RPG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "weapon": "RPG",
+   "classnames": [
+    "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820156,
+   "name": "Anticitizen One Bugbait",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_02",
+   "weapon": "Bugbait",
+   "classnames": [
+    "weapon_bugbait"
+   ]
+  },
+  {
+   "id": 8820157,
+   "name": "Follow Freeman! Pistol",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "weapon": "Pistol",
+   "classnames": [
+    "weapon_pistol"
    ]
   },
   {
@@ -1890,6 +2580,234 @@
    "weapon": "RPG",
    "classnames": [
     "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820158,
+   "name": "Follow Freeman! Bugbait",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_c17_09",
+   "weapon": "Bugbait",
+   "classnames": [
+    "weapon_bugbait"
+   ]
+  },
+  {
+   "id": 8820159,
+   "name": "Our Benefactors Pistol",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "weapon": "Pistol",
+   "classnames": [
+    "weapon_pistol"
+   ]
+  },
+  {
+   "id": 8820160,
+   "name": "Our Benefactors .357 Magnum",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "weapon": ".357 Magnum",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
+   "id": 8820161,
+   "name": "Our Benefactors SMG",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "weapon": "SMG",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820162,
+   "name": "Our Benefactors Pulse Rifle",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "weapon": "Pulse Rifle",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820163,
+   "name": "Our Benefactors Shotgun",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "weapon": "Shotgun",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820164,
+   "name": "Our Benefactors Crossbow",
+   "classification": "progression",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "weapon": "Crossbow",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
+   "id": 8820165,
+   "name": "Our Benefactors Grenade",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "weapon": "Grenade",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820166,
+   "name": "Our Benefactors RPG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "weapon": "RPG",
+   "classnames": [
+    "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820167,
+   "name": "Our Benefactors Bugbait",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_citadel_01",
+   "weapon": "Bugbait",
+   "classnames": [
+    "weapon_bugbait"
+   ]
+  },
+  {
+   "id": 8820168,
+   "name": "Dark Energy Pistol",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_breen_01",
+   "weapon": "Pistol",
+   "classnames": [
+    "weapon_pistol"
+   ]
+  },
+  {
+   "id": 8820169,
+   "name": "Dark Energy .357 Magnum",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_breen_01",
+   "weapon": ".357 Magnum",
+   "classnames": [
+    "weapon_357"
+   ]
+  },
+  {
+   "id": 8820170,
+   "name": "Dark Energy SMG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_breen_01",
+   "weapon": "SMG",
+   "classnames": [
+    "weapon_smg1"
+   ]
+  },
+  {
+   "id": 8820171,
+   "name": "Dark Energy Pulse Rifle",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_breen_01",
+   "weapon": "Pulse Rifle",
+   "classnames": [
+    "weapon_ar2"
+   ]
+  },
+  {
+   "id": 8820172,
+   "name": "Dark Energy Shotgun",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_breen_01",
+   "weapon": "Shotgun",
+   "classnames": [
+    "weapon_shotgun"
+   ]
+  },
+  {
+   "id": 8820173,
+   "name": "Dark Energy Crossbow",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_breen_01",
+   "weapon": "Crossbow",
+   "classnames": [
+    "weapon_crossbow"
+   ]
+  },
+  {
+   "id": 8820174,
+   "name": "Dark Energy Grenade",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_breen_01",
+   "weapon": "Grenade",
+   "classnames": [
+    "weapon_frag"
+   ]
+  },
+  {
+   "id": 8820175,
+   "name": "Dark Energy RPG",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_breen_01",
+   "weapon": "RPG",
+   "classnames": [
+    "weapon_rpg"
+   ]
+  },
+  {
+   "id": 8820176,
+   "name": "Dark Energy Bugbait",
+   "classification": "useful",
+   "group": "chapter_weapon",
+   "campaign": "hl2",
+   "chapter": "d3_breen_01",
+   "weapon": "Bugbait",
+   "classnames": [
+    "weapon_bugbait"
    ]
   },
   {

@@ -103,6 +103,9 @@ HL2 = Campaign(
         # shots (2026-10-06).
         "zombie killer": ["Shotgun", ".357 Magnum", "Pulse Rifle", "Crossbow"],
         "gravity gun": ["Progressive Gravity Gun"],
+        # Stage 4: the full super gravity gun, which takes organics.
+        "super gravity gun": [["Progressive Gravity Gun"] * 4],
+        "suit": ["HEV Suit"],
         # The buggy chapters can in theory be run on foot (2026-10-06).
         "highway 17 buggy": ["Highway 17 Buggy Keys"],
         "sandtraps buggy": ["Sandtraps Buggy Keys"],
@@ -172,8 +175,12 @@ HL2 = Campaign(
                       "maps": {"d3_c17_10b": {"any": [["ranged", "gravity gun"]]},
                                "d3_c17_11": {"items": {"RPG": 1, "Grenade": 1,
                                                        "Progressive Gravity Gun": 2}}}},
-        # Past the confiscation field only the supercharged gun works.
-        "d3_citadel_01": {"maps": {"d3_citadel_04": {"items": {"Progressive Gravity Gun": 3}}}},
+        # Past the confiscation field only the supercharged gun works. Stage 3
+        # refuses organics, so under strict logic the soldiers there take a
+        # ranged weapon or stage 4, and the suit (2026-11-01).
+        "d3_citadel_01": {"maps": {"d3_citadel_04": {
+            "items": {"Progressive Gravity Gun": 3},
+            "strict": ["suit", ["ranged", "super gravity gun"]]}}},
         "d3_breen_01": {"entry": {"items": {"Progressive Gravity Gun": 3}}},
     },
     # d3_citadel_03 runs from the field (x 7700) to the exit (x 720); its

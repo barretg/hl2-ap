@@ -139,9 +139,9 @@ class WeaponsPerLevel(Toggle):
 
     When off, a weapon's item lets you hold it everywhere. When on, a weapon
     is held only in chapters whose own item for it has arrived (Highway 17
-    SMG, Follow Freeman! RPG). A chapter has an item for a weapon where the
-    weapon can be found, or where the chapter cannot be finished without
-    it. The Crowbar and the Progressive Gravity Gun stay one item.
+    SMG, Follow Freeman! RPG). Every chapter has an item for every weapon.
+    The Crowbar and the Progressive Gravity Gun stay one item. Needs
+    Chargesanity: without the chargers there are too few checks.
     """
 
     display_name = "Weapons Per Level"

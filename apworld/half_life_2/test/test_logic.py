@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from BaseClasses import CollectionState, ItemClassification
+from Options import OptionError
 
 from ..data import AUX_POWER, CHAPTERS_BY_KEY
 from ..items import filler_items, trap_items, unlock_item_for_chapter
@@ -72,6 +73,19 @@ class TestDefaults(HalfLife2TestBase):
         self.collect(self.get_item_by_name(GRAVITY_GUN))
         self.assertTrue(self.can_reach_location("Our Benefactors: Suit Charger 2 (Part 3)"))
         self.assertBeatable(True)
+
+    def test_citadel_soldiers_need_ranged_or_stage_four(self) -> None:
+        ranged = ["Pistol", ".357 Magnum", "SMG", "Pulse Rifle", "Shotgun", "Crossbow"]
+        everything_but(self, GRAVITY_GUN, *ranged)
+        for _ in range(3):
+            self.collect(self.get_item_by_name(GRAVITY_GUN))
+        self.assertTrue(self.can_reach_region("d3_citadel_03"))
+        self.assertFalse(self.can_reach_region("d3_citadel_04"))
+        self.collect_by_name("Crossbow")
+        self.assertTrue(self.can_reach_region("d3_citadel_04"))
+        self.remove_by_name("Crossbow")
+        self.collect(self.get_item_by_name(GRAVITY_GUN))
+        self.assertTrue(self.can_reach_region("d3_citadel_04"))
 
     def test_super_gravity_gun_check_below_stage_three(self) -> None:
         everything_but(self, GRAVITY_GUN)
@@ -270,9 +284,20 @@ class TestWeaponsPerLevel(HalfLife2TestBase):
         self.assertEqual(names.count(GRAVITY_GUN), 4)
         self.assertNotIn("Crowbar", names)
 
+    def test_every_chapter_has_every_weapon(self) -> None:
+        names = {i.name for i in self.multiworld.itempool}
+        self.assertTrue({"Our Benefactors Pistol", "Our Benefactors Crossbow",
+                         "Point Insertion Shotgun", "Dark Energy RPG"} <= names)
+
+    def test_needs_chargesanity(self) -> None:
+        self.world.options.chargesanity.value = 0
+        with self.assertRaises(OptionError):
+            self.world.generate_early()
+
     def test_ravenholm_needs_its_own_weapons(self) -> None:
         own = ["We Don't Go to Ravenholm... Shotgun", "We Don't Go to Ravenholm... .357 Magnum",
-               "We Don't Go to Ravenholm... Pulse Rifle"]
+               "We Don't Go to Ravenholm... Pulse Rifle",
+               "We Don't Go to Ravenholm... Crossbow"]
         everything_but(self, *own)
         self.assertFalse(self.can_reach_region("d1_town_01"))
         self.assertTrue(self.can_reach_region("d2_coast_01"))
@@ -303,15 +328,17 @@ class TestWeaponsPerLevel(HalfLife2TestBase):
 class TestWeaponsPerLevelLoose(HalfLife2TestBase):
     options = {"weapons_per_level": True, "logic_difficulty": "loose"}
 
-    def test_chopper_has_no_rpg_in_water_hazard(self) -> None:
-        everything_but(self, "Airboat Gun")
+    def test_chopper_needs_water_hazards_rpg(self) -> None:
+        everything_but(self, "Airboat Gun", "Water Hazard RPG")
         self.assertFalse(self.can_reach_region("d1_canals_13"))
+        self.collect_by_name("Water Hazard RPG")
+        self.assertTrue(self.can_reach_region("d1_canals_13"))
 
 
-class TestEverythingPerLevelNoChargers(HalfLife2TestBase):
-    """The biggest pool against the fewest locations."""
+class TestEverythingPerLevel(HalfLife2TestBase):
+    """The biggest pool."""
     options = {"weapons_per_level": True, "vehicle_keys_per_level": True,
-               "chargesanity": False, "shuffle_hev_suit": True, "shuffle_flashlight": True,
+               "shuffle_hev_suit": True, "shuffle_flashlight": True,
                "melee_throw": True, "randomize_aux_power": True}
 
     def test_pool_matches_locations(self) -> None:
@@ -322,6 +349,14 @@ class TestEverythingPerLevelNoChargers(HalfLife2TestBase):
 
 class TestEverythingShuffled(HalfLife2TestBase):
     options = {"shuffle_hev_suit": True, "shuffle_flashlight": True, "melee_throw": True}
+
+    def test_citadel_needs_shuffled_suit(self) -> None:
+        everything_but(self, "HEV Suit")
+        self.assertTrue(self.can_reach_region("d3_citadel_03"))
+        self.assertFalse(self.can_reach_region("d3_citadel_04"))
+        self.assertFalse(self.can_reach_location("Our Benefactors: Complete"))
+        self.collect_by_name("HEV Suit")
+        self.assertTrue(self.can_reach_location("Our Benefactors: Complete"))
 
     def test_items_in_pool(self) -> None:
         pool = {i.name for i in self.multiworld.itempool}

@@ -96,7 +96,9 @@ def test_item_split_records(probe: Path) -> None:
     assert ask(probe, "vehicle_key", "scripts/vehicles/jeep_test.txt") == ["Buggy Keys"]
     assert ask(probe, "vehicle_key", "scripts/vehicles/nothing.txt") == [""]
     assert ask(probe, "chapter_weapon", "d2_coast_09", "weapon_rpg") == ["1|Sandtraps RPG"]
-    assert ask(probe, "chapter_weapon", "d1_canals_01", "weapon_rpg") == ["1|"]
+    assert ask(probe, "chapter_weapon", "d1_canals_01", "weapon_rpg") == ["1|Route Kanal RPG"]
+    # Outside any chapter (the hub) a split weapon has no item.
+    assert ask(probe, "chapter_weapon", "alpha_hub", "weapon_rpg") == ["1|"]
     # Progressive and starting weapons stay one item.
     assert ask(probe, "chapter_weapon", "d1_town_01", "weapon_physcannon") == ["0|"]
     assert ask(probe, "chapter_weapon", "d1_town_01", "weapon_crowbar") == ["0|"]
