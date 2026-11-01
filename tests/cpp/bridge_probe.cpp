@@ -71,6 +71,7 @@ int main(int argc, char** argv) {
         PrintStrings("chapters", state.open_chapters);
         PrintStrings("excluded", state.excluded_chapters);
         PrintStrings("items", state.held_items);
+        PrintStrings("absent", state.absent_items);
         PrintStrings("ungated", state.ungated_classnames);
         std::printf("starting=");
         for (size_t j = 0; j < state.starting_weapons.size(); ++j) {

@@ -540,7 +540,8 @@ std::string ItemsLine(const Chapter* chapter) {
     int weapons_held = 0;
     for (const auto& gate : Data().Gates()) {
         const std::string item = WeaponItemIn(gate.first, chapter);
-        if (gate.first.compare(0, 7, "weapon_") == 0 && !item.empty()) {
+        if (gate.first.compare(0, 7, "weapon_") == 0 && !item.empty() &&
+            !State().Absent(item)) {
             ++weapons;
             weapons_held += HeldItem(item) ? 1 : 0;
         }

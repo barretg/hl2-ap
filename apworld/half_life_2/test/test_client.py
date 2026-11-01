@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
+from CommonClient import process_server_cmd
 from NetUtils import NetworkItem
 
 from ..client import launcher
@@ -96,6 +97,31 @@ class ClientTest(unittest.TestCase):
         return ctx
 
 
+class TestDeathLink(ClientTest):
+    def bounce(self, data: dict) -> None:
+        packet = {"cmd": "Bounced", "tags": ["DeathLink"], "data": data}
+        self.loop.run_until_complete(process_server_cmd(self.ctx, packet))
+
+    def test_own_death_is_not_received_back(self) -> None:
+        """Regression: the server bounces a DeathLink to its sender too, and
+        the client killed its own player with it."""
+        self.connect(self.ctx)
+        self.ctx.player_names = {0: "Archipelago", 1: "Gordon"}
+        self.ctx.server = SimpleNamespace(socket=SimpleNamespace(closed=False))
+        self.loop.run_until_complete(self.ctx.send_death("Gordon died to a hunter."))
+        sent = self.sent[-1]
+        self.assertEqual(sent["cmd"], "Bounce")
+        self.bounce(sent["data"])
+        self.snapshot()
+        self.assertNotIn("DEATHLINK", " ".join(self.events()))
+
+    def test_other_players_death_is_received(self) -> None:
+        self.bounce({"time": self.ctx.last_death_link + 5, "source": "PlayerTwo",
+                     "cause": "PlayerTwo fell."})
+        self.snapshot()
+        self.assertIn("DEATHLINK|PlayerTwo~PlayerTwo fell.", self.events())
+
+
 class TestSnapshot(ClientTest):
     def test_bridges_through_the_mod_folder(self) -> None:
         self.assertEqual(self.ctx.mod_dir, str(self.mod))
@@ -130,6 +156,17 @@ class TestSnapshot(ClientTest):
         fields = self.snapshot()
         self.assertEqual(fields["vehicle_keys_per_level"], "0")
         self.assertEqual(fields["weapons_per_level"], "1")
+
+    def test_absent_per_level_weapons(self) -> None:
+        """An older seed's data package lacks some per-level weapon items."""
+        self.ctx.apply_slot_data({**SLOT_DATA, "weapons_per_level": True})
+        self.assertEqual(self.snapshot()["absent"], "")
+        older = {name: id_ for name, id_ in ITEM_ID.items()
+                 if name not in ("Our Benefactors Pistol", "Dark Energy SMG")}
+        self.ctx.item_names.update_game(launcher.GAME_NAME, older)
+        self.assertEqual(self.snapshot()["absent"], "Dark Energy SMG;Our Benefactors Pistol")
+        self.ctx.apply_slot_data(SLOT_DATA)
+        self.assertEqual(self.snapshot()["absent"], "")
 
     def test_resync_rebuilds_rather_than_doubles(self) -> None:
         batch = {"index": 0, "items": [item("Progressive Gravity Gun")]}

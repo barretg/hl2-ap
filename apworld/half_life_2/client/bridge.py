@@ -51,7 +51,7 @@ REPLACE_RETRY_DELAY = 0.02
 # Snapshot keys the bridge writes itself. `options` may not reuse them.
 CORE_KEYS = frozenset({
     "session", "slot", "data_version", "connected", "death_link",
-    "death_link_amnesty", "chapters", "excluded", "remote", "items", "ungated",
+    "death_link_amnesty", "chapters", "excluded", "remote", "items", "absent", "ungated",
     "starting", "counts", "checked", "missing", "now", "event",
 })
 
@@ -208,6 +208,7 @@ class Bridge:
         death_link_amnesty: int = 0,
         excluded: Iterable[str] = (),
         remote: Iterable[str] = (),
+        absent: Iterable[str] = (),
         ungated: Iterable[str] = (),
         starting: Iterable[str] = (),
         counts: Mapping[str, int] | None = None,
@@ -254,6 +255,9 @@ class Bridge:
             "remote=" + ",".join(sorted(remote)),
             # Item names may contain commas, so `;`.
             "items=" + ";".join(sorted(items)),
+            # Item names this seed cannot hold: an older seed lacks them. What
+            # they would gate is let through.
+            "absent=" + ";".join(sorted(absent)),
             # Classnames this seed does not gate: neither granted nor refused.
             "ungated=" + ";".join(sorted(ungated)),
             # What the run opens with, in the seed's order. Empty means "use

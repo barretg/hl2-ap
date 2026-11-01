@@ -282,13 +282,16 @@ class HalfLife2Context(SuperContext):
             self.receive_items(args)
         elif cmd == "PrintJSON":
             self.relay_to_game(args)
-        elif cmd == "Bounced":
-            tags = args.get("tags", [])
-            if "DeathLink" in tags and self.death_link_enabled and self.bridge:
-                data = args.get("data", {})
-                source = str(data.get("source", "someone")).replace("~", "-")
-                cause = data.get("cause") or "an unknown fate"
-                self.bridge.queue_event("DEATHLINK", f"{source}~{cause}")
+
+    def on_deathlink(self, data: dict) -> None:
+        """Another player's death. CommonClient calls this only for a bounce
+        whose time is not our own last send: the server bounces our deaths
+        back to us too, and those must not kill us again."""
+        super().on_deathlink(data)
+        if self.death_link_enabled and self.bridge:
+            source = str(data.get("source", "someone")).replace("~", "-")
+            cause = data.get("cause") or "an unknown fate"
+            self.bridge.queue_event("DEATHLINK", f"{source}~{cause}")
 
     def apply_slot_data(self, slot_data: dict) -> None:
         self.campaigns = list(slot_data.get("campaigns", [HALF_LIFE_2]))
@@ -491,6 +494,17 @@ class HalfLife2Context(SuperContext):
         return names
 
     @property
+    def absent_items(self) -> list[str]:
+        """Per-level weapon items the seed's own data package lacks: a seed
+        made before every chapter had an item for every weapon. The game lets
+        those weapons through rather than refuse what can never arrive."""
+        if not self.game_options.get("weapons_per_level"):
+            return []
+        known = self.item_names[GAME_NAME]
+        return [e["name"] for e in self.campaign["items"]
+                if e.get("group") == "chapter_weapon" and e["id"] not in known]
+
+    @property
     def held_items(self) -> set[str]:
         return set(self.received_counts)
 
@@ -553,6 +567,7 @@ def publish(ctx: HalfLife2Context, force: bool = False) -> None:
         connected=ctx.server is not None and not ctx.server.socket.closed,
         chapters=sorted(ctx.open_chapters),
         items=sorted(ctx.held_items),
+        absent=ctx.absent_items,
         death_link=ctx.death_link_enabled,
         death_link_amnesty=ctx.death_link_amnesty,
         excluded=sorted(ctx.excluded_chapters),

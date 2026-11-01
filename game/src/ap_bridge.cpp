@@ -130,6 +130,8 @@ bool Bridge::Poll(Snapshot& out, std::vector<PendingEvent>& events) {
             CollectStrings(value, ',', parsed.remote_complete);
         } else if (key == "items") {
             CollectStrings(value, ';', parsed.held_items);
+        } else if (key == "absent") {
+            CollectStrings(value, ';', parsed.absent_items);
         } else if (key == "ungated") {
             CollectStrings(value, ';', parsed.ungated_classnames);
         } else if (key == "starting") {

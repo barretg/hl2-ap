@@ -69,6 +69,7 @@ def test_parses_a_full_snapshot(probe: Path, tmp_path: Path) -> None:
         death_link=True,
         death_link_amnesty=4,
         excluded=["d3_breen_01"],
+        absent=["Our Benefactors Pistol", "Dark Energy SMG"],
         ungated=["item_battery"],
         starting=["weapon_crowbar", "weapon_physcannon"],
         counts={"Progressive Gravity Gun": 2, "Other: Thing": 1},
@@ -90,6 +91,7 @@ def test_parses_a_full_snapshot(probe: Path, tmp_path: Path) -> None:
     assert fields["chapters"] == "d1_canals_01;d1_trainstation_01"
     assert fields["excluded"] == "d3_breen_01"
     assert fields["items"] == "Item, with comma;Shotgun;Water Hazard Boat Keys"
+    assert fields["absent"] == "Dark Energy SMG;Our Benefactors Pistol"
     assert fields["ungated"] == "item_battery"
     assert fields["starting"] == "weapon_crowbar;weapon_physcannon"
     assert fields["counts"] == "Other: Thing:1;Progressive Gravity Gun:2"

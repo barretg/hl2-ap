@@ -158,6 +158,9 @@ bool ClassnameHeld(const std::string& classname) {
     }
     if (PerLevelWeapon(classname)) {
         const std::string own = WeaponItemIn(classname, CurrentChapter());
+        if (State().Absent(own)) {
+            return true;  // an older seed has no item for it here
+        }
         return own.empty() ? !Gating() : Holds(own);
     }
     return Holds(item);

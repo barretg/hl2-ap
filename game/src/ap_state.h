@@ -37,6 +37,8 @@ struct Snapshot {
     std::set<std::string> remote_complete;
     std::set<std::string> held_items;         // item names the player has been sent
     std::set<std::string> ungated_classnames; // left entirely to the game
+    // Items an older seed lacks (`absent=`): what they gate is let through.
+    std::set<std::string> absent_items;
     std::vector<std::string> starting_weapons;
     // Copies held of items that come in copies (`counts=`).
     std::map<std::string, int> counts;
@@ -69,6 +71,9 @@ struct Snapshot {
     }
     bool RemoteComplete(const std::string& key) const {
         return remote_complete.find(key) != remote_complete.end();
+    }
+    bool Absent(const std::string& item) const {
+        return absent_items.find(item) != absent_items.end();
     }
     bool Ungated(const std::string& classname) const {
         return ungated_classnames.find(classname) != ungated_classnames.end();
